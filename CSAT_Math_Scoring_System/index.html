@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고3 수학 모의고사 응시 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 커스텀 스타일 */
+        .start-container, .result-container {
+            max-width: 800px;
+            margin: 1rem auto;
+            padding: 1rem;
+        }
+        /* 시험지 컨테이너 */
+        .exam-container {
+            width: 100%;
+            max-width: 1280px;
+            margin: 1rem auto;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .exam-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.8rem;
+        }
+        .exam-table th, .exam-table td {
+            border: 1px solid #999;
+            text-align: center;
+            padding: 4px;
+        }
+        .exam-table th {
+            font-weight: bold;
+        }
+        .q-num {
+            font-weight: bold;
+        }
+        .choice {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+            margin: 0 2px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        .choice.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .short-answer-box {
+            width: 100%;
+            height: 30px;
+            border: 1px solid #666;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .student-id-input {
+            width: 100%;
+            height: 30px;
+            text-align: center;
+            border: 1px solid #666;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            white-space: pre-wrap; /* \n을 줄바꿈으로 인식하도록 추가 */
+        }
+        .timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #1f2937;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+        /* 선택형 문항 셀 스타일 */
+        .mc-cell {
+            padding: 8px !important;
+            border-right: 1px solid #e2e8f0;
+        }
+        .mc-cell:last-child {
+            border-right: 1px solid #999;
+        }
+        .handwriting-box {
+            border: 2px solid #333;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 반응형 스타일 */
+        @media (max-width: 768px) {
+            .exam-container {
+                padding: 0.5rem;
+            }
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .common-section, .elective-section {
+                grid-column: span 1 / span 1;
+            }
+            /* 공통과목 선택형 순서 재정렬 */
+            #multiple-choice-common-tbody {
+                display: flex;
+                flex-direction: column;
+            }
+            #multiple-choice-common-tbody tr {
+                display: contents; /* tr 요소를 레이아웃에서 제거 */
+            }
+            #multiple-choice-common-tbody td {
+                width: 100%;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            #multiple-choice-common-tbody td:nth-child(1) { order: 1; }
+            #multiple-choice-common-tbody td:nth-child(4) { order: 2; }
+            #multiple-choice-common-tbody td:nth-child(7) { order: 3; }
+            #multiple-choice-common-tbody td:nth-child(10) { order: 4; }
+            #multiple-choice-common-tbody td:nth-child(13) { order: 5; }
+            #multiple-choice-common-tbody td:nth-child(2) { order: 6; }
+            #multiple-choice-common-tbody td:nth-child(5) { order: 7; }
+            #multiple-choice-common-tbody td:nth-child(8) { order: 8; }
+            #multiple-choice-common-tbody td:nth-child(11) { order: 9; }
+            #multiple-choice-common-tbody td:nth-child(14) { order: 10; }
+            #multiple-choice-common-tbody td:nth-child(3) { order: 11; }
+            #multiple-choice-common-tbody td:nth-child(6) { order: 12; }
+            #multiple-choice-common-tbody td:nth-child(9) { order: 13; }
+            #multiple-choice-common-tbody td:nth-child(12) { order: 14; }
+            #multiple-choice-common-tbody td:nth-child(15) { order: 15; }
+
+            #short-answer-row-1, #short-answer-row-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            /* 선택과목 단답형 2열로 변경 */
+            #short-answer-elective {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            #short-answer-elective tr {
+                display: contents;
+            }
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- 시작 화면 -->
+    <div id="start-screen" class="start-container bg-white">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">고3 수학 모의고사 응시 시스템</h1>
+        <div class="space-y-4">
+            <div>
+                <label for="academic-year" class="block text-sm font-medium text-gray-700">학년도</label>
+                <input type="number" id="academic-year" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="예) 2025">
+            </div>
+            <div>
+                <label for="exam-code" class="block text-sm font-medium text-gray-700">코드</label>
+                <input type="text" id="exam-code" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="예) 3A">
+            </div>
+            <div class="flex items-center">
+                <input id="timer-checkbox" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="timer-checkbox" class="ml-2 block text-sm text-gray-900">타이머 설정</label>
+            </div>
+            <div id="timer-setting" class="hidden">
+                <label for="timer-minutes" class="block text-sm font-medium text-gray-700">타이머 시간 (분)</label>
+                <input type="number" id="timer-minutes" value="100" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+        </div>
+        <div class="mt-8 text-center">
+            <button id="start-exam-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-300">
+                시험 시작
+            </button>
+        </div>
+    </div>
+
+    <!-- 시험지 화면 -->
+    <div id="exam-screen" class="hidden">
+        <div id="timer-display" class="timer hidden"></div>
+        <div class="exam-container bg-white">
+            <header class="text-center mb-4">
+                <h1 class="text-xl font-bold" id="exam-title"></h1>
+                <h2 class="text-3xl font-bold">수학 영역</h2>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-px bg-gray-400 border border-gray-400 mb-6 text-sm">
+                <!-- 성명 -->
+                <div class="md:col-span-2 bg-white flex flex-col">
+                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">성명</div>
+                    <div class="p-1 flex-grow">
+                        <input type="text" class="w-full h-full text-center border-0 focus:ring-0 text-base" placeholder="이름 입력">
+                    </div>
+                </div>
+                <!-- 필적확인란 -->
+                <div class="md:col-span-3 bg-white flex flex-col">
+                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">필적확인란</div>
+                    <div class="p-1 flex-grow">
+                        <div class="handwriting-box">
+                            <p class="font-normal" id="handwriting-phrase"></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- 수험번호 -->
+                <div class="md:col-span-5 bg-white flex flex-col">
+                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">수 험 번 호</div>
+                    <div class="p-1 flex-grow flex items-center">
+                        <div class="grid grid-cols-8 gap-1 w-full">
+                            <input type="text" maxlength="1" class="student-id-input">
+                            <input type="text" maxlength="1" class="student-id-input">
+                            <input type="text" maxlength="1" class="student-id-input">
+                            <input type="text" maxlength="1" class="student-id-input">
+                            <input type="text" maxlength="1" class="student-id-input">
+                            <input type="text" maxlength="1" class="student-id-input">
+                            <input type="text" maxlength="1" class="student-id-input">
+                            <input type="text" maxlength="1" class="student-id-input">
+                        </div>
+                    </div>
+                </div>
+                <!-- 선택과목 -->
+                <div class="md:col-span-2 bg-white flex flex-col">
+                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">선택 과목</div>
+                    <div class="p-1 flex-grow">
+                        <select id="subject-select" class="w-full h-full text-center border-0 focus:ring-0 bg-transparent text-base">
+                            <option value="확률과 통계">확률과 통계</option>
+                            <option value="미적분">미적분</option>
+                            <option value="기하">기하</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 답안 작성란 (Grid 레이아웃) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 main-grid">
+                <!-- 공통과목 (선택형 + 단답형) -->
+                <div class="col-span-1 md:col-span-8 common-section">
+                    <!-- 공통과목 선택형 -->
+                    <table class="exam-table">
+                        <thead><tr><th colspan="3" class="bg-gray-100">공통과목 선택형</th></tr></thead>
+                        <tbody id="multiple-choice-common-tbody">
+                            <!-- JS로 생성 -->
+                        </tbody>
+                    </table>
+                    <!-- 공통과목 단답형 -->
+                    <table class="exam-table mt-4">
+                        <thead><tr><th class="bg-gray-100">공통과목 단답형</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2">
+                                    <div id="short-answer-row-1" class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        <!-- JS로 16~19 생성 -->
+                                    </div>
+                                    <div id="short-answer-row-2" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                                        <!-- JS로 20~22 생성 -->
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                     <!-- 단답형 표기 방법 안내 추가 -->
+                    <div class="text-left text-xs mt-2 p-2 border border-gray-300 rounded">
+                        <p class="font-bold">※ 단답형 답란 표기 방법</p>
+                        <p class="ml-2">○ 십진법에 의하되, 반드시 자리에 맞추어 표기</p>
+                        <p class="ml-2">○ 정답이 한 자리인 경우, 일의 자리에만 표기하거나, 십의 자리에 0을 표기하고 일의 자리에 표기</p>
+                    </div>
+                </div>
+
+                <!-- 선택과목 (23-30) -->
+                <div class="col-span-1 md:col-span-4 elective-section mt-4 md:mt-0">
+                    <!-- 선택과목 선택형 -->
+                    <table class="exam-table">
+                        <thead><tr><th colspan="2" class="bg-pink-100">선택과목 선택형</th></tr></thead>
+                        <tbody id="multiple-choice-elective">
+                            <!-- JS로 생성 -->
+                        </tbody>
+                    </table>
+                    <!-- 선택과목 단답형 -->
+                    <table class="exam-table mt-4">
+                        <thead><tr><th class="bg-pink-100">선택과목 단답형</th></tr></thead>
+                        <tbody id="short-answer-elective">
+                            <!-- JS로 생성 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button id="submit-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-300 w-full">
+                    제출
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 결과 화면 -->
+    <div id="result-screen" class="result-container bg-white hidden"></div>
+    <!-- Modal -->
+    <div id="modal" class="modal-overlay hidden"></div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM 요소 ---
+    const startScreen = document.getElementById('start-screen');
+    const examScreen = document.getElementById('exam-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const timerCheckbox = document.getElementById('timer-checkbox');
+    const timerSetting = document.getElementById('timer-setting');
+    const timerMinutesInput = document.getElementById('timer-minutes');
+    const timerDisplay = document.getElementById('timer-display');
+    const academicYearInput = document.getElementById('academic-year');
+    const examCodeInput = document.getElementById('exam-code');
+    const examTitle = document.getElementById('exam-title');
+    const handwritingPhrase = document.getElementById('handwriting-phrase');
+    const subjectSelect = document.getElementById('subject-select');
+    const submitBtn = document.getElementById('submit-btn');
+    const modal = document.getElementById('modal');
+    
+    // --- 초기화 ---
+    (document.getElementById('result-screen')).innerHTML = `<h1 class="text-3xl font-bold text-center mb-6 text-gray-800">채점 결과</h1><div class="text-center mb-6"><p class="text-lg">총점</p><p id="total-score" class="text-6xl font-bold text-blue-600">0</p><p class="text-lg">/ 100</p></div><div id="score-details"><h2 class="text-xl font-semibold mb-4">상세 채점 결과</h2><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">문항</th><th scope="col" class="px-6 py-3">제출 답안</th><th scope="col" class="px-6 py-3">정답</th><th scope="col" class="px-6 py-3">결과</th><th scope="col" class="px-6 py-3">배점</th></tr></thead><tbody id="result-table-body"></tbody></table></div>`;
+    (document.getElementById('modal')).innerHTML = `<div class="modal-content"><p id="modal-text" class="text-lg mb-6"></p><div class="flex justify-center space-x-4"><button id="modal-confirm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">확인</button><button id="modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-6 rounded">취소</button></div></div>`;
+
+    const modalText = document.getElementById('modal-text');
+    const modalConfirm = document.getElementById('modal-confirm');
+    const modalCancel = document.getElementById('modal-cancel');
+
+
+    let timerInterval;
+    let onConfirmCallback;
+    let answers = {}; // 정답을 저장할 객체
+    let userAnswers = {};
+    let currentExamData = null; // 현재 시험의 전체 데이터를 저장
+    const sheetId = '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw';
+    
+    // --- 배점 (고정) ---
+    const points = { 1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4, 21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4 };
+    
+    // --- 모달 함수 ---
+    const showModal = (text, showCancel = true, onConfirm) => {
+        modalText.textContent = text;
+        modalCancel.style.display = showCancel ? 'inline-block' : 'none';
+        modal.classList.remove('hidden');
+        onConfirmCallback = onConfirm;
+    };
+
+    modalConfirm.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        if (onConfirmCallback) onConfirmCallback();
+    });
+    modalCancel.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    // --- Google Sheet 데이터 불러오기 및 처리 ---
+    async function fetchExamData(year, code) {
+        if (!year || !code) {
+            showModal('학년도와 코드를 모두 입력해주세요.', false);
+            return null;
+        }
+        try {
+            const masterGid = '0';
+            const masterUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${masterGid}`;
+            
+            const masterResponse = await fetch(masterUrl);
+            if (!masterResponse.ok) throw new Error('시험 목록 시트를 불러올 수 없습니다.');
+            
+            const masterBlob = await masterResponse.blob();
+            const masterCsvText = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(masterBlob, 'UTF-8');
+            });
+
+            const masterRows = masterCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
+            
+            const masterHeaders = masterRows[0];
+            const yearIndex = masterHeaders.indexOf('학년도');
+            const codeIndex = masterHeaders.indexOf('코드');
+            const gidIndex = masterHeaders.indexOf('GID');
+
+            if (yearIndex === -1 || codeIndex === -1 || gidIndex === -1) {
+                throw new Error("'목록' 시트에 '학년도', '코드', 'GID' 열이 필요합니다.");
+            }
+
+            const examInfoRow = masterRows.slice(1).find(row => row[yearIndex] === year && row[codeIndex] === code);
+
+            if (!examInfoRow) {
+                throw new Error('입력한 학년도와 코드에 해당하는 시험 정보가 없습니다.');
+            }
+            const examGid = examInfoRow[gidIndex];
+
+            const examUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${examGid}`;
+            const examResponse = await fetch(examUrl);
+            if (!examResponse.ok) throw new Error('시험 데이터 시트를 불러올 수 없습니다.');
+
+            const examBlob = await examResponse.blob();
+            const examCsvText = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(examBlob, 'UTF-8');
+            });
+
+            const examRows = examCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
+
+            const examData = {
+                examName: examRows[25][2], // C26
+                handwritingPhrase: examRows[26][2], // C27
+                rawRows: examRows // 원본 데이터를 저장
+            };
+            return examData;
+        } catch (error) {
+            console.error('시험 데이터 불러오기 실패:', error);
+            showModal(`시험 데이터를 불러오는 데 실패했습니다: ${error.message}`, false);
+            return null;
+        }
+    }
+
+    // --- 정답 객체 생성 함수 ---
+    function populateAnswers() {
+        if (!currentExamData) return;
+        const examRows = currentExamData.rawRows;
+        answers = {}; // 정답 객체 초기화
+
+        // 공통 문항 (C3:C24)
+        for (let i = 2; i <= 23; i++) {
+            const qNum = i - 1;
+            if (examRows[i] && examRows[i][2]) answers[qNum] = parseInt(examRows[i][2]);
+        }
+        
+        // 선택 과목 정답
+        const selectedSubject = subjectSelect.value;
+        let answerColIndex;
+        if (selectedSubject === '확률과 통계') answerColIndex = 5; // F열
+        else if (selectedSubject === '미적분') answerColIndex = 8; // I열
+        else if (selectedSubject === '기하') answerColIndex = 11; // L열
+        
+        // 선택 문항 (23~30번)
+        for (let i = 2; i <= 9; i++) {
+            const qNum = 21 + i;
+            if (examRows[i] && examRows[i][answerColIndex]) answers[qNum] = parseInt(examRows[i][answerColIndex]);
+        }
+    }
+
+    // --- 시험지 생성 함수 ---
+    const createMcCellContent = (qNum) => {
+        let choicesHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            choicesHtml += `<span class="choice" data-q="${qNum}" data-ans="${i}">${i}</span>`;
+        }
+        return `<div class="flex items-center"><div class="w-1/4 text-center"><span class="q-num">${qNum}</span></div><div class="w-3/4 flex justify-around">${choicesHtml}</div></div>`;
+    };
+    
+    const createElectiveMultipleChoiceRow = (qNum) => {
+        let choicesHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            choicesHtml += `<span class="choice" data-q="${qNum}" data-ans="${i}">${i}</span>`;
+        }
+        return `<tr><td class="mc-cell w-1/4 text-center"><span class="q-num">${qNum}</span></td><td class="mc-cell w-3/4"><div class="flex justify-around">${choicesHtml}</div></td></tr>`;
+    };
+
+    const createShortAnswerItem = (qNum) => {
+        let html = `<div class="border border-gray-300 rounded p-2 h-full"><div class="font-bold text-base mb-2 text-center">${qNum}</div><div class="max-w-[180px] mx-auto"><div id="short-answer-display-${qNum}" class="grid grid-cols-3 gap-1 mb-1"><div class="short-answer-box"></div><div class="short-answer-box"></div><div class="short-answer-box"></div></div><div class="grid grid-cols-3 gap-1 text-xs font-semibold"><div>백</div><div>십</div><div>일</div></div><div id="short-answer-input-${qNum}" class="grid grid-cols-3 gap-1 mt-1"><div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="0">${[...Array(9)].map((_, i) => `<div class="flex justify-center my-1"><span class="choice" data-q="${qNum}" data-digit="0" data-ans="${i + 1}">${i + 1}</span></div>`).join('')}</div><div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="1">${[...Array(10)].map((_, i) => `<div class="flex justify-center my-1"><span class="choice" data-q="${qNum}" data-digit="1" data-ans="${i}">${i}</span></div>`).join('')}</div><div class="short-answer-col" data-q="${qNum}" data-digit="2">${[...Array(10)].map((_, i) => `<div class="flex justify-center my-1"><span class="choice" data-q="${qNum}" data-digit="2" data-ans="${i}">${i}</span></div>`).join('')}</div></div></div></div>`;
+        return html;
+    };
+
+    const createShortAnswerQuestionForElective = (qNum) => {
+        let html = `<tr class="border-t-2 border-gray-300"><td>${createShortAnswerItem(qNum)}</td></tr>`;
+        return html;
+    };
+    
+    // --- 시험지 화면 구성 ---
+    const mcCommonTbody = document.getElementById('multiple-choice-common-tbody');
+    for (let row = 0; row < 5; row++) {
+        let rowHtml = '<tr>';
+        for (let col = 0; col < 3; col++) {
+            const qNum = row + 1 + (col * 5);
+            rowHtml += `<td class="mc-cell">${createMcCellContent(qNum)}</td>`;
+        }
+        rowHtml += '</tr>';
+        mcCommonTbody.innerHTML += rowHtml;
+    }
+    const saRow1 = document.getElementById('short-answer-row-1');
+    for (let i = 16; i <= 19; i++) saRow1.innerHTML += createShortAnswerItem(i);
+    const saRow2 = document.getElementById('short-answer-row-2');
+    for (let i = 20; i <= 22; i++) saRow2.innerHTML += createShortAnswerItem(i);
+    const mcElectiveTbody = document.getElementById('multiple-choice-elective');
+    for (let i = 23; i <= 28; i++) mcElectiveTbody.innerHTML += createElectiveMultipleChoiceRow(i);
+    const saElectiveTbody = document.getElementById('short-answer-elective');
+    for (let i = 29; i <= 30; i++) saElectiveTbody.innerHTML += createShortAnswerQuestionForElective(i);
+    
+    // --- 이벤트 리스너 및 기능 함수 ---
+    const startExam = (examData) => {
+        currentExamData = examData;
+        populateAnswers(); // 초기 정답 설정
+        examTitle.textContent = examData.examName;
+        handwritingPhrase.textContent = examData.handwritingPhrase;
+
+        startScreen.classList.add('hidden');
+        examScreen.classList.remove('hidden');
+        
+        if (timerCheckbox.checked) {
+            timerDisplay.classList.remove('hidden');
+            let timeRemaining = parseInt(timerMinutesInput.value) * 60;
+            updateTimerDisplay(timeRemaining);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay(timeRemaining);
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    showModal('시험 시간이 종료되었습니다. 답안을 자동 제출합니다.', false, () => submitExam());
+                }
+            }, 1000);
+        }
+    };
+
+    const prepareExam = async () => {
+        const year = academicYearInput.value.trim();
+        const code = examCodeInput.value.trim();
+        const examData = await fetchExamData(year, code);
+
+        if (examData) {
+            let confirmationText = `'${examData.examName}'를 응시하시겠습니까?`;
+            if (timerCheckbox.checked) {
+                confirmationText += `\n(타이머: ${timerMinutesInput.value}분 설정)`;
+            } else {
+                confirmationText += `\n(타이머 미설정)`;
+            }
+            showModal(confirmationText, true, () => startExam(examData));
+        }
+    };
+
+    startExamBtn.addEventListener('click', prepareExam);
+    timerCheckbox.addEventListener('change', () => timerSetting.classList.toggle('hidden', !timerCheckbox.checked));
+    subjectSelect.addEventListener('change', populateAnswers); // 선택과목 변경 시 정답 재설정
+    submitBtn.addEventListener('click', () => showModal('답안을 제출하시겠습니까?', true, () => submitExam()));
+    examScreen.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('choice')) return;
+        const { q, ans, digit } = e.target.dataset;
+        if (digit === undefined) { 
+            const selected = document.querySelector(`.choice[data-q='${q}'].selected`);
+            if (selected) selected.classList.remove('selected');
+            if (selected !== e.target) {
+                e.target.classList.add('selected');
+                userAnswers[q] = parseInt(ans);
+            } else {
+                delete userAnswers[q];
+            }
+        } else {
+            const selectedInCol = document.querySelector(`.short-answer-col[data-q='${q}'][data-digit='${digit}'] .choice.selected`);
+            if (selectedInCol) selectedInCol.classList.remove('selected');
+            if (selectedInCol !== e.target) e.target.classList.add('selected');
+            updateShortAnswerDisplay(q);
+        }
+    });
+    
+    const updateTimerDisplay = (seconds) => {
+        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        timerDisplay.textContent = `${h}:${m}:${s}`;
+    };
+
+    const updateShortAnswerDisplay = (qNum) => {
+        const displayBoxes = document.querySelectorAll(`#short-answer-display-${qNum} .short-answer-box`);
+        const hundredsNode = document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='0'] .choice.selected`);
+        const tensNode = document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='1'] .choice.selected`);
+        const onesNode = document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='2'] .choice.selected`);
+
+        const hundreds = hundredsNode ? hundredsNode.dataset.ans : null;
+        const tens = tensNode ? tensNode.dataset.ans : null;
+        const ones = onesNode ? onesNode.dataset.ans : null;
+
+        displayBoxes[0].textContent = hundreds || '';
+        displayBoxes[1].textContent = tens || '';
+        displayBoxes[2].textContent = ones || '';
+
+        // Reset the answer first
+        delete userAnswers[qNum];
+
+        let answerStr = '';
+        // Valid combinations: (H, T, O), (T, O), (O)
+        if (hundreds !== null && tens !== null && ones !== null) {
+            answerStr = hundreds + tens + ones;
+        } else if (hundreds === null && tens !== null && ones !== null) {
+            answerStr = tens + ones;
+        } else if (hundreds === null && tens === null && ones !== null) {
+            answerStr = ones;
+        }
+
+        if (answerStr !== '') {
+            userAnswers[qNum] = parseInt(answerStr, 10);
+        }
+    };
+    const submitExam = () => {
+        clearInterval(timerInterval);
+        examScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        calculateScore();
+    };
+    const calculateScore = () => {
+        let totalScore = 0;
+        const resultTableBody = document.getElementById('result-table-body');
+        resultTableBody.innerHTML = '';
+        for (let qNum = 1; qNum <= 30; qNum++) {
+            if (!points[qNum]) continue;
+            const userAnswer = userAnswers[qNum];
+            const correctAnswer = answers[qNum];
+            const point = points[qNum];
+            const isCorrect = userAnswer === correctAnswer;
+            if (isCorrect) totalScore += point;
+            const row = document.createElement('tr');
+            row.className = isCorrect ? 'bg-green-50' : 'bg-red-50';
+            row.innerHTML = `<td class="px-6 py-4 font-medium text-gray-900">${qNum}</td><td class="px-6 py-4">${userAnswer !== undefined ? userAnswer : '미제출'}</td><td class="px-6 py-4">${correctAnswer !== undefined ? correctAnswer : '정답 없음'}</td><td class="px-6 py-4 font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${isCorrect ? 'O' : 'X'}</td><td class="px-6 py-4">${point}점</td>`;
+            resultTableBody.appendChild(row);
+        }
+        document.getElementById('total-score').textContent = totalScore;
+    };
+});
+</script>
+</body>
+</html>

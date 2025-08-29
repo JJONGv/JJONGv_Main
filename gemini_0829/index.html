@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구글 AI의 미래: 지니 3와 알파이볼브 (슬라이드 버전)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0f172a; /* bg-slate-900 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #presentation-wrapper {
+            width: 100%;
+            max-width: 1280px; /* Optional: sets a max width */
+            padding: 1rem;
+        }
+        #presentation-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #020617; /* bg-slate-950 */
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 5vw 6vw; /* Increased padding */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            transform: scale(0.98);
+            pointer-events: none;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #4285F4, #DB4437, #F4B400, #0F9D58);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2vw; /* Increased padding */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        /* Navigation */
+        #nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            backdrop-filter: blur(10px);
+        }
+        #nav-controls button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.2s;
+        }
+        #nav-controls button:hover {
+            transform: scale(1.2);
+        }
+        #slide-counter {
+            color: #d1d5db; /* text-gray-300 */
+            font-size: 1rem;
+            min-width: 50px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="presentation-wrapper">
+        <div id="presentation-container">
+            <!-- Slide 1: Hero -->
+            <div class="slide active text-center">
+                <h1 class="text-[5.5vw] font-black mb-4 leading-tight">
+                    <span class="gradient-text">구글 AI의 진화</span>
+                </h1>
+                <h2 class="text-[3vw] font-bold text-gray-300 mb-6">지니 3와 알파이볼브가 여는 새로운 지평</h2>
+                <p class="text-[1.5vw] text-gray-400 max-w-5xl mx-auto">
+                    구글 딥마인드의 혁신적인 두 AI 모델을 통해 구글 AI가 나아갈 방향을 탐색하고, 기술이 가져올 변화와 함께 우리가 고민해야 할 지점들을 살펴봅니다.
+                </p>
+            </div>
+
+            <!-- Slide 2: Genie 3 Intro -->
+            <div class="slide">
+                <div class="w-full">
+                    <h2 class="text-[3.2vw] font-bold text-center mb-8 text-gray-100">
+                        1. 지니(Genie) 3: <span class="text-blue-400">상상을 현실로 만드는 월드 모델</span>
+                    </h2>
+                    <div class="grid grid-cols-2 gap-8 items-center">
+                        <div class="card">
+                            <h3 class="text-[1.8vw] font-bold mb-4 text-gray-100">기존 모델과의 결정적 차이</h3>
+                            <p class="text-[1.3vw] text-gray-300 leading-relaxed">
+                                지니 3는 단순히 이미지나 영상을 생성하던 기존 모델을 뛰어넘어, <strong>상호작용이 가능한 '살아있는 세계' 그 자체를 창조</strong>합니다. 핵심은 '보여주는 것'에서 '경험하게 하는 것'으로의 전환입니다.
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-center justify-center space-y-2 p-4 bg-slate-800 rounded-2xl">
+                            <div class="w-full text-center p-2 bg-gray-900 rounded-lg border border-dashed border-gray-600">
+                                <p class="text-gray-400 text-[1.1vw]">입력 프롬프트: "수정 동굴 속에 사는 용" 🐉</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>
+                            <div class="w-full h-48 bg-gray-700 rounded-lg flex items-center justify-center p-4 border-2 border-blue-400 shadow-lg shadow-blue-500/20">
+                                <div class="text-center">
+                                    <p class="text-3xl mb-2">🎮</p>
+                                    <p class="font-bold text-[1.5vw] text-white">플레이 가능한 2D 게임 월드 생성</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: Genie 3 Details -->
+            <div class="slide">
+                 <div class="w-full card">
+                    <h3 class="text-[2.4vw] font-bold mb-6 text-center text-blue-300">지니 3의 혁신 포인트</h3>
+                    <div class="space-y-6 text-[1.4vw]">
+                        <div>
+                            <h4 class="font-bold text-xl text-gray-100">▶ 생성 결과의 차이: 정적 결과물 vs 동적 상호작용</h4>
+                            <p class="pl-6 text-gray-300"><strong>- 기존 모델:</strong> 고정된 이미지/영상 생성.<br><strong>- 지니 3:</strong> 사용자가 직접 조종하고 탐험할 수 있는 <strong>플레이 가능한(Action-Controllable) 2D 월드</strong>를 생성.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xl text-gray-100">▶ 학습 방식의 차이: 정제된 데이터 vs 비정형 데이터</h4>
+                            <p class="pl-6 text-gray-300"><strong>- 기존 모델:</strong> 정제된 데이터 필요.<br><strong>- 지니 3:</strong> 유튜브 등 인터넷의 <strong>라벨링 없는(Unlabeled) 동영상</strong>을 스스로 분석해 물리 법칙과 상호작용 학습.</p>
+                        </div>
+                         <div>
+                            <h4 class="font-bold text-xl text-gray-100">▶ 핵심 기술의 차이: 시각적 재현 vs 잠재적 행동 추론</h4>
+                            <p class="pl-6 text-gray-300"><strong>- 기존 모델:</strong> 시각적 재현에 집중.<br><strong>- 지니 3:</strong> 영상 속 보이지 않는 <strong>사용자의 '행동'(Latent Actions)을 추론</strong>하고 제어하는 모델 구축.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4: AlphaEvolve -->
+            <div class="slide">
+                <div class="w-full">
+                    <h2 class="text-[3.2vw] font-bold text-center mb-8 text-gray-100">
+                        2. 알파이볼브(AlphaEvolve): <span class="text-green-400">AI가 AI를 진화시키다</span>
+                    </h2>
+                    <div class="grid grid-cols-2 gap-8 items-center">
+                        <div class="flex flex-col items-center justify-center space-y-4 p-4 bg-slate-800 rounded-2xl">
+                             <p class="text-[1.3vw] font-semibold text-gray-200">기존 알고리즘</p>
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>
+                             <p class="text-[1.3vw] font-semibold text-green-400">진화적 탐색</p>
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>
+                             <p class="text-[1.3vw] font-semibold text-gray-200">더 효율적인 새 알고리즘 발견 🏆</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="text-[1.8vw] font-bold mb-4 text-gray-100">핵심 개념</h3>
+                            <p class="text-[1.3vw] text-gray-300 leading-relaxed">
+                                다윈의 <strong>진화론에서 영감을 받은 AI</strong>로, 기존 알고리즘을 변형/경쟁시켜 인간의 직관을 뛰어넘는 더 효율적인 해법을 발견합니다.
+                            </p>
+                             <ul class="mt-4 space-y-2 text-[1.3vw]">
+                                <li class="flex items-start"><span class="text-green-400 mr-2">▶</span> <span class="text-gray-200">진화적 탐색으로 최적의 해법 발견</span></li>
+                                <li class="flex items-start"><span class="text-green-400 mr-2">▶</span> <span class="text-gray-200">정렬, 해싱 등 핵심 알고리즘 성능 향상</span></li>
+                                <li class="flex items-start"><span class="text-green-400 mr-2">▶</span> <span class="text-gray-200">인간이 생각 못한 방식의 코드 발견</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: Future Direction -->
+            <div class="slide text-center">
+                <h2 class="text-[3.2vw] font-bold mb-6 text-gray-100">3. 구글 AI의 발전 방향</h2>
+                <p class="text-[1.8vw] font-bold mb-8"><span class="gradient-text">창의성과 최적화의 융합</span></p>
+                <div class="grid grid-cols-2 gap-8 text-left">
+                    <div class="card">
+                        <h3 class="text-[1.8vw] font-bold mb-3 text-blue-400">창의성 증폭</h3>
+                        <p class="text-[1.3vw] text-gray-300 leading-relaxed">
+                            <strong>지니 3</strong>처럼 AI가 인간의 아이디어를 즉각적인 경험으로 전환시키는 '창의적 파트너' 역할을 합니다.
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-[1.8vw] font-bold mb-3 text-green-400">지능형 최적화</h3>
+                        <p class="text-[1.3vw] text-gray-300 leading-relaxed">
+                            <strong>알파이볼브</strong>처럼 AI가 스스로 시스템을 개선하는 '자동화된 문제 해결사' 역할을 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: Concerns -->
+            <div class="slide">
+                <h2 class="text-[3.2vw] font-bold text-center mb-8 text-gray-100">4. 우려되는 지점 및 <span class="text-red-400">윤리적 고찰</span></h2>
+                <div class="grid grid-cols-3 gap-6 w-full">
+                    <div class="card border-red-500/50">
+                        <h3 class="text-[1.5vw] font-bold mb-3 text-red-400">콘텐츠의 진위와 저작권</h3>
+                        <p class="text-[1.2vw] text-gray-300 leading-relaxed">가짜뉴스, 딥페이크 등 악의적 콘텐츠 제작에 사용될 위험과 생성된 콘텐츠의 저작권 귀속 문제가 발생합니다.</p>
+                    </div>
+                    <div class="card border-yellow-500/50">
+                        <h3 class="text-[1.5vw] font-bold mb-3 text-yellow-400">일자리 대체와 불평등</h3>
+                        <p class="text-[1.2vw] text-gray-300 leading-relaxed">개발자, 디자이너 등 기존 일자리를 대체/변화시키고 기술 혜택이 소수에게 집중되어 경제적 불평등을 심화시킬 수 있습니다.</p>
+                    </div>
+                    <div class="card border-purple-500/50">
+                        <h3 class="text-[1.5vw] font-bold mb-3 text-purple-400">통제 불가능한 '블랙박스'</h3>
+                        <p class="text-[1.2vw] text-gray-300 leading-relaxed">AI가 만든 해법을 인간이 이해하기 어려워, 금융/국방 등 중요 시스템 적용 시 예측 불가능한 오류가 발생할 수 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 7: Conclusion -->
+            <div class="slide text-center">
+                <h2 class="text-[3.5vw] font-bold mb-6 text-gray-100">결론: 새로운 가능성과 무거운 책임</h2>
+                <p class="text-[1.5vw] text-gray-400 leading-relaxed mb-8 max-w-5xl">
+                    지니 3와 알파이볼브는 인류의 창의성을 해방하고 과학 기술의 발전을 가속화할 잠재력을 지녔지만, 동시에 사회 구조를 뒤흔들 파괴력도 내포하고 있습니다.
+                </p>
+                <p class="text-[1.7vw] text-gray-200 font-semibold max-w-5xl p-8 card bg-indigo-900/30 border-indigo-500">
+                    지속적인 사회적 논의와 윤리적 가이드라인 확립을 통해, AI가 인류 전체에 이로운 방향으로 발전할 수 있도록 지혜를 모아야 할 때입니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="nav-controls">
+        <button id="prevBtn" title="Previous Slide">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <span id="slide-counter"></span>
+        <button id="nextBtn" title="Next Slide">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const slideCounter = document.getElementById('slide-counter');
+            let currentSlide = 0;
+
+            function showSlide(index) {
+                // Deactivate current slide
+                slides[currentSlide].classList.remove('active');
+
+                // Update current slide index
+                currentSlide = (index + slides.length) % slides.length;
+
+                // Activate new slide
+                slides[currentSlide].classList.add('active');
+
+                // Update counter
+                slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            }
+
+            // Event Listeners
+            prevBtn.addEventListener('click', () => showSlide(currentSlide - 1));
+            nextBtn.addEventListener('click', () => showSlide(currentSlide + 1));
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    showSlide(currentSlide - 1);
+                } else if (e.key === 'ArrowRight') {
+                    showSlide(currentSlide + 1);
+                }
+            });
+
+            // Initial setup
+            showSlide(0);
+        });
+    </script>
+
+</body>
+</html>

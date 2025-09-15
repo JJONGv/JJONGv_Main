@@ -1,1 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini와 함께하는 스마트한 학부모 되기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: The application is structured with a tabbed navigation system ("소개", "핵심 기능", "실전 활용", "실습", "안전 수칙") to provide a non-linear, user-friendly experience, which is more effective than a linear slide presentation. This allows parents to explore topics at their own pace and focus on sections most relevant to them. Each tab reveals a dedicated section, logically segmenting the workshop content from foundational knowledge to practical application and safety guidelines, thus enhancing usability and comprehension. -->
+    <!-- Visualization & Content Choices: Report Info: Gemini workshop outline -> Goal: Educate parents on Gemini -> Viz/Presentation: Interactive tabbed sections, icon-based feature cards, accordion-style use cases, and a simulated chat for practice. Interaction: Users click tabs to navigate, expand accordions to view details, and interact with a mock-prompt area to simulate using Gemini. Justification: This structure transforms a static presentation into an engaging, self-paced learning tool. The simulation provides a safe environment for hands-on practice. Library/Method: Vanilla JS for interactivity, Tailwind CSS for styling. No charts needed as content is qualitative. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FDFBF8;
+            color: #3f3f46;
+        }
+        .nav-btn {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-btn.active {
+            color: #D97706; 
+            border-bottom-color: #D97706;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #F3F4F6;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
 
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        
+        <header class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">우리 집 AI 비서, Gemini와 함께하는 스마트한 학부모 되기</h1>
+            <p class="mt-2 text-lg text-gray-600">Gemini의 숨은 기능 100% 활용법: 자녀 교육부터 실무 역량 강화까지</p>
+        </header>
+
+        <nav class="flex justify-center border-b border-gray-200 mb-8 flex-wrap">
+            <button class="nav-btn active py-4 px-3 sm:px-6 text-sm sm:text-base font-medium text-gray-500 hover:text-amber-600" data-tab="intro">소개</button>
+            <button class="nav-btn py-4 px-3 sm:px-6 text-sm sm:text-base font-medium text-gray-500 hover:text-amber-600" data-tab="features">핵심 기능</button>
+            <button class="nav-btn py-4 px-3 sm:px-6 text-sm sm:text-base font-medium text-gray-500 hover:text-amber-600" data-tab="use-cases">실전 활용</button>
+            <button class="nav-btn py-4 px-3 sm:px-6 text-sm sm:text-base font-medium text-gray-500 hover:text-amber-600" data-tab="practice">실습</button>
+            <button class="nav-btn py-4 px-3 sm:px-6 text-sm sm:text-base font-medium text-gray-500 hover:text-amber-600" data-tab="safety">안전 수칙</button>
+        </nav>
+
+        <main>
+            <section id="intro" class="content-section active">
+                <div class="card space-y-6">
+                    <h2 class="text-2xl font-bold text-amber-700">인공지능(AI), 얼마나 가까이 있나요?</h2>
+                    <p>혹시 어제 하루 동안 스마트폰 사진 보정, 내비게이션 길찾기, 음악 추천 서비스를 사용하셨나요? 그렇다면 이미 AI 기술과 함께하고 계신 겁니다. 우리는 이미 AI와 함께 살고 있습니다. 오늘은 그중 가장 강력한 도구 중 하나인 Gemini를 제대로 활용하는 법을 알아봅니다.</p>
+                    <p class="text-sm text-gray-600">다양한 AI 모델의 성능을 비교하고 싶으시다면, <a href="https://artificialanalysis.ai/" target="_blank" rel="noopener noreferrer" class="text-amber-600 hover:underline">Artificial Analysis 사이트</a>를 참고해보세요.</p>
+                    
+                    <div class="p-4 bg-amber-50 rounded-lg">
+                        <h3 class="font-bold text-lg text-gray-800">오늘 연수의 목표</h3>
+                        <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+                            <li>Gemini가 무엇인지, 어떤 놀라운 기술력을 바탕으로 하는지 쉽게 이해합니다.</li>
+                            <li>글쓰기, 이미지, 음성 등 다양한 기능을 자녀 교육과 실생활에 활용하는 법을 배웁니다.</li>
+                            <li>직접 실습하며 "나도 AI를 잘 쓸 수 있다!"는 자신감을 얻습니다.</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <button id="math-accordion-button" class="w-full text-left font-semibold text-xl text-gray-800 py-3 flex justify-between items-center">
+                            <span>Gemini의 놀라운 학습 콘텐츠 생성 능력</span>
+                            <span id="math-accordion-icon">▼</span>
+                        </button>
+                        <div id="math-accordion-content" class="accordion-content">
+                             <div class="border-t pt-4 mt-2 text-gray-700 space-y-2">
+                                <p>최신 AI는 복잡한 수학 문제를 해결하는 것을 넘어, 전문적인 교재까지 만들어낼 수 있습니다. Gemini의 압도적인 콘텐츠 생성 능력을 직접 확인해보세요.</p>
+                                <ul class="list-disc list-inside mt-2 space-y-2 text-gray-700">
+                                    <li><a href="https://g.co/gemini/share/4de4c7b74388" target="_blank" rel="noopener noreferrer" class="text-amber-600 hover:underline">Gemini 2.5 Pro의 수학 문제 풀이 과정 보기</a></li>
+                                    <li><a href="https://www.perplexity.ai/search/daeum-munjereul-pulgo-geu-gwaj-A9wO1HpxQc2TL3BEfLRXow#0" target="_blank" rel="noopener noreferrer" class="text-amber-600 hover:underline">다른 최신 AI(GPT-5 기반)의 풀이 과정 비교해보기</a></li>
+                                    <li><a href="https://drive.google.com/file/d/15qdm4MnXTMy77_amzuTGC_eAoHRfQKTf/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="text-amber-600 hover:underline">Gemini를 활용한 '1주일 만에 과고 전문교과 교재 만들기' 사례 보기</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button id="tech-accordion-button" class="w-full text-left font-semibold text-xl text-gray-800 py-3 flex justify-between items-center">
+                            <span>Gemini를 만든 놀라운 기술력</span>
+                            <span id="tech-accordion-icon">▼</span>
+                        </button>
+                        <div id="tech-accordion-content" class="accordion-content">
+                            <div class="border-t pt-4 mt-2 text-gray-700 space-y-4">
+                                <p>Gemini는 단순한 AI가 아닙니다. 세계 최고 수준의 AI 연구소 '구글 딥마인드'의 혁신적인 기술력이 담겨있습니다.</p>
+                                <div class="p-4 border-l-4 border-amber-500 bg-white">
+                                    <h4 class="font-bold"><a href="https://deepmind.google/discover/blog/genie-3-a-new-frontier-for-world-models/" target="_blank" rel="noopener noreferrer" class="text-amber-600 hover:underline">지니 3 (Genie 3)</a></h4>
+                                    <p class="mt-1">텍스트나 이미지 하나만으로 사용자가 직접 플레이할 수 있는 2D 가상 세계(게임)를 만들어내는 기술입니다. 아이의 그림이나 상상이 하나의 게임이 되는, 놀라운 상상력의 실현입니다.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-amber-500 bg-white">
+                                    <h4 class="font-bold"><a href="https://deepmind.google/discover/blog/alphaevolve-a-gemini-powered-coding-agent-for-designing-advanced-algorithms/" target="_blank" rel="noopener noreferrer" class="text-amber-600 hover:underline">알파이볼브 (AlphaEvolve)</a></h4>
+                                    <p class="mt-1">Gemini를 기반으로, 마치 생물이 진화하듯 AI가 스스로 코드를 개선하고 발전시켜 인간이 만든 것보다 더 뛰어난 프로그램을 발견하는 기술입니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="content-section">
+                <div class="space-y-6">
+                    <div class="card border-2 border-amber-500 bg-amber-50">
+                        <h2 class="text-2xl font-bold text-amber-700 mb-4">🔑 가장 중요해요! Gemini를 깨우는 '좋은 질문'의 기술</h2>
+                        <p class="mb-4 text-gray-700">Gemini의 성능을 200% 끌어내는 핵심은 바로 '질문'에 있습니다. 원하는 답을 얻기 위한 4가지 전략을 기억하세요.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="p-4 rounded-lg bg-white">
+                                <h3 class="font-bold text-lg text-gray-800">1️⃣ 역할 부여하기 (페르소나)</h3>
+                                <p class="text-sm text-gray-600 mt-1">Gemini에게 특정 전문가의 역할을 부여하면, 그에 맞는 어조와 전문 지식을 활용해 답변합니다.</p>
+                                <p class="mt-2 text-xs text-gray-500">👎 <span class="line-through">"자소서 쓰는 법 알려줘."</span></p>
+                                <p class="mt-1 text-xs text-green-700">👍 "너는 10년차 대입 컨설턴트야. 게임 개발 동아리 활동을 중심으로 학생부 종합 전형에 지원할 자기소개서 예시를 작성해줘."</p>
+                            </div>
+                            <div class="p-4 rounded-lg bg-white">
+                                <h3 class="font-bold text-lg text-gray-800">2️⃣ 상세한 배경과 맥락 제공하기</h3>
+                                <p class="text-sm text-gray-600 mt-1">상황을 구체적으로 설명할수록 Gemini는 상황을 더 잘 이해하고 맞춤형 답변을 제공합니다.</p>
+                                <p class="mt-2 text-xs text-gray-500">👎 <span class="line-through">"수학 공부 어떻게 해야 돼?"</span></p>
+                                <p class="mt-1 text-xs text-green-700">👍 "우리 아이는 중학교 2학년이고, 다른 과목은 잘하는데 유독 함수 단원만 어려워해. 함수 개념을 재미있게 설명할 방법이 있을까?"</p>
+                            </div>
+                            <div class="p-4 rounded-lg bg-white">
+                                <h3 class="font-bold text-lg text-gray-800">3️⃣ 원하는 결과물 형식 지정하기</h3>
+                                <p class="text-sm text-gray-600 mt-1">표, 이메일, 보고서 개요, 블로그 글 등 원하는 결과물의 형식을 명확하게 알려주세요.</p>
+                                 <p class="mt-2 text-xs text-gray-500">👎 <span class="line-through">"조선시대 왕들 업적 정리해줘."</span></p>
+                                <p class="mt-1 text-xs text-green-700">👍 "조선시대 초기 왕들의 핵심 업적을 '왕', '주요 업적', '의의' 세 가지 항목으로 구분해서 표로 만들어줘."</p>
+                            </div>
+                             <div class="p-4 rounded-lg bg-white">
+                                <h3 class="font-bold text-lg text-gray-800">4️⃣ 단계적으로 질문하며 다듬기</h3>
+                                <p class="text-sm text-gray-600 mt-1">한 번에 완벽한 답을 얻으려 하지 말고, 첫 답변을 바탕으로 추가 질문을 던지며 결과물을 발전시켜 나가세요.</p>
+                                <p class="mt-2 text-xs text-green-700">질문 1: "여름 방학 때 중학생이 할 만한 봉사활동 추천해줘."</p>
+                                <p class="mt-1 text-xs text-green-700">질문 2: "답변 고마워. 그중에서 IT 기술과 관련된 봉사활동에 대해 더 자세히 알려줄래?"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-amber-700 mb-4">🧠 똑똑한 멀티모달: 텍스트를 넘어 모든 것을 이해</h2>
+                        <ul class="list-disc list-inside space-y-3 text-gray-700">
+                            <li><strong>이미지 분석:</strong> 복잡한 도표, 손으로 쓴 메모, 심지어 문서 전체를 사진 찍어 질문할 수 있습니다. <br><span class="text-sm text-gray-500 ml-4">예: "이 과학 그래프의 핵심 내용을 설명해줘."</span></li>
+                            <li><strong>다양한 파일 형식 지원:</strong> PDF, 워드 문서, 이미지 파일을 직접 업로드하여 내용을 요약하거나, 특정 정보를 추출하거나, 번역을 요청할 수 있습니다.<br><span class="text-sm text-gray-500 ml-4">예: "이 가정통신문 PDF 파일에서 중요한 날짜만 뽑아서 정리해줘."</span></li>
+                            <li><strong>음성 입력:</strong> 타이핑이 번거로울 때, 마이크 버튼을 누르고 말로 편하게 질문하고 대화할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-amber-700 mb-4">🤝 강력한 상호작용과 편집: 결과물을 함께 완성</h2>
+                        <ul class="list-disc list-inside space-y-3 text-gray-700">
+                            <li><strong>답변 다듬기:</strong> "더 길게", "더 전문적으로", "초등학생 눈높이로" 등 간단한 명령으로 원하는 방향으로 답변을 수정할 수 있습니다.</li>
+                            <li><strong>다양한 버전 확인:</strong> 하나의 질문에 여러 가지 답변 초안을 제공합니다. 이 중 가장 마음에 드는 것을 선택하거나, 아이디어를 조합할 수 있습니다.</li>
+                            <li><strong>Canvas 환경에서의 실시간 협업:</strong> Gemini가 제안한 글이나 코드를 내가 직접 고치거나, Gemini에게 수정을 요청하며 실시간으로 문서를 함께 완성해 나갈 수 있습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="use-cases" class="content-section">
+                <div class="space-y-4">
+                    <div class="card">
+                        <button class="accordion-button w-full text-left font-semibold text-xl text-gray-800 py-2 flex justify-between items-center">
+                            <span>🎓 자녀 교육: 우리 아이의 잠재력을 깨우는 'AI 튜터'</span>
+                            <span class="accordion-icon">▼</span>
+                        </button>
+                        <div class="accordion-content">
+                            <ul class="list-disc list-inside mt-4 space-y-3 text-gray-700 border-t pt-4">
+                                <li><strong>개념 학습 도우미:</strong> 아이가 어려워하는 수학 공식 사진을 찍어 "이 공식이 왜 이렇게 되는지 중학생 수준에서 설명해 줘"라고 질문하기</li>
+                                <li><strong>수행평가 파트너:</strong> "기후 변화를 주제로 보고서를 쓰려고 해. 서론에 쓸 만한 흥미로운 통계 자료와 함께 개요를 짜줘."</li>
+                                <li><strong>진로 탐색 멘토:</strong> "게임 개발자가 꿈인 중학생이야. 지금부터 고등학교 때까지 어떤 공부와 활동을 하면 좋을지 로드맵을 만들어 줘."</li>
+                                <li><strong>영어 에세이 교정:</strong> 아이가 쓴 영어 에세이를 입력하고, "더 자연스러운 문장으로 고치고, 문법 오류도 설명해 줘."</li>
+                            </ul>
+                        </div>
+                    </div>
+                     <div class="card">
+                        <button class="accordion-button w-full text-left font-semibold text-xl text-gray-800 py-2 flex justify-between items-center">
+                            <span>🏠 스마트한 가정생활: 시간은 벌고, 삶의 질은 높이고!</span>
+                            <span class="accordion-icon">▼</span>
+                        </button>
+                        <div class="accordion-content">
+                             <ul class="list-disc list-inside mt-4 space-y-3 text-gray-700 border-t pt-4">
+                                <li><strong>우리 집 해결사:</strong> 세탁 라벨, 고장 난 가전제품 사진을 찍어 올리고 "이거 어떻게 세탁해야 해?", "이 에러 코드 무슨 뜻이야?" 질문하기</li>
+                                <li><strong>AI 영양사:</strong> 냉장고 속 재료 사진을 찍어 올리고, "이 재료들로 만들 수 있는 저녁 메뉴 3가지 추천해 줘."</li>
+                                <li><strong>메시지 비서:</strong> "아파트 층간소음 문제로 아래층에 보낼 정중한 문자 메시지 초안 작성해 줘." (다른 답안 보기 기능 활용)</li>
+                            </ul>
+                        </div>
+                    </div>
+                     <div class="card">
+                        <button class="accordion-button w-full text-left font-semibold text-xl text-gray-800 py-2 flex justify-between items-center">
+                            <span>💼 나의 성장과 업무: 나의 경쟁력을 높여주는 '개인 비서'</span>
+                            <span class="accordion-icon">▼</span>
+                        </button>
+                        <div class="accordion-content">
+                             <ul class="list-disc list-inside mt-4 space-y-3 text-gray-700 border-t pt-4">
+                                <li><strong>업무 이메일 작성:</strong> "거래처에 납기일 연장을 요청하는 정중한 이메일 써줘." (답변 수정 기능으로 어조 변경)</li>
+                                <li><strong>보고서 요약:</strong> 회의 자료나 보고서 페이지를 사진 찍어 올리고, "핵심 내용 3줄로 요약해 줘."</li>
+                                <li><strong>영감 얻기:</strong> 운전 중이나 이동 중에 음성 입력으로 "새로운 프로젝트 아이디어 5가지만 말해줘"라고 편하게 물어보기</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <button class="accordion-button w-full text-left font-semibold text-xl text-gray-800 py-2 flex justify-between items-center">
+                            <span>🔬 더 알아보기: 확장되는 Google AI의 세계</span>
+                            <span class="accordion-icon">▼</span>
+                        </button>
+                        <div class="accordion-content">
+                             <ul class="list-disc list-inside mt-4 space-y-3 text-gray-700 border-t pt-4">
+                                <li><strong>Deep Research:</strong> 방대한 자료를 AI가 깊이 있게 분석하고 핵심적인 통찰력을 제공하는 기능입니다.</li>
+                                <li><strong>이미지 및 비디오 생성:</strong> 상상하는 이미지를 텍스트로 설명하거나, 간단한 명령으로 짧은 동영상을 만들어내는 기술입니다.</li>
+                                <li><strong>Google Workspace 연동:</strong> Gmail, Docs 등 업무 도구에 Gemini가 결합되어 이메일 초안 작성, 회의록 요약 등을 자동으로 도와줍니다.</li>
+                                <li><strong>NotebookLM:</strong> 내가 올린 자료(PDF, 웹사이트 등)를 기반으로 똑똑한 '나만의 AI 연구 노트'를 만들어주는 서비스입니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="content-section">
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-amber-700 mb-4">직접 해봐요! Gemini 실습</h2>
+                    <p class="mb-4">이제 스마트폰이나 PC에서 Gemini 앱을 열고, 오늘 배운 기능들을 활용해 아래 미션을 단계별로 수행해 보세요. '좋은 질문'이 '좋은 결과물'을 만듭니다!</p>
+                    <div class="space-y-6">
+                        <div class="p-4 border border-amber-200 bg-amber-50 rounded-lg">
+                            <h3 class="font-bold text-lg text-amber-800">🚀 미션 1: [음성 + 텍스트] 자녀와 함께 주말 계획 세우기</h3>
+                            <div class="mt-3 space-y-2 text-sm text-gray-700">
+                                <p><strong class="text-gray-900">1단계 (음성 입력 & 좋은 질문):</strong> 마이크 아이콘을 누르고, <span class="font-mono bg-gray-200 px-1 rounded">'중학생 아이와 함께 이번 주말에 서울에서 할 만한 활동 3가지를 추천해줘. 비가 올 경우를 대비한 실내 활동도 1가지 포함해줘.'</span> 라고 말해보세요.</p>
+                                <p><strong class="text-gray-900">2단계 (답변 수정):</strong> 생성된 답변에 이어서, <span class="font-mono bg-gray-200 px-1 rounded">'각 활동에 대한 예상 비용과 소요 시간을 추가해줘.'</span>라고 타이핑하여 답변을 더 구체적으로 만들어 보세요.</p>
+                                <p><strong class="text-gray-900">3단계 (다른 답안 보기):</strong> <span class="font-mono bg-gray-200 px-1 rounded">'다른 답안 보기'</span>를 눌러 Gemini가 제안하는 다른 아이디어들도 확인하고, 가족의 취향에 가장 맞는 계획을 선택해보세요.</p>
+                            </div>
+                        </div>
+                         <div class="p-4 border border-green-200 bg-green-50 rounded-lg">
+                            <h3 class="font-bold text-lg text-green-800">🥗 미션 2: [이미지] 자녀의 질문에 척척박사 부모님 되기</h3>
+                            <div class="mt-3 space-y-2 text-sm text-gray-700">
+                                <p><strong class="text-gray-900">1단계 (이미지 질문):</strong> 자녀가 교과서나 문제집에서 어려워하는 과학 도표, 수학 공식, 또는 역사 유물 사진을 찍어 Gemini에게 보여주세요.</p>
+                                 <p><strong class="text-gray-900">2단계 (정보 요청):</strong> <span class="font-mono bg-gray-200 px-1 rounded">'너는 친절한 과학 선생님이야. 이 사진에 대해 중학생이 이해하기 쉽게 설명해줘.'</span> 라고 질문하여 어려운 개념을 쉽게 풀어달라고 요청해보세요. (힌트: 역할 부여하기!)</p>
+                                 <p><strong class="text-gray-900">3단계 (심화 학습):</strong> 이어서 <span class="font-mono bg-gray-200 px-1 rounded">'이와 관련된 재미있는 일화나 예시를 하나만 알려줘.'</span> 라고 요청하여 아이의 흥미를 유발할 수 있는 추가 정보를 얻어보세요.</p>
+                            </div>
+                        </div>
+                        <div class="p-4 border border-indigo-200 bg-indigo-50 rounded-lg">
+                            <h3 class="font-bold text-lg text-indigo-800">📁 미션 3: [파일 + Canvas] 가정통신문 완벽 분석하기</h3>
+                            <div class="mt-3 space-y-2 text-sm text-gray-700">
+                                <p><strong class="text-gray-900">1단계 (파일 업로드 & 요약):</strong> 학교에서 받은 가정통신문(PDF, 이미지)을 Gemini에 업로드하고 <span class="font-mono bg-gray-200 px-1 rounded">'이 문서에서 학부모가 꼭 알아야 할 핵심 내용을 목록으로 정리해줘.'</span> 라고 요청해보세요.</p>
+                                <p><strong class="text-gray-900">2단계 (정보 추출):</strong> 이어서 <span class="font-mono bg-gray-200 px-1 rounded">'제출해야 할 서류와 마감일을 표로 만들어줘.'</span> 와 같이 문서 내용에 기반하여 정보를 재가공해달라고 요청하세요. (힌트: 형식 지정하기!)</p>
+                                <p><strong class="text-gray-900">3단계 (Canvas 기능 활용):</strong> 이제 Canvas 환경을 상상해 보세요. 생성된 표를 <span class="font-mono bg-gray-200 px-1 rounded">직접 수정</span>하여 '확인 여부' 체크란을 추가하고, Gemini에게 <span class="font-mono bg-gray-200 px-1 rounded">'마감일이 임박한 순서대로 정렬해줘'</span> 라고 요청하며 문서를 함께 완성하는 똑똑한 문서 작성을 체험해보세요.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="safety" class="content-section">
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-amber-700 mb-4">똑똑하고 안전하게 사용하기</h2>
+                    <p class="mb-6">Gemini는 훌륭한 '조수'이지만, 마지막 결정과 책임은 사용자에게 있습니다. 이것만은 꼭 기억하세요!</p>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-6 w-6 text-xl">🔎</div>
+                            <div class="ml-3">
+                                <h4 class="font-bold">맹신은 금물, 교차 확인 필수</h4>
+                                <p class="text-gray-600">AI는 가끔 틀릴 수 있어요. 중요한 정보(특히 사실 관계)는 꼭 다른 경로로 다시 확인하세요.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-6 w-6 text-xl">🔒</div>
+                             <div class="ml-3">
+                                <h4 class="font-bold">개인정보는 소중하게</h4>
+                                <p class="text-gray-600">이름, 전화번호, 주소, 카드번호 등 민감한 개인정보는 입력하지 마세요.</p>
+                            </div>
+                        </div>
+                         <div class="flex items-start">
+                            <div class="flex-shrink-0 h-6 w-6 text-xl">🙋</div>
+                             <div class="ml-3">
+                                <h4 class="font-bold">최종 판단은 나의 몫</h4>
+                                <p class="text-gray-600">Gemini는 아이디어를 주고, 초안을 만드는 훌륭한 도구입니다. 하지만 최종 결정은 항상 직접 해야 합니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <script>
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tab = button.dataset.tab;
+
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === tab) {
+                        section.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        const accordions = document.querySelectorAll('.accordion-button');
+        accordions.forEach(accordion => {
+            accordion.addEventListener('click', () => {
+                const content = accordion.nextElementSibling;
+                const icon = accordion.querySelector('.accordion-icon');
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    if(icon) icon.textContent = '▼';
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    if(icon) icon.textContent = '▲';
+                }
+            });
+        });
+        
+        const techAccordionButton = document.getElementById('tech-accordion-button');
+        const techAccordionContent = document.getElementById('tech-accordion-content');
+        const techAccordionIcon = document.getElementById('tech-accordion-icon');
+        
+        techAccordionButton.addEventListener('click', () => {
+            if (techAccordionContent.style.maxHeight) {
+                techAccordionContent.style.maxHeight = null;
+                techAccordionIcon.textContent = '▼';
+            } else {
+                techAccordionContent.style.maxHeight = techAccordionContent.scrollHeight + "px";
+                techAccordionIcon.textContent = '▲';
+            }
+        });
+
+        const mathAccordionButton = document.getElementById('math-accordion-button');
+        const mathAccordionContent = document.getElementById('math-accordion-content');
+        const mathAccordionIcon = document.getElementById('math-accordion-icon');
+        
+        mathAccordionButton.addEventListener('click', () => {
+            if (mathAccordionContent.style.maxHeight) {
+                mathAccordionContent.style.maxHeight = null;
+                mathAccordionIcon.textContent = '▼';
+            } else {
+                mathAccordionContent.style.maxHeight = mathAccordionContent.scrollHeight + "px";
+                mathAccordionIcon.textContent = '▲';
+            }
+        });
+    </script>
+</body>
+</html>

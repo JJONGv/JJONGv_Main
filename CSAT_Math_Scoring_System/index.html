@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>고3 수학 모의고사 응시 시스템</title>
+    <title>고3 수학 모의고사 응시 시스템 (Ver.251004.13)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -16,7 +16,6 @@
             margin: 1rem auto;
             padding: 1rem;
         }
-        /* 시험지 컨테이너 */
         .exam-container {
             width: 100%;
             max-width: 1280px;
@@ -42,7 +41,7 @@
         .q-num {
             font-weight: bold;
         }
-        .choice {
+        .choice-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -54,8 +53,9 @@
             cursor: pointer;
             user-select: none;
             transition: all 0.2s;
+            background-color: white;
         }
-        .choice.selected {
+        .choice-btn.selected, .choice-btn[aria-checked="true"] {
             background-color: #3b82f6;
             color: white;
             border-color: #3b82f6;
@@ -96,7 +96,7 @@
             padding: 2rem;
             border-radius: 0.5rem;
             text-align: center;
-            white-space: pre-wrap; /* \n을 줄바꿈으로 인식하도록 추가 */
+            white-space: pre-wrap;
         }
         .timer {
             position: fixed;
@@ -124,34 +124,16 @@
         
         /* 반응형 스타일 */
         @media (max-width: 768px) {
-            .exam-container {
-                padding: 0.5rem;
-            }
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            .common-section, .elective-section {
-                grid-column: span 1 / span 1;
-            }
-            #short-answer-row-1, #short-answer-row-2 {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-            /* 선택과목 단답형 2열로 변경 */
-            #short-answer-elective {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 0.5rem;
-            }
-            #short-answer-elective tr {
-                display: contents;
-            }
+            .exam-container { padding: 0.5rem; }
+            .main-grid { grid-template-columns: 1fr; }
+            .common-section, .elective-section { grid-column: span 1 / span 1; }
+            #short-answer-row-1, #short-answer-row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #short-answer-elective { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+            #short-answer-elective tr { display: contents; }
         }
-
-
     </style>
 </head>
 <body class="bg-gray-100">
-
 
     <!-- 시작 화면 -->
     <div id="start-screen" class="start-container bg-white">
@@ -181,7 +163,6 @@
         </div>
     </div>
 
-
     <!-- 시험지 화면 -->
     <div id="exam-screen" class="hidden">
         <div id="timer-display" class="timer hidden"></div>
@@ -191,13 +172,12 @@
                 <h2 class="text-3xl font-bold">수학 영역</h2>
             </header>
 
-
             <div class="grid grid-cols-10 md:grid-cols-12 gap-px bg-gray-400 border border-gray-400 mb-6 text-sm">
                 <!-- 성명 -->
                 <div class="col-span-3 md:col-span-2 bg-white flex flex-col">
                     <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">성명</div>
                     <div class="p-1 flex-grow">
-                        <input type="text" class="w-full h-full text-center border-0 focus:ring-0 text-base" placeholder="이름 입력">
+                        <input type="text" id="student-name-input" class="w-full h-full text-center border-0 focus:ring-0 text-base" placeholder="이름 입력">
                     </div>
                 </div>
                 <!-- 필적확인란 -->
@@ -230,14 +210,11 @@
                     <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">선택 과목</div>
                     <div class="p-1 flex-grow">
                         <select id="subject-select" class="w-full h-full text-center border-0 focus:ring-0 bg-transparent text-base">
-                            <option value="확률과 통계">확률과 통계</option>
-                            <option value="미적분">미적분</option>
-                            <option value="기하">기하</option>
+                            <!-- JS로 동적 생성 -->
                         </select>
                     </div>
                 </div>
             </div>
-
 
             <!-- 답안 작성란 (Grid 레이아웃) -->
             <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 main-grid">
@@ -246,17 +223,12 @@
                     <!-- 공통과목 선택형 -->
                     <table class="exam-table table-fixed">
                          <colgroup>
-                            <col style="width: 8.33%;"> <!-- 1/12 -->
-                            <col style="width: 25%;">   <!-- 3/12 -->
-                            <col style="width: 8.33%;"> <!-- 1/12 -->
-                            <col style="width: 25%;">   <!-- 3/12 -->
-                            <col style="width: 8.33%;"> <!-- 1/12 -->
-                            <col style="width: 25%;">   <!-- 3/12 -->
+                            <col style="width: 8.33%;"> <col style="width: 25%;">
+                            <col style="width: 8.33%;"> <col style="width: 25%;">
+                            <col style="width: 8.33%;"> <col style="width: 25%;">
                         </colgroup>
                         <thead><tr><th colspan="6" class="bg-gray-100">공통과목 선택형</th></tr></thead>
-                        <tbody id="multiple-choice-common-tbody">
-                            <!-- JS로 생성 -->
-                        </tbody>
+                        <tbody id="multiple-choice-common-tbody"></tbody>
                     </table>
                     <!-- 공통과목 단답형 -->
                     <table class="exam-table mt-4">
@@ -264,17 +236,12 @@
                         <tbody>
                             <tr>
                                 <td class="p-2">
-                                    <div id="short-answer-row-1" class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                        <!-- JS로 16~19 생성 -->
-                                    </div>
-                                    <div id="short-answer-row-2" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                                        <!-- JS로 20~22 생성 -->
-                                    </div>
+                                    <div id="short-answer-row-1" class="grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+                                    <div id="short-answer-row-2" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2"></div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                     <!-- 단답형 표기 방법 안내 추가 -->
                     <div class="text-left text-xs mt-2 p-2 border border-gray-300 rounded">
                         <p class="font-bold">※ 단답형 답란 표기 방법</p>
                         <p class="ml-2">○ 십진법에 의하되, 반드시 자리에 맞추어 표기</p>
@@ -282,30 +249,19 @@
                     </div>
                 </div>
 
-
                 <!-- 선택과목 (23-30) -->
                 <div class="col-span-1 md:col-span-3 elective-section mt-4 md:mt-0">
-                    <!-- 선택과목 선택형 -->
                     <table class="exam-table table-fixed">
-                         <colgroup>
-                            <col style="width: 25%;">
-                            <col style="width: 75%;">
-                        </colgroup>
+                        <colgroup><col style="width: 25%;"><col style="width: 75%;"></colgroup>
                         <thead><tr><th colspan="2" class="bg-pink-100">선택과목 선택형</th></tr></thead>
-                        <tbody id="multiple-choice-elective">
-                            <!-- JS로 생성 -->
-                        </tbody>
+                        <tbody id="multiple-choice-elective"></tbody>
                     </table>
-                    <!-- 선택과목 단답형 -->
                     <table class="exam-table mt-4">
                         <thead><tr><th class="bg-pink-100">선택과목 단답형</th></tr></thead>
-                        <tbody id="short-answer-elective">
-                            <!-- JS로 생성 -->
-                        </tbody>
+                        <tbody id="short-answer-elective"></tbody>
                     </table>
                 </div>
             </div>
-
 
             <div class="mt-8 text-center">
                 <button id="submit-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-300 w-full">
@@ -315,364 +271,700 @@
         </div>
     </div>
 
-
     <!-- 결과 화면 -->
     <div id="result-screen" class="result-container bg-white hidden"></div>
     <!-- Modal -->
     <div id="modal" class="modal-overlay hidden"></div>
 
+<script type="module">
+    // ===================================================================================
+    // 1. 설정 및 상수 (Config & Constants)
+    // ===================================================================================
+    const Config = {
+        SHEET_ID: '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw',
+        // 중요: 아래 URL은 Google Apps Script를 웹 앱으로 배포한 후 생성된 URL로 교체해야 합니다.
+        APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzTE_BYODSDBi7kTwtfqIq0wr0Vrg-_7UbxafnEe66jhFtGy9_8J6a0KcsiL7x0qEbmTw/exec", 
+        POINTS: { 1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4, 21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4 },
+        STORAGE_KEY: 'mathExamState'
+    };
+    /*
+    --- Google Apps Script Code (Code.gs) ---
+    const SPREADSHEET_ID = "1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw";
+
+    function findSheetByGid(spreadsheet, gid) {
+        const allSheets = spreadsheet.getSheets();
+        for (let i = 0; i < allSheets.length; i++) {
+            if (allSheets[i].getSheetId() == gid) {
+                return allSheets[i];
+            }
+        }
+        return null;
+    }
+
+    function doPost(e) {
+        try {
+            const data = JSON.parse(e.postData.contents);
+            const gid = data.gid;
+            const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+            const sheet = findSheetByGid(spreadsheet, gid);
+
+            if (!sheet) {
+                throw new Error("Sheet with GID " + gid + " not found.");
+            }
+            
+            // N열(14번째 열)을 기준으로 다음 빈 행을 찾습니다.
+            const nColumnValues = sheet.getRange("N2:N").getValues();
+            let nextRow = nColumnValues.findIndex(row => row[0] === '') + 2; // +2는 0-based index와 1행 헤더를 보정
+            if (nextRow === 1) { // 빈 행을 찾지 못한 경우 (-1 + 2 = 1), 마지막 행 다음에 추가
+                nextRow = sheet.getLastRow() + 1;
+            }
+
+            // N열부터 AV열까지 기록할 데이터 배열
+            const rowData = [
+                data.name,          // N열
+                data.studentId,     // O열
+                data.subject,       // P열
+                ...data.results,    // Q열 ~ AT열
+                data.totalScore,    // AU열
+                data.timestamp      // AV열
+            ];
+
+            // 특정 행, N열(14)부터 35개 열에 데이터를 기록합니다.
+            sheet.getRange(nextRow, 14, 1, 35).setValues([rowData]);
+
+            return ContentService
+                .createTextOutput(JSON.stringify({ "status": "success", "message": "Row added to sheet " + sheet.getName() + " at row " + nextRow }))
+                .setMimeType(ContentService.MimeType.JSON);
+
+        } catch (error) {
+            return ContentService
+                .createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                .setMimeType(ContentService.MimeType.JSON);
+        }
+    }
+    */
 
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM 요소 ---
-    const startScreen = document.getElementById('start-screen');
-    const examScreen = document.getElementById('exam-screen');
-    const resultScreen = document.getElementById('result-screen');
-    const startExamBtn = document.getElementById('start-exam-btn');
-    const timerCheckbox = document.getElementById('timer-checkbox');
-    const timerSetting = document.getElementById('timer-setting');
-    const timerMinutesInput = document.getElementById('timer-minutes');
-    const timerDisplay = document.getElementById('timer-display');
-    const academicYearInput = document.getElementById('academic-year');
-    const examCodeInput = document.getElementById('exam-code');
-    const examTitle = document.getElementById('exam-title');
-    const handwritingPhrase = document.getElementById('handwriting-phrase');
-    const subjectSelect = document.getElementById('subject-select');
-    const submitBtn = document.getElementById('submit-btn');
-    const modal = document.getElementById('modal');
-    
-    // --- 초기화 ---
-    (document.getElementById('result-screen')).innerHTML = `<h1 class="text-3xl font-bold text-center mb-6 text-gray-800">채점 결과</h1><div class="text-center mb-6"><p class="text-lg">총점</p><p id="total-score" class="text-6xl font-bold text-blue-600">0</p><p class="text-lg">/ 100</p></div><div id="score-details"><h2 class="text-xl font-semibold mb-4">상세 채점 결과</h2><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">문항</th><th scope="col" class="px-6 py-3">제출 답안</th><th scope="col" class="px-6 py-3">정답</th><th scope="col" class="px-6 py-3">결과</th><th scope="col" class="px-6 py-3">배점</th></tr></thead><tbody id="result-table-body"></tbody></table></div>`;
-    (document.getElementById('modal')).innerHTML = `<div class="modal-content"><p id="modal-text" class="text-lg mb-6"></p><div class="flex justify-center space-x-4"><button id="modal-confirm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">확인</button><button id="modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-6 rounded">취소</button></div></div>`;
-
-
-    const modalText = document.getElementById('modal-text');
-    const modalConfirm = document.getElementById('modal-confirm');
-    const modalCancel = document.getElementById('modal-cancel');
-
-
-
-    let timerInterval;
-    let onConfirmCallback;
-    let answers = {}; // 정답을 저장할 객체
-    let userAnswers = {};
-    let currentExamData = null; // 현재 시험의 전체 데이터를 저장
-    const sheetId = '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw';
-    
-    // --- 배점 (고정) ---
-    const points = { 1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4, 21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4 };
-    
-    // --- 모달 함수 ---
-    const showModal = (text, showCancel = true, onConfirm) => {
-        modalText.textContent = text;
-        modalCancel.style.display = showCancel ? 'inline-block' : 'none';
-        modal.classList.remove('hidden');
-        onConfirmCallback = onConfirm;
+    // ===================================================================================
+    // 2. DOM 요소 (DOM Elements)
+    // ===================================================================================
+    const DOM = {
+        startScreen: document.getElementById('start-screen'),
+        examScreen: document.getElementById('exam-screen'),
+        resultScreen: document.getElementById('result-screen'),
+        startExamBtn: document.getElementById('start-exam-btn'),
+        timerCheckbox: document.getElementById('timer-checkbox'),
+        timerSetting: document.getElementById('timer-setting'),
+        timerMinutesInput: document.getElementById('timer-minutes'),
+        timerDisplay: document.getElementById('timer-display'),
+        academicYearInput: document.getElementById('academic-year'),
+        examCodeInput: document.getElementById('exam-code'),
+        examTitle: document.getElementById('exam-title'),
+        handwritingPhrase: document.getElementById('handwriting-phrase'),
+        subjectSelect: document.getElementById('subject-select'),
+        submitBtn: document.getElementById('submit-btn'),
+        modal: document.getElementById('modal'),
+        studentNameInput: document.getElementById('student-name-input'),
+        studentIdInputs: document.querySelectorAll('.student-id-input'),
+        mcCommonTbody: document.getElementById('multiple-choice-common-tbody'),
+        saRow1: document.getElementById('short-answer-row-1'),
+        saRow2: document.getElementById('short-answer-row-2'),
+        mcElectiveTbody: document.getElementById('multiple-choice-elective'),
+        saElectiveTbody: document.getElementById('short-answer-elective'),
     };
 
+    // ===================================================================================
+    // 3. 상태 관리 (State Management & localStorage)
+    // ===================================================================================
+    const State = {
+        timerInterval: null,
+        onConfirmCallback: null,
+        correctAnswers: {},
+        userAnswers: {},
+        currentExamData: null,
+        timeRemaining: null,
 
-    modalConfirm.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        if (onConfirmCallback) onConfirmCallback();
-    });
-    modalCancel.addEventListener('click', () => {
-        modal.classList.add('hidden');
-    });
-
-
-    // --- Google Sheet 데이터 불러오기 및 처리 ---
-    async function fetchExamData(year, code) {
-        if (!year || !code) {
-            showModal('학년도와 코드를 모두 입력해주세요.', false);
-            return null;
-        }
-        try {
-            const masterGid = '0';
-            const masterUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${masterGid}`;
-            
-            const masterResponse = await fetch(masterUrl);
-            if (!masterResponse.ok) throw new Error('시험 목록 시트를 불러올 수 없습니다.');
-            
-            const masterBlob = await masterResponse.blob();
-            const masterCsvText = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsText(masterBlob, 'UTF-8');
-            });
-
-
-            const masterRows = masterCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
-            
-            const masterHeaders = masterRows[0];
-            const yearIndex = masterHeaders.indexOf('학년도');
-            const codeIndex = masterHeaders.indexOf('코드');
-            const gidIndex = masterHeaders.indexOf('GID');
-
-
-            if (yearIndex === -1 || codeIndex === -1 || gidIndex === -1) {
-                throw new Error("'목록' 시트에 '학년도', '코드', 'GID' 열이 필요합니다.");
-            }
-
-
-            const examInfoRow = masterRows.slice(1).find(row => row[yearIndex] === year && row[codeIndex] === code);
-
-
-            if (!examInfoRow) {
-                throw new Error('입력한 학년도와 코드에 해당하는 시험 정보가 없습니다.');
-            }
-            const examGid = examInfoRow[gidIndex];
-
-
-            const examUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${examGid}`;
-            const examResponse = await fetch(examUrl);
-            if (!examResponse.ok) throw new Error('시험 데이터 시트를 불러올 수 없습니다.');
-
-
-            const examBlob = await examResponse.blob();
-            const examCsvText = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsText(examBlob, 'UTF-8');
-            });
-
-
-            const examRows = examCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
-
-
-            const examData = {
-                examName: examRows[25][2], // C26
-                handwritingPhrase: examRows[26][2], // C27
-                rawRows: examRows // 원본 데이터를 저장
+        save() {
+            const stateToSave = {
+                userAnswers: this.userAnswers,
+                currentExamData: this.currentExamData,
+                timeRemaining: this.timeRemaining,
             };
-            return examData;
-        } catch (error) {
-            console.error('시험 데이터 불러오기 실패:', error);
-            showModal(`시험 데이터를 불러오는 데 실패했습니다: ${error.message}`, false);
-            return null;
+            localStorage.setItem(Config.STORAGE_KEY, JSON.stringify(stateToSave));
+        },
+
+        load() {
+            const savedState = localStorage.getItem(Config.STORAGE_KEY);
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                this.userAnswers = parsedState.userAnswers || {};
+                this.currentExamData = parsedState.currentExamData || null;
+                this.timeRemaining = parsedState.timeRemaining || null;
+                return true;
+            }
+            return false;
+        },
+
+        clear() {
+            localStorage.removeItem(Config.STORAGE_KEY);
+            this.userAnswers = {};
+            this.currentExamData = null;
+            this.timeRemaining = null;
+            if (this.timerInterval) clearInterval(this.timerInterval);
         }
-    }
+    };
 
+    // ===================================================================================
+    // 4. API (Google Sheets Fetch & Submit)
+    // ===================================================================================
+    const API = {
+        async fetchExamData(year, code) {
+            if (!year || !code) {
+                UI.showModal('학년도와 코드를 모두 입력해주세요.', false);
+                return null;
+            }
+            try {
+                const masterUrl = `https://docs.google.com/spreadsheets/d/${Config.SHEET_ID}/export?format=csv&gid=0`;
+                const masterResponse = await fetch(masterUrl);
+                if (!masterResponse.ok) throw new Error('시험 목록 시트를 불러올 수 없습니다.');
+                
+                const masterCsvText = await this.readCsvBlob(await masterResponse.blob());
+                const masterRows = masterCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
+                
+                const headers = masterRows[0];
+                const examInfoRow = masterRows.slice(1).find(row => row[headers.indexOf('학년도')] === year && row[headers.indexOf('코드')] === code);
 
-    // --- 정답 객체 생성 함수 ---
-    function populateAnswers() {
-        if (!currentExamData) return;
-        const examRows = currentExamData.rawRows;
-        answers = {}; // 정답 객체 초기화
+                if (!examInfoRow) throw new Error('입력한 학년도와 코드에 해당하는 시험 정보가 없습니다.');
+                
+                const examGid = examInfoRow[headers.indexOf('GID')];
+                const examUrl = `https://docs.google.com/spreadsheets/d/${Config.SHEET_ID}/export?format=csv&gid=${examGid}`;
+                const examResponse = await fetch(examUrl);
+                if (!examResponse.ok) throw new Error('시험 데이터 시트를 불러올 수 없습니다.');
 
+                const examCsvText = await this.readCsvBlob(await examResponse.blob());
+                const examRows = examCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
+                
+                const availableSubjects = [];
+                // F11 -> [10][5] for "확률과 통계"
+                if (examRows[10] && examRows[10][5] === 'O') {
+                    availableSubjects.push('확률과 통계');
+                }
+                // I11 -> [10][8] for "미적분"
+                if (examRows[10] && examRows[10][8] === 'O') {
+                    availableSubjects.push('미적분');
+                }
+                // L11 -> [10][11] for "기하"
+                if (examRows[10] && examRows[10][11] === 'O') {
+                    availableSubjects.push('기하');
+                }
 
-        // 공통 문항 (C3:C24)
-        for (let i = 2; i <= 23; i++) {
-            const qNum = i - 1;
-            if (examRows[i] && examRows[i][2]) answers[qNum] = parseInt(examRows[i][2]);
+                return {
+                    examName: examRows[25][2],
+                    handwritingPhrase: examRows[26][2],
+                    rawRows: examRows,
+                    year,
+                    code,
+                    gid: examGid,
+                    availableSubjects: availableSubjects
+                };
+            } catch (error) {
+                console.error('시험 데이터 불러오기 실패:', error);
+                UI.showModal(`시험 데이터를 불러오는 데 실패했습니다: ${error.message}`, false);
+                return null;
+            }
+        },
+        readCsvBlob(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(blob, 'UTF-8');
+            });
+        },
+        async submitResultsToSheet(submissionData) {
+            if (!Config.APPS_SCRIPT_URL) {
+                console.warn("Google Apps Script URL이 설정되지 않아 결과를 시트에 기록할 수 없습니다.");
+                UI.showModal("결과 기록 기능이 설정되지 않았습니다.\n(관리자에게 문의하세요)", false);
+                return;
+            }
+            try {
+                await fetch(Config.APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(submissionData),
+                    redirect: 'follow'
+                });
+                console.log("결과가 Google Sheet에 제출 요청되었습니다.");
+            } catch (error) {
+                console.error("Google Sheet에 결과 제출 실패:", error);
+                UI.showModal("결과를 시트에 기록하는 중 오류가 발생했습니다.", false);
+            }
         }
+    };
+
+    // ===================================================================================
+    // 5. UI 및 화면 렌더링 (UI & Rendering)
+    // ===================================================================================
+    const UI = {
+        init() {
+            DOM.resultScreen.innerHTML = `
+                <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">채점 결과</h1>
+                <div id="user-info-summary" class="mb-6 p-4 border rounded-lg bg-gray-50 text-left"></div>
+                <div class="text-center mb-6">
+                    <p class="text-lg">총점</p>
+                    <p id="total-score" class="text-6xl font-bold text-blue-600">0</p>
+                    <p class="text-lg">/ 100</p>
+                </div>
+                <div id="score-details">
+                    <h2 class="text-xl font-semibold mb-4">상세 채점 결과</h2>
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">문항</th>
+                                <th scope="col" class="px-6 py-3">제출 답안</th>
+                                <th scope="col" class="px-6 py-3">정답</th>
+                                <th scope="col" class="px-6 py-3">결과</th>
+                                <th scope="col" class="px-6 py-3">배점</th>
+                            </tr>
+                        </thead>
+                        <tbody id="result-table-body"></tbody>
+                    </table>
+                </div>`;
+            DOM.modal.innerHTML = `<div class="modal-content"><p id="modal-text" class="text-lg mb-6"></p><div class="flex justify-center space-x-4"><button id="modal-confirm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">확인</button><button id="modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-6 rounded">취소</button></div></div>`;
+            
+            document.getElementById('modal-confirm').addEventListener('click', () => {
+                this.hideModal();
+                if (State.onConfirmCallback) State.onConfirmCallback();
+            });
+            document.getElementById('modal-cancel').addEventListener('click', () => this.hideModal());
+
+            this.buildExamSheetTemplate();
+        },
+
+        buildExamSheetTemplate() {
+            for (let i = 0; i < 5; i++) DOM.mcCommonTbody.innerHTML += this.createCommonMcRow([i + 1, i + 6, i + 11]);
+            for (let i = 16; i <= 19; i++) DOM.saRow1.innerHTML += this.createShortAnswerItem(i);
+            for (let i = 20; i <= 22; i++) DOM.saRow2.innerHTML += this.createShortAnswerItem(i);
+            for (let i = 23; i <= 28; i++) DOM.mcElectiveTbody.innerHTML += this.createElectiveMultipleChoiceRow(i);
+            for (let i = 29; i <= 30; i++) DOM.saElectiveTbody.innerHTML += this.createShortAnswerQuestionForElective(i);
+        },
+
+        createCommonMcRow(qNums) {
+            let cellsHtml = '';
+            qNums.forEach((qNum, index) => {
+                let choicesHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    choicesHtml += `<button class="choice-btn" role="radio" aria-checked="false" data-q="${qNum}" data-ans="${i}" aria-labelledby="q-num-${qNum}">${i}</button>`;
+                }
+                const colDividerClass = index === qNums.length - 1 ? '' : 'border-r-2 border-gray-400';
+                cellsHtml += `
+                    <td class="text-center border-r border-gray-300"><span class="q-num" id="q-num-${qNum}">${qNum}</span></td>
+                    <td class="p-2 ${colDividerClass}"><div class="flex justify-around" role="radiogroup" aria-labelledby="q-num-${qNum}">${choicesHtml}</div></td>
+                `;
+            });
+            return `<tr>${cellsHtml}</tr>`;
+        },
         
-        // 선택 과목 정답
-        const selectedSubject = subjectSelect.value;
-        let answerColIndex;
-        if (selectedSubject === '확률과 통계') answerColIndex = 5; // F열
-        else if (selectedSubject === '미적분') answerColIndex = 8; // I열
-        else if (selectedSubject === '기하') answerColIndex = 11; // L열
-        
-        // 선택 문항 (23~30번)
-        for (let i = 2; i <= 9; i++) {
-            const qNum = 21 + i;
-            if (examRows[i] && examRows[i][answerColIndex]) answers[qNum] = parseInt(examRows[i][answerColIndex]);
-        }
-    }
-
-
-    // --- 시험지 생성 함수 ---
-    const createCommonMcRow = (qNums) => {
-        let cellsHtml = '';
-        qNums.forEach((qNum, index) => {
+        createElectiveMultipleChoiceRow(qNum) {
             let choicesHtml = '';
             for (let i = 1; i <= 5; i++) {
-                choicesHtml += `<span class="choice" data-q="${qNum}" data-ans="${i}">${i}</span>`;
+                choicesHtml += `<button class="choice-btn" role="radio" aria-checked="false" data-q="${qNum}" data-ans="${i}" aria-labelledby="q-num-${qNum}">${i}</button>`;
             }
-            const colDividerClass = index === qNums.length - 1 ? '' : 'border-r-2 border-gray-400';
-            cellsHtml += `
-                <td class="text-center border-r border-gray-300"><span class="q-num">${qNum}</span></td>
-                <td class="p-2 ${colDividerClass}"><div class="flex justify-around">${choicesHtml}</div></td>
-            `;
-        });
-        return `<tr>${cellsHtml}</tr>`;
-    };
-    
-    const createElectiveMultipleChoiceRow = (qNum) => {
-        let choicesHtml = '';
-        for (let i = 1; i <= 5; i++) {
-            choicesHtml += `<span class="choice" data-q="${qNum}" data-ans="${i}">${i}</span>`;
-        }
-        return `<tr><td class="text-center border-r border-gray-300"><span class="q-num">${qNum}</span></td><td><div class="flex justify-around">${choicesHtml}</div></td></tr>`;
-    };
+            return `<tr><td class="text-center border-r border-gray-300"><span class="q-num" id="q-num-${qNum}">${qNum}</span></td><td><div class="flex justify-around" role="radiogroup" aria-labelledby="q-num-${qNum}">${choicesHtml}</div></td></tr>`;
+        },
 
+        createShortAnswerItem(qNum) {
+            const createChoices = (digit, count) => [...Array(count)].map((_, i) => `<div class="flex justify-center my-1"><button class="choice-btn" data-q="${qNum}" data-digit="${digit}" data-ans="${digit === 0 ? i + 1 : i}">${digit === 0 ? i + 1 : i}</button></div>`).join('');
+            return `<div class="border border-gray-300 rounded p-2 h-full">
+                <div class="font-bold text-base mb-2 text-center">${qNum}</div>
+                <div class="max-w-[180px] mx-auto">
+                    <div id="short-answer-display-${qNum}" class="grid grid-cols-3 gap-1 mb-1">
+                        <div class="short-answer-box"></div><div class="short-answer-box"></div><div class="short-answer-box"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1 text-xs font-semibold"><div>백</div><div>십</div><div>일</div></div>
+                    <div id="short-answer-input-${qNum}" class="grid grid-cols-3 gap-1 mt-1">
+                        <div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="0">${createChoices(0, 9)}</div>
+                        <div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="1">${createChoices(1, 10)}</div>
+                        <div class="short-answer-col" data-q="${qNum}" data-digit="2">${createChoices(2, 10)}</div>
+                    </div>
+                </div>
+            </div>`;
+        },
 
-    const createShortAnswerItem = (qNum) => {
-        let html = `<div class="border border-gray-300 rounded p-2 h-full"><div class="font-bold text-base mb-2 text-center">${qNum}</div><div class="max-w-[180px] mx-auto"><div id="short-answer-display-${qNum}" class="grid grid-cols-3 gap-1 mb-1"><div class="short-answer-box"></div><div class="short-answer-box"></div><div class="short-answer-box"></div></div><div class="grid grid-cols-3 gap-1 text-xs font-semibold"><div>백</div><div>십</div><div>일</div></div><div id="short-answer-input-${qNum}" class="grid grid-cols-3 gap-1 mt-1"><div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="0">${[...Array(9)].map((_, i) => `<div class="flex justify-center my-1"><span class="choice" data-q="${qNum}" data-digit="0" data-ans="${i + 1}">${i + 1}</span></div>`).join('')}</div><div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="1">${[...Array(10)].map((_, i) => `<div class="flex justify-center my-1"><span class="choice" data-q="${qNum}" data-digit="1" data-ans="${i}">${i}</span></div>`).join('')}</div><div class="short-answer-col" data-q="${qNum}" data-digit="2">${[...Array(10)].map((_, i) => `<div class="flex justify-center my-1"><span class="choice" data-q="${qNum}" data-digit="2" data-ans="${i}">${i}</span></div>`).join('')}</div></div></div></div>`;
-        return html;
-    };
-
-
-    const createShortAnswerQuestionForElective = (qNum) => {
-        let html = `<tr class="border-t-2 border-gray-300"><td>${createShortAnswerItem(qNum)}</td></tr>`;
-        return html;
-    };
-    
-    // --- 시험지 화면 구성 ---
-    const mcCommonTbody = document.getElementById('multiple-choice-common-tbody');
-    for (let i = 0; i < 5; i++) {
-        mcCommonTbody.innerHTML += createCommonMcRow([i + 1, i + 6, i + 11]);
-    }
-    const saRow1 = document.getElementById('short-answer-row-1');
-    for (let i = 16; i <= 19; i++) saRow1.innerHTML += createShortAnswerItem(i);
-    const saRow2 = document.getElementById('short-answer-row-2');
-    for (let i = 20; i <= 22; i++) saRow2.innerHTML += createShortAnswerItem(i);
-    const mcElectiveTbody = document.getElementById('multiple-choice-elective');
-    for (let i = 23; i <= 28; i++) mcElectiveTbody.innerHTML += createElectiveMultipleChoiceRow(i);
-    const saElectiveTbody = document.getElementById('short-answer-elective');
-    for (let i = 29; i <= 30; i++) saElectiveTbody.innerHTML += createShortAnswerQuestionForElective(i);
-    
-    // --- 이벤트 리스너 및 기능 함수 ---
-    const startExam = (examData) => {
-        currentExamData = examData;
-        populateAnswers(); // 초기 정답 설정
-        examTitle.textContent = examData.examName;
-        handwritingPhrase.textContent = examData.handwritingPhrase;
-
-
-        startScreen.classList.add('hidden');
-        examScreen.classList.remove('hidden');
+        createShortAnswerQuestionForElective(qNum) {
+            return `<tr class="border-t-2 border-gray-300"><td>${this.createShortAnswerItem(qNum)}</td></tr>`;
+        },
         
-        if (timerCheckbox.checked) {
-            timerDisplay.classList.remove('hidden');
-            let timeRemaining = parseInt(timerMinutesInput.value) * 60;
-            updateTimerDisplay(timeRemaining);
-            timerInterval = setInterval(() => {
-                timeRemaining--;
-                updateTimerDisplay(timeRemaining);
-                if (timeRemaining <= 0) {
-                    clearInterval(timerInterval);
-                    showModal('시험 시간이 종료되었습니다. 답안을 자동 제출합니다.', false, () => submitExam());
+        populateSubjectDropdown(subjects) {
+            DOM.subjectSelect.innerHTML = '';
+            if (subjects && subjects.length > 0) {
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    DOM.subjectSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.textContent = '선택 가능한 과목 없음';
+                option.disabled = true;
+                DOM.subjectSelect.appendChild(option);
+            }
+        },
+
+        showModal(text, showCancel = true, onConfirm) {
+            document.getElementById('modal-text').textContent = text;
+            document.getElementById('modal-cancel').style.display = showCancel ? 'inline-block' : 'none';
+            DOM.modal.classList.remove('hidden');
+            State.onConfirmCallback = onConfirm;
+        },
+
+        hideModal() {
+            DOM.modal.classList.add('hidden');
+        },
+
+        updateTimerDisplay(seconds) {
+            if (seconds < 0) return;
+            const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            DOM.timerDisplay.textContent = `${h}:${m}:${s}`;
+        },
+
+        updateShortAnswerDisplay(qNum) {
+            const displayBoxes = document.querySelectorAll(`#short-answer-display-${qNum} .short-answer-box`);
+            const getSelectedAns = (digit) => document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='${digit}'] .choice-btn.selected`)?.dataset.ans;
+            
+            const hundreds = getSelectedAns('0');
+            const tens = getSelectedAns('1');
+            const ones = getSelectedAns('2');
+
+            displayBoxes[0].textContent = hundreds || '';
+            displayBoxes[1].textContent = tens || '';
+            displayBoxes[2].textContent = ones || '';
+
+            delete State.userAnswers[qNum];
+            let answerStr = '';
+            if (hundreds !== undefined && tens !== undefined && ones !== undefined) answerStr = hundreds + tens + ones;
+            else if (hundreds === undefined && tens !== undefined && ones !== undefined) answerStr = tens + ones;
+            else if (hundreds === undefined && tens === undefined && ones !== undefined) answerStr = ones;
+            
+            if (answerStr !== '') State.userAnswers[qNum] = parseInt(answerStr, 10);
+            
+            State.save();
+        },
+        
+        renderStateToUI() {
+            if (!State.currentExamData) return;
+            
+            // Render user info
+            if (State.currentExamData.name) DOM.studentNameInput.value = State.currentExamData.name;
+            if (State.currentExamData.studentId) {
+                const idDigits = State.currentExamData.studentId.split('');
+                DOM.studentIdInputs.forEach((input, index) => input.value = idDigits[index] || '');
+            }
+            if (State.currentExamData.subject) {
+                DOM.subjectSelect.value = State.currentExamData.subject;
+            }
+
+            // Render answers
+            Object.entries(State.userAnswers).forEach(([q, ans]) => {
+                if (q >= 16 && q <= 22 || q >= 29 && q <= 30) {
+                    const ansStr = String(ans).padStart(3, '0');
+                    const digits = [parseInt(ansStr[0]), parseInt(ansStr[1]), parseInt(ansStr[2])];
+                    
+                    if (ans < 10) {
+                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='2'][data-ans='${digits[2]}']`)?.classList.add('selected');
+                    } else if (ans < 100) {
+                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='1'][data-ans='${digits[1]}']`)?.classList.add('selected');
+                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='2'][data-ans='${digits[2]}']`)?.classList.add('selected');
+                    } else {
+                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='0'][data-ans='${digits[0]}']`)?.classList.add('selected');
+                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='1'][data-ans='${digits[1]}']`)?.classList.add('selected');
+                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='2'][data-ans='${digits[2]}']`)?.classList.add('selected');
+                    }
+                    this.updateShortAnswerDisplay(q);
+                } else {
+                    const btn = document.querySelector(`.choice-btn[data-q='${q}'][data-ans='${ans}']`);
+                    if (btn) {
+                        btn.classList.add('selected');
+                        btn.setAttribute('aria-checked', 'true');
+                    }
                 }
-            }, 1000);
+            });
+        },
+
+        displayResults(totalScore, resultsArray) {
+            const userInfoSummary = document.getElementById('user-info-summary');
+            const { name, studentId, subject, timerSetting } = State.currentExamData;
+            userInfoSummary.innerHTML = `
+                <h3 class="text-lg font-semibold mb-2">응시자 정보</h3>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    <p><strong>성명:</strong> ${name.trim() || '미입력'}</p>
+                    <p><strong>수험번호:</strong> ${studentId.trim() || '미입력'}</p>
+                    <p><strong>선택과목:</strong> ${subject || '미선택'}</p>
+                    <p><strong>타이머:</strong> ${timerSetting || '미설정'}</p>
+                </div>
+            `;
+            
+            const resultTableBody = document.getElementById('result-table-body');
+            resultTableBody.innerHTML = '';
+
+            resultsArray.forEach((result, index) => {
+                const qNum = index + 1;
+                if (!Config.POINTS[qNum]) return;
+
+                const userAnswer = State.userAnswers[qNum];
+                const correctAnswer = State.correctAnswers[qNum];
+                const point = Config.POINTS[qNum];
+                const isCorrect = result === 'O';
+                
+                const row = document.createElement('tr');
+                row.className = isCorrect ? 'bg-green-50' : 'bg-red-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-900">${qNum}</td>
+                    <td class="px-6 py-4">${userAnswer !== undefined ? userAnswer : '미제출'}</td>
+                    <td class="px-6 py-4">${correctAnswer !== undefined ? correctAnswer : '정답 없음'}</td>
+                    <td class="px-6 py-4 font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${result}</td>
+                    <td class="px-6 py-4">${point}점</td>
+                `;
+                resultTableBody.appendChild(row);
+            });
+            
+            document.getElementById('total-score').textContent = totalScore;
         }
     };
 
+    // ===================================================================================
+    // 6. 핵심 로직 및 이벤트 핸들러 (Main Logic & Event Handlers)
+    // ===================================================================================
+    const App = {
+        init() {
+            UI.init();
+            this.addEventListeners();
 
-    const prepareExam = async () => {
-        const year = academicYearInput.value.trim();
-        const code = examCodeInput.value.trim();
-        const examData = await fetchExamData(year, code);
-
-
-        if (examData) {
-            let confirmationText = `'${examData.examName}'를 응시하시겠습니까?`;
-            if (timerCheckbox.checked) {
-                confirmationText += `\n(타이머: ${timerMinutesInput.value}분 설정)`;
-            } else {
-                confirmationText += `\n(타이머 미설정)`;
+            if (State.load() && State.currentExamData) {
+                const { examName, year, code } = State.currentExamData;
+                UI.showModal(`'${year} ${code} ${examName}' 시험을 이어서 진행하시겠습니까?`, true, () => {
+                    this.startExam(State.currentExamData, true);
+                });
             }
-            showModal(confirmationText, true, () => startExam(examData));
-        }
-    };
+        },
 
+        addEventListeners() {
+            DOM.startExamBtn.addEventListener('click', () => this.prepareExam());
+            DOM.timerCheckbox.addEventListener('change', () => DOM.timerSetting.classList.toggle('hidden', !DOM.timerCheckbox.checked));
+            
+            DOM.subjectSelect.addEventListener('change', () => {
+                if (State.currentExamData) {
+                    this.populateCorrectAnswers();
+                    State.save();
+                }
+            });
 
-    startExamBtn.addEventListener('click', prepareExam);
-    timerCheckbox.addEventListener('change', () => timerSetting.classList.toggle('hidden', !timerCheckbox.checked));
-    subjectSelect.addEventListener('change', populateAnswers); // 선택과목 변경 시 정답 재설정
-    submitBtn.addEventListener('click', () => showModal('답안을 제출하시겠습니까?', true, () => submitExam()));
-    examScreen.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('choice')) return;
-        const { q, ans, digit } = e.target.dataset;
-        if (digit === undefined) { 
-            const selected = document.querySelector(`.choice[data-q='${q}'].selected`);
-            if (selected) selected.classList.remove('selected');
-            if (selected !== e.target) {
-                e.target.classList.add('selected');
-                userAnswers[q] = parseInt(ans);
-            } else {
-                delete userAnswers[q];
+            DOM.studentNameInput.addEventListener('input', (e) => {
+                if(State.currentExamData) {
+                    State.currentExamData.name = e.target.value;
+                    State.save();
+                }
+            });
+
+            DOM.studentIdInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    if (State.currentExamData) {
+                        State.currentExamData.studentId = Array.from(DOM.studentIdInputs).map(i => i.value).join('');
+                        State.save();
+                    }
+                });
+            });
+
+            DOM.submitBtn.addEventListener('click', () => UI.showModal('답안을 제출하시겠습니까?', true, () => this.submitExam()));
+            
+            DOM.examScreen.addEventListener('click', (e) => {
+                const target = e.target.closest('.choice-btn');
+                if (!target) return;
+
+                const { q, ans, digit } = target.dataset;
+                
+                if (digit === undefined) {
+                    const group = target.closest('[role="radiogroup"]');
+                    const currentSelected = group.querySelector('[aria-checked="true"]');
+                    
+                    if (currentSelected) {
+                        currentSelected.classList.remove('selected');
+                        currentSelected.setAttribute('aria-checked', 'false');
+                    }
+
+                    if (currentSelected !== target) {
+                        target.classList.add('selected');
+                        target.setAttribute('aria-checked', 'true');
+                        State.userAnswers[q] = parseInt(ans);
+                    } else {
+                        delete State.userAnswers[q];
+                    }
+                } else {
+                    const col = target.closest('.short-answer-col');
+                    const currentSelected = col.querySelector('.selected');
+                    if (currentSelected) currentSelected.classList.remove('selected');
+                    if (currentSelected !== target) target.classList.add('selected');
+                    
+                    UI.updateShortAnswerDisplay(q);
+                    return;
+                }
+                State.save();
+            });
+        },
+
+        async prepareExam() {
+            const year = DOM.academicYearInput.value.trim();
+            const code = DOM.examCodeInput.value.trim();
+            const examData = await API.fetchExamData(year, code);
+
+            if (examData) {
+                let text = `'${examData.examName}'를 응시하시겠습니까?`;
+                text += DOM.timerCheckbox.checked ? `\n(타이머: ${DOM.timerMinutesInput.value}분 설정)` : `\n(타이머 미설정)`;
+                UI.showModal(text, true, () => this.startExam(examData, false));
             }
-        } else {
-            const selectedInCol = document.querySelector(`.short-answer-col[data-q='${q}'][data-digit='${digit}'] .choice.selected`);
-            if (selectedInCol) selectedInCol.classList.remove('selected');
-            if (selectedInCol !== e.target) e.target.classList.add('selected');
-            updateShortAnswerDisplay(q);
+        },
+
+        startExam(examData, isResuming = false) {
+            // 1. Set or confirm the current state
+            if (!isResuming) {
+                State.currentExamData = examData;
+                State.currentExamData.name = ""; // Will be filled by user
+                State.currentExamData.studentId = ""; // Will be filled by user
+                State.currentExamData.timerSetting = DOM.timerCheckbox.checked ? `${DOM.timerMinutesInput.value}분` : '미설정';
+                State.userAnswers = {};
+            }
+            
+            // 2. Sync UI from state
+            UI.populateSubjectDropdown(State.currentExamData.availableSubjects);
+            UI.renderStateToUI();
+            
+            // 3. Populate correct answers based on the now-correct UI state
+            this.populateCorrectAnswers(); 
+
+            // 4. Show the exam screen
+            DOM.examTitle.textContent = State.currentExamData.examName;
+            DOM.handwritingPhrase.textContent = State.currentExamData.handwritingPhrase;
+            DOM.startScreen.classList.add('hidden');
+            DOM.examScreen.classList.remove('hidden');
+
+            // 5. Handle timer logic
+            const timerWasSet = State.currentExamData.timerSetting !== '미설정';
+            if (timerWasSet) {
+                DOM.timerDisplay.classList.remove('hidden');
+                
+                DOM.timerCheckbox.checked = true;
+                DOM.timerSetting.classList.remove('hidden');
+                const minutes = State.currentExamData.timerSetting.replace('분', '');
+                if (!isNaN(minutes)) DOM.timerMinutesInput.value = minutes;
+
+                let initialTime;
+                if (isResuming && State.timeRemaining !== null) {
+                    initialTime = State.timeRemaining;
+                } else {
+                    initialTime = parseInt(DOM.timerMinutesInput.value) * 60;
+                }
+                State.timeRemaining = initialTime;
+
+                UI.updateTimerDisplay(initialTime);
+                if(State.timerInterval) clearInterval(State.timerInterval); // Clear any existing timer
+                State.timerInterval = setInterval(() => {
+                    State.timeRemaining--;
+                    UI.updateTimerDisplay(State.timeRemaining);
+                    State.save();
+                    if (State.timeRemaining <= 0) {
+                        clearInterval(State.timerInterval);
+                        UI.showModal('시험 시간이 종료되었습니다. 답안을 자동 제출합니다.', false, () => this.submitExam());
+                    }
+                }, 1000);
+            }
+            
+            // 6. Save the fully constructed state
+            State.save();
+        },
+
+        async submitExam() {
+            clearInterval(State.timerInterval);
+            
+            const { totalScore, resultsArray } = this.calculateScoreAndResults();
+
+            DOM.examScreen.classList.add('hidden');
+            DOM.resultScreen.classList.remove('hidden');
+            UI.displayResults(totalScore, resultsArray);
+
+            const submissionData = {
+                gid: State.currentExamData.gid,
+                name: State.currentExamData.name.trim() || '미입력',
+                studentId: State.currentExamData.studentId.trim() || '미입력',
+                subject: State.currentExamData.subject,
+                results: resultsArray,
+                totalScore: totalScore,
+                timestamp: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+            };
+
+            await API.submitResultsToSheet(submissionData);
+            
+            State.clear();
+        },
+        
+        calculateScoreAndResults() {
+            let totalScore = 0;
+            const resultsArray = [];
+            for (let qNum = 1; qNum <= 30; qNum++) {
+                if (!Config.POINTS[qNum]) {
+                    if(resultsArray.length < 30) resultsArray.push('');
+                    continue;
+                };
+
+                const userAnswer = State.userAnswers[qNum];
+                const correctAnswer = State.correctAnswers[qNum];
+                const isCorrect = userAnswer === correctAnswer;
+
+                if (isCorrect) {
+                    totalScore += Config.POINTS[qNum];
+                    resultsArray.push('O');
+                } else {
+                    resultsArray.push('X');
+                }
+            }
+            return { totalScore, resultsArray };
+        },
+
+        populateCorrectAnswers() {
+            if (!State.currentExamData) return;
+            const { rawRows } = State.currentExamData;
+            State.correctAnswers = {};
+
+            for (let i = 2; i <= 23; i++) {
+                const qNum = i - 1;
+                if (rawRows[i] && rawRows[i][2]) State.correctAnswers[qNum] = parseInt(rawRows[i][2]);
+            }
+            
+            const selectedSubject = DOM.subjectSelect.value;
+            State.currentExamData.subject = selectedSubject;
+            
+            let answerColIndex;
+            if (selectedSubject === '확률과 통계') answerColIndex = 5;
+            else if (selectedSubject === '미적분') answerColIndex = 8;
+            else if (selectedSubject === '기하') answerColIndex = 11;
+            
+            for (let i = 2; i <= 9; i++) {
+                const qNum = 21 + i;
+                if (rawRows[i] && rawRows[i][answerColIndex]) State.correctAnswers[qNum] = parseInt(rawRows[i][answerColIndex]);
+            }
         }
-    });
-    
-    const updateTimerDisplay = (seconds) => {
-        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-        const s = String(seconds % 60).padStart(2, '0');
-        timerDisplay.textContent = `${h}:${m}:${s}`;
     };
 
+    // ===================================================================================
+    // 7. 애플리케이션 실행 (App Initialization)
+    // ===================================================================================
+    document.addEventListener('DOMContentLoaded', () => App.init());
 
-    const updateShortAnswerDisplay = (qNum) => {
-        const displayBoxes = document.querySelectorAll(`#short-answer-display-${qNum} .short-answer-box`);
-        const hundredsNode = document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='0'] .choice.selected`);
-        const tensNode = document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='1'] .choice.selected`);
-        const onesNode = document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='2'] .choice.selected`);
-
-
-        const hundreds = hundredsNode ? hundredsNode.dataset.ans : null;
-        const tens = tensNode ? tensNode.dataset.ans : null;
-        const ones = onesNode ? onesNode.dataset.ans : null;
-
-
-        displayBoxes[0].textContent = hundreds || '';
-        displayBoxes[1].textContent = tens || '';
-        displayBoxes[2].textContent = ones || '';
-
-
-        // Reset the answer first
-        delete userAnswers[qNum];
-
-
-        let answerStr = '';
-        // Valid combinations: (H, T, O), (T, O), (O)
-        if (hundreds !== null && tens !== null && ones !== null) {
-            answerStr = hundreds + tens + ones;
-        } else if (hundreds === null && tens !== null && ones !== null) {
-            answerStr = tens + ones;
-        } else if (hundreds === null && tens === null && ones !== null) {
-            answerStr = ones;
-        }
-
-
-        if (answerStr !== '') {
-            userAnswers[qNum] = parseInt(answerStr, 10);
-        }
-    };
-    const submitExam = () => {
-        clearInterval(timerInterval);
-        examScreen.classList.add('hidden');
-        resultScreen.classList.remove('hidden');
-        calculateScore();
-    };
-    const calculateScore = () => {
-        let totalScore = 0;
-        const resultTableBody = document.getElementById('result-table-body');
-        resultTableBody.innerHTML = '';
-        for (let qNum = 1; qNum <= 30; qNum++) {
-            if (!points[qNum]) continue;
-            const userAnswer = userAnswers[qNum];
-            const correctAnswer = answers[qNum];
-            const point = points[qNum];
-            const isCorrect = userAnswer === correctAnswer;
-            if (isCorrect) totalScore += point;
-            const row = document.createElement('tr');
-            row.className = isCorrect ? 'bg-green-50' : 'bg-red-50';
-            row.innerHTML = `<td class="px-6 py-4 font-medium text-gray-900">${qNum}</td><td class="px-6 py-4">${userAnswer !== undefined ? userAnswer : '미제출'}</td><td class="px-6 py-4">${correctAnswer !== undefined ? correctAnswer : '정답 없음'}</td><td class="px-6 py-4 font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${isCorrect ? 'O' : 'X'}</td><td class="px-6 py-4">${point}점</td>`;
-            resultTableBody.appendChild(row);
-        }
-        document.getElementById('total-score').textContent = totalScore;
-    };
-});
 </script>
 </body>
 </html>
+

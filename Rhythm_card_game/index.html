@@ -3,638 +3,497 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>카드 뒤집기</title>
+    <title>리듬 카드 v2</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Inter 폰트 (Tailwind의 기본 폰트) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --color-white: rgba(255, 255, 255, 1);
-            --color-black: rgba(0, 0, 0, 1);
-            --color-cream-50: rgba(252, 252, 249, 1);
-            --color-cream-100: rgba(255, 255, 253, 1);
-            --color-gray-200: rgba(245, 245, 245, 1);
-            --color-gray-300: rgba(167, 169, 169, 1);
-            --color-slate-900: rgba(19, 52, 59, 1);
-            --color-slate-500: rgba(98, 108, 113, 1);
-            --color-teal-500: rgba(33, 128, 141, 1);
-            --color-teal-600: rgba(29, 116, 128, 1);
-            --color-brown-600-rgb: 94, 82, 64;
-            --color-teal-500-rgb: 33, 128, 141;
-            
-            --color-background: var(--color-cream-50);
-            --color-surface: var(--color-cream-100);
-            --color-text: var(--color-slate-900);
-            --color-text-secondary: var(--color-slate-500);
-            --color-primary: var(--color-teal-500);
-            --color-primary-hover: var(--color-teal-600);
-            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
-            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
-            
-            --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --font-size-base: 14px;
-            --font-size-lg: 16px;
-            --font-size-xl: 18px;
-            --font-size-2xl: 20px;
-            --font-weight-medium: 500;
-            --font-weight-semibold: 550;
-            --line-height-normal: 1.5;
-            
-            --space-8: 8px;
-            --space-16: 16px;
-            --space-24: 24px;
-            --space-32: 32px;
-            --radius-lg: 12px;
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-            --duration-normal: 250ms;
-            --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --color-charcoal-700: rgba(31, 33, 33, 1);
-                --color-charcoal-800: rgba(38, 40, 40, 1);
-                --color-gray-400-rgb: 119, 124, 124;
-                --color-teal-300: rgba(50, 184, 198, 1);
-                --color-teal-300-rgb: 50, 184, 198;
-                --color-gray-300-rgb: 167, 169, 169;
-                
-                --color-background: var(--color-charcoal-700);
-                --color-surface: var(--color-charcoal-800);
-                --color-text: var(--color-gray-200);
-                --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
-                --color-primary: var(--color-teal-300);
-                --color-border: rgba(var(--color-gray-400-rgb), 0.3);
-                --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
-            }
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        /* Tailwind CSS의 기본 'font-sans'는 'Inter'를 포함한 시스템 폰트 목록을 사용합니다.
+          여기서는 명시적으로 Inter를 기본으로 설정합니다.
+        */
         body {
-            font-family: var(--font-family-base);
-            font-size: var(--font-size-base);
-            line-height: var(--line-height-normal);
-            color: var(--color-text);
-            background-color: var(--color-background);
-            padding: var(--space-32);
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            /* 부드러운 스크롤 */
+            scroll-behavior: smooth;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            font-size: var(--font-size-2xl);
-            font-weight: var(--font-weight-semibold);
-            color: var(--color-text);
-            margin-bottom: var(--space-32);
-            text-align: center;
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-24);
-            margin-bottom: var(--space-32);
-        }
-
-        .card-container {
+        /* 3D 카드 뒤집기 효과를 위한 커스텀 CSS */
+        
+        /* .perspective: 3D 효과를 위한 부모 컨테이너 */
+        .perspective {
             perspective: 1000px;
-            height: 250px;
-            cursor: pointer;
-            transition: all 0.4s var(--ease-standard);
-            z-index: 1;
         }
 
-        .card-container.expanded {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90vw;
-            max-width: 1200px;
-            height: calc(90vw * 9 / 16);
-            max-height: 675px;
-            z-index: 1000;
-        }
-
-        .card {
-            width: 100%;
-            height: 100%;
-            position: relative;
+        /* .transform-style-preserve-3d: 자식 요소의 3D 변형을 유지 */
+        .transform-style-preserve-3d {
             transform-style: preserve-3d;
-            transition: transform 0.6s var(--ease-standard);
         }
 
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 999;
-            display: none;
-            backdrop-filter: blur(4px);
-        }
-
-        .overlay.active {
-            display: block;
-        }
-
+        /* .card-face: 카드의 앞면과 뒷면 공통 스타일 */
         .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
             backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: var(--space-24);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--color-card-border);
-            box-shadow: var(--shadow-md);
-            transition: box-shadow var(--duration-normal) var(--ease-standard);
+            -webkit-backface-visibility: hidden; /* Safari 호환성 */
         }
 
-        .card-container:hover .card-face {
-            box-shadow: var(--shadow-lg);
-        }
-
-        .card-front {
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-teal-600) 100%);
-            color: var(--color-white);
-        }
-
-        .card-back {
-            background-color: var(--color-surface);
-            color: var(--color-text);
+        /* .rotate-y-180: Y축으로 180도 회전 (카드 뒷면) */
+        .rotate-y-180 {
             transform: rotateY(180deg);
-            overflow-y: auto;
         }
 
-        .rhythm-pattern {
-            display: flex;
-            flex-direction: row;
-            gap: var(--space-8);
-            width: 100%;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
+        /* .flipped: 'flipped' 클래스가 추가될 때의 카드 회전 */
+        .flipped {
+            transform: rotateY(180deg);
         }
 
-        .rhythm-row {
-            display: flex;
-            gap: var(--space-8);
-            align-items: center;
-            justify-content: center;
-            flex-wrap: nowrap;
+        /* 커스텀 스크롤바 (모달 내부용) */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(33, 128, 141, 0.6); /* --color-teal-500의 60% */
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(29, 116, 128, 1); /* --color-teal-600 */
         }
 
-        .rhythm-note {
-            width: 50px;
-            height: 50px;
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: var(--font-weight-semibold);
-            border: 2px solid var(--color-primary);
-            background-color: rgba(var(--color-teal-500-rgb), 0.1);
-            color: var(--color-primary);
+        /* 다크 모드에서의 스크롤바 */
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
         }
-
-        .rhythm-label {
-            font-size: var(--font-size-base);
-            color: var(--color-text-secondary);
-            font-weight: var(--font-weight-medium);
-            min-width: 80px;
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(50, 184, 198, 0.6); /* --color-teal-300의 60% */
         }
-
-        .card-container.expanded .rhythm-note {
-            width: 100px;
-            height: 100px;
-            font-size: 64px;
-        }
-
-        .card-container.expanded .card-back h3 {
-            font-size: 28px;
-            margin-bottom: var(--space-32);
-        }
-
-        .close-btn {
-            position: absolute;
-            top: var(--space-16);
-            right: var(--space-16);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: rgba(var(--color-teal-500-rgb), 0.2);
-            border: none;
-            color: var(--color-primary);
-            font-size: var(--font-size-xl);
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            transition: all var(--duration-normal) var(--ease-standard);
-        }
-
-        .close-btn:hover {
-            background-color: var(--color-primary);
-            color: var(--color-white);
-        }
-
-        .card-container.expanded .close-btn {
-            display: flex;
-        }
-
-        .card-front h2 {
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-semibold);
-            margin-bottom: var(--space-8);
-            text-align: center;
-        }
-
-        .card-front p {
-            font-size: var(--font-size-base);
-            opacity: 0.9;
-            text-align: center;
-        }
-
-        .card-back h3 {
-            font-size: var(--font-size-lg);
-            font-weight: var(--font-weight-semibold);
-            margin-bottom: var(--space-16);
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .card-back p {
-            font-size: var(--font-size-base);
-            color: var(--color-text-secondary);
-            text-align: center;
-            line-height: 1.6;
-        }
-
-        .icon {
-            font-size: 48px;
-            margin-bottom: var(--space-16);
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-16);
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--space-8) var(--space-16);
-            border-radius: var(--radius-lg);
-            font-size: var(--font-size-base);
-            font-weight: var(--font-weight-medium);
-            cursor: pointer;
-            transition: all var(--duration-normal) var(--ease-standard);
-            border: none;
-        }
-
-        .btn--primary {
-            background: var(--color-primary);
-            color: var(--color-white);
-        }
-
-        .btn--primary:hover {
-            background: var(--color-primary-hover);
-        }
-
-        .btn--secondary {
-            background: transparent;
-            border: 1px solid var(--color-border);
-            color: var(--color-text);
-        }
-
-        .btn--secondary:hover {
-            background: rgba(var(--color-teal-500-rgb), 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .cards-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: var(--space-16);
-            }
-
-            .card-container {
-                height: 200px;
-            }
-
-            body {
-                padding: var(--space-16);
-            }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(50, 184, 198, 1); /* --color-teal-300 */
         }
     </style>
-<script type="text/javascript" nonce="ee6c35429e434d38928c9f1bfc6" src="//local.adguard.org?ts=1761988475575&amp;type=content-script&amp;dmn=ppl-ai-code-interpreter-files.s3.amazonaws.com&amp;url=https%3A%2F%2Fppl-ai-code-interpreter-files.s3.amazonaws.com%2Fweb%2Fdirect-files%2F19e31b3daf729b77e31e5142b6111a72%2F6528f3a2-e4c4-4da0-a1fa-df57818c6f61%2Fcanvas-app%2Findex.html%3Fresponse-content-disposition%3Dattachment%253B%2520filename%253Dindex.html%253B%2520filename%252A%253DUTF-8%2527%2527index.html%26AWSAccessKeyId%3DASIA2F3EMEYEQSAVBN4V%26Signature%3D9le9I7suV1mY%252B6PswFccFt72OFg%253D%26x-amz-security-token%3DIQoJb3JpZ2luX2VjEGIaCXVzLWVhc3QtMSJHMEUCIHbciGA3aJu%252BZivxTCTYo2syz56%252BbxHvX8bhMhyw6kwLAiEAmAgvg253MceqWBVb0O%252BzU6EfFMVE4YKPa9ky6%252FQnObkq8wQIKxABGgw2OTk3NTMzMDk3MDUiDNm4%252BBgahETFcXpx7yrQBBWOrqLhONPAW%252Ff9MbHMqarJVUgCpPkoPHm5korZlKU8pCM3zg%252Bk8Lysn5lWnT2y9BLPI39ywTw8FAzu3IdZQVZ0IewbQEX0YguWMD2%252FGqA%252FVxc4%252FdkI4Izoc%252BL3CORP%252Fn7B5jzet9LvdJs%252B7i8Oufdv5MQR2bVDXHoYkoo3%252F1%252BN%252FmGbnxs7TtoVhJyXevI77CQXxBy4AWjBqXqKmdfqxpOLpcKSMF%252FHQc9jWIu6lPYwHrzjB7VxXIDyRc9W2EUfV6c1r7vV0cclV9kfUHv65ovWAtXGU7UrJ3i%252Fe48N%252Fvo4%252FUXT8TNEmD079%252Bnm%252FffgxB64LQUGiOQZDOiA2fXnvgiYHnJPPJj6vCEsMucwAPZHuCQ0SaQCdEE81eL5Xqib1dXupvX%252BP0hrUOydj4T2erf4va0%252FCpZsP87VI2CioWkcUtS5p8FogcXLyAA7xXt%252B2tu%252FmqcckdIPZo3N7gEUuUZjKId%252F06NaXm3VBFjJgsaHnyTAKk5tEKFoqKR6ZTm%252FIXvhLYs1eQwzVegOVTguMGxHX2xdrPc4JWtwH0yr%252FmJo0KAqDOBVhQWA%252BG8bCEQUxToGA8E4mA5OAOP9Agw8kWACzOhae2aukqaXZeRa%252BsyZonhVYk3bQ2QmATJNj0lE92nctWykyHvbLpfEQPjrh3y6YVpoVyIIxNtXsXs4bh%252F2PBWeX%252F5cldCEKlLcEuNw%252FqKUg0gHMQhuHO4CUGlQ2AiwDRSQeV%252B6njvRyLYqmr5wVlCeJzvAS%252BJy2WWH%252BRHYLlbYfdtlvVW5MeeEo9lPeaAw9KeXyAY6mAE8bjW8txHWL%252FV7bSwQj%252B9MR0VZcIZA5eYy5jyHOlKo41CVXP%252FJ%252FWMwZU4OCDXVl5ZLBRYt9KsPy80MTNxu48dzW4nvcvz0PKRogPW2f0wJxhmNZ2QwCkm%252BvRON8BPMzFruCW0F%252FPcnROYbf2SNOIT4I3b4%252Bw8FlwXEkVoP56NJma95F0YVbZ6rT%252BTJ1WzgMbBB%252BIIdS%252BbDzQ%253D%253D%26Expires%3D1761991061&amp;app=whale.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="ee6c35429e434d38928c9f1bfc6" src="//local.adguard.org?ts=1761988475575&amp;name=AdGuard%20Assistant&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script></head>
-<body>
-    <div class="overlay" id="overlay" onclick="closeExpandedCard()"></div>
-    
-    <div class="container">
-        <h1>🎵 리듬 카드 게임</h1>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 min-h-screen p-4 sm:p-8 transition-colors duration-300">
+
+    <div class="container max-w-7xl mx-auto">
         
-        <div class="cards-grid" id="cardsGrid">
+        <header class="text-center mb-8 sm:mb-12">
+            <h1 class="text-3xl sm:text-4xl font-bold text-teal-600 dark:text-teal-400">
+                🎵 리듬 카드 덱
+            </h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 mt-2">
+                카드를 클릭하여 뒤집고, 리듬을 확인해보세요.
+            </p>
+        </header>
+
+        <!-- 카드 그리드 -->
+        <div id="cardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
             <!-- 카드들이 여기에 동적으로 생성됩니다 -->
         </div>
 
-        <div class="controls">
-            <button class="btn btn--primary" onclick="shuffleCards()">🔀 카드 섞기</button>
-            <button class="btn btn--secondary" onclick="resetAllCards()">모두 원래대로</button>
+        <!-- 컨트롤 버튼 -->
+        <div class="controls flex justify-center items-center gap-4 my-8 sm:my-12">
+            <button id="shuffleButton" class="flex items-center gap-2 px-5 py-3 rounded-lg font-semibold text-white bg-teal-600 hover:bg-teal-700 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                <!-- Heroicons: shuffle -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 3a1 1 0 011 1v1.158l3.243-3.242a1 1 0 111.414 1.414L12.414 5.586V10a1 1 0 11-2 0V5.586L7.172 8.828a1 1 0 11-1.414-1.414L9 4.158V4a1 1 0 011-1zM3 10a1 1 0 011 1v1.158l3.243-3.242a1 1 0 111.414 1.414L5.414 13.586V18a1 1 0 11-2 0v-4.414l-3.243 3.242a1 1 0 11-1.414-1.414L3 12.158V11a1 1 0 010-1zM10 12a1 1 0 011 1v1.158l3.243-3.242a1 1 0 111.414 1.414L12.414 15.586V20a1 1 0 11-2 0v-4.414l-3.243 3.242a1 1 0 11-1.414-1.414L9 14.158V13a1 1 0 011-1zM17 3a1 1 0 011 1v1.158l-3.243 3.242a1 1 0 11-1.414-1.414L16.586 4H12a1 1 0 110-2h5a1 1 0 011 1z" />
+                </svg>
+                카드 섞기
+            </button>
+            <button id="resetButton" class="flex items-center gap-2 px-5 py-3 rounded-lg font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                <!-- Heroicons: refresh -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 14a1 1 0 01.997.997A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 005.001 17a1 1 0 01-.997-.997z" clip-rule="evenodd" />
+                </svg>
+                초기화
+            </button>
+        </div>
+        
+    </div>
+
+    <!-- 모달 오버레이 -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 invisible transition-all duration-300 ease-in-out" role="dialog" aria-modal="true">
+        
+        <!-- 모달 컨텐츠 -->
+        <div id="modal-content" class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-11/12 relative transform scale-95 transition-all duration-300 ease-in-out max-h-[90vh] flex flex-col">
+            
+            <!-- 모달 헤더 -->
+            <header class="p-6 border-b border-slate-200 dark:border-slate-700">
+                <h2 id="modal-title" class="text-2xl font-semibold text-teal-600 dark:text-teal-400">
+                    <!-- 모달 제목이 여기에 삽입됩니다 -->
+                </h2>
+            </header>
+
+            <!-- 모달 바디 (스크롤 없음, 가운데 정렬) -->
+            <div id="modal-body" class="p-6 sm:p-8 flex-grow flex items-center justify-center overflow-hidden">
+                <!-- 리듬 패턴이 여기에 삽입됩니다 -->
+            </div>
+            
+            <!-- 모달 닫기 버튼 -->
+            <button id="modal-close-btn" class="absolute top-4 right-4 text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors" aria-label="모달 닫기">
+                <!-- Heroicons: x-circle -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+            </button>
         </div>
     </div>
 
+
     <script>
-        const cardsData = [
-            {
-                title: '카드 1',
-                color: '#E57373',
-                rhythm: ['♩', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 2',
-                color: '#81C784',
-                rhythm: ['♩', '♪', '♪', '♪', '♪']
-            },
-            {
-                title: '카드 3',
-                color: '#64B5F6',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♪', '♪']
-            },
-            {
-                title: '카드 4',
-                color: '#FFD54F',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 5',
-                color: '#BA68C8',
-                rhythm: ['♩', '♩', '♩', '♩']
-            },
-            {
-                title: '카드 6',
-                color: '#4DB6AC',
-                rhythm: ['♩', '♪', '♪', '♩', '♪', '♪']
-            },
-            {
-                title: '카드 7',
-                color: '#FF8A65',
-                rhythm: ['♩', '♩', '♩', '♪', '♪']
-            },
-            {
-                title: '카드 8',
-                color: '#90CAF9',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♪', '♪']
-            },
-            {
-                title: '카드 9',
-                color: '#A5D6A7',
-                rhythm: ['♩', '♩', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 10',
-                color: '#CE93D8',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♪', '♪', '♪', '♪']
-            },
-            {
-                title: '카드 11',
-                color: '#FFAB91',
-                rhythm: ['♩', '♩', '♪', '♪', '♪', '♪']
-            },
-            {
-                title: '카드 12',
-                color: '#80DEEA',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 13',
-                color: '#BCAAA4',
-                rhythm: ['♩', '♩', '♩', '♩', '♩']
-            },
-            {
-                title: '카드 14',
-                color: '#EF9A9A',
-                rhythm: ['♩', '♪', '♪', '♩', '♩']
-            },
-            {
-                title: '카드 15',
-                color: '#F48FB1',
-                rhythm: ['♩', '♩', '♩', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 16',
-                color: '#9FA8DA',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♩']
-            },
-            {
-                title: '카드 17',
-                color: '#80CBC4',
-                rhythm: ['♩', '♩', '♪', '♪', '♩', '♪', '♪']
-            },
-            {
-                title: '카드 18',
-                color: '#C5E1A5',
-                rhythm: ['♩', '♪', '♪', '♩', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 19',
-                color: '#FFE082',
-                rhythm: ['♩', '♩', '♩', '♩', '♪', '♪']
-            },
-            {
-                title: '카드 20',
-                color: '#FFCCBC',
-                rhythm: ['♩', '♪', '♪', '♩', '♩', '♩']
-            },
-            {
-                title: '카드 21',
-                color: '#B39DDB',
-                rhythm: ['♩', '♩', '♪', '♪', '♩', '♩']
-            },
-            {
-                title: '카드 22',
-                color: '#81D4FA',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 23',
-                color: '#A1887F',
-                rhythm: ['♩', '♩', '♩', '♪', '♪', '♪', '♪']
-            },
-            {
-                title: '카드 24',
-                color: '#E57373',
-                rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♩', '♩']
-            },
-            {
-                title: '카드 25',
-                color: '#F06292',
-                rhythm: ['♩', '𝄽', '♩', '𝄽']
-            },
-            {
-                title: '카드 26',
-                color: '#7986CB',
-                rhythm: ['♩', '♪', '♪', '𝄽', '♩']
-            },
-            {
-                title: '카드 27',
-                color: '#4DD0E1',
-                rhythm: ['𝄽', '♩', '♩', '♩']
-            },
-            {
-                title: '카드 28',
-                color: '#AED581',
-                rhythm: ['♩', '𝄽', '♪', '♪', '♩']
-            },
-            {
-                title: '카드 29',
-                color: '#FFB74D',
-                rhythm: ['♩', '♩', '𝄽', '♩']
-            },
-            {
-                title: '카드 30',
-                color: '#A1887F',
-                rhythm: ['𝄽', '♪', '♪', '♩', '♪', '♪']
-            }
+        // --- 데이터 ---
+        // 원본 데이터 구조를 유지하되, Tailwind 클래스에서 사용하기 편하도록 color 필드 추가
+        const originalCardsData = [
+            { id: 1, title: '카드 1', colorHex: '#E57373', color: 'red-500', rhythm: ['♩', '♪', '♪', '♩'] },
+            { id: 2, title: '카드 2', colorHex: '#81C784', color: 'green-500', rhythm: ['♩', '♪', '♪', '♪', '♪'] },
+            { id: 3, title: '카드 3', colorHex: '#64B5F6', color: 'blue-500', rhythm: ['♩', '♪', '♪', '♪', '♪', '♪', '♪'] },
+            { id: 4, title: '카드 4', colorHex: '#FFD54F', color: 'yellow-500', rhythm: ['♩', '♪', '♪', '♪', '♪', '♩'] },
+            { id: 5, title: '카드 5', colorHex: '#BA68C8', color: 'purple-500', rhythm: ['♩', '♩', '♩', '♩'] },
+            { id: 6, title: '카드 6', colorHex: '#4DB6AC', color: 'teal-500', rhythm: ['♩', '♪', '♪', '♩', '♪', '♪'] },
+            { id: 7, title: '카드 7', colorHex: '#FF8A65', color: 'orange-500', rhythm: ['♩', '♩', '♩', '♪', '♪'] },
+            { id: 8, title: '카드 8', colorHex: '#90CAF9', color: 'sky-500', rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♪', '♪'] },
+            { id: 9, title: '카드 9', colorHex: '#A5D6A7', color: 'lime-500', rhythm: ['♩', '♩', '♪', '♪', '♩'] },
+            { id: 10, title: '카드 10', colorHex: '#CE93D8', color: 'fuchsia-500', rhythm: ['♩', '♪', '♪', '♪', '♪', '♪', '♪', '♪', '♪'] },
+            { id: 11, title: '카드 11', colorHex: '#FFAB91', color: 'red-400', rhythm: ['♩', '♩', '♪', '♪', '♪', '♪'] },
+            { id: 12, title: '카드 12', colorHex: '#80DEEA', color: 'cyan-500', rhythm: ['♩', '♪', '♪', '♪', '♪', '♪', '♪', '♩'] },
+            { id: 13, title: '카드 13', colorHex: '#BCAAA4', color: 'stone-500', rhythm: ['♩', '♩', '♩', '♩', '♩'] },
+            { id: 14, title: '카드 14', colorHex: '#EF9A9A', color: 'rose-500', rhythm: ['♩', '♪', '♪', '♩', '♩'] },
+            { id: 15, title: '카드 15', colorHex: '#F48FB1', color: 'pink-500', rhythm: ['♩', '♩', '♩', '♪', '♪', '♩'] },
+            { id: 16, title: '카드 16', colorHex: '#9FA8DA', color: 'indigo-500', rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♩'] },
+            { id: 17, title: '카드 17', colorHex: '#80CBC4', color: 'emerald-500', rhythm: ['♩', '♩', '♪', '♪', '♩', '♪', '♪'] },
+            { id: 18, title: '카드 18', colorHex: '#C5E1A5', color: 'lime-400', rhythm: ['♩', '♪', '♪', '♩', '♪', '♪', '♩'] },
+            { id: 19, title: '카드 19', colorHex: '#FFE082', color: 'amber-500', rhythm: ['♩', '♩', '♩', '♩', '♪', '♪'] },
+            { id: 20, title: '카드 20', colorHex: '#FFCCBC', color: 'orange-400', rhythm: ['♩', '♪', '♪', '♩', '♩', '♩'] },
+            { id: 21, title: '카드 21', colorHex: '#B39DDB', color: 'violet-500', rhythm: ['♩', '♩', '♪', '♪', '♩', '♩'] },
+            { id: 22, title: '카드 22', colorHex: '#81D4FA', color: 'sky-400', rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♪', '♪', '♩'] },
+            { id: 23, title: '카드 23', colorHex: '#A1887F', color: 'neutral-500', rhythm: ['♩', '♩', '♩', '♪', '♪', '♪', '♪'] },
+            { id: 24, title: '카드 24', colorHex: '#E57373', color: 'red-500', rhythm: ['♩', '♪', '♪', '♪', '♪', '♩', '♩', '♩'] },
+            { id: 25, title: '카드 25', colorHex: '#F06292', color: 'pink-600', rhythm: ['♩', '𝄽', '♩', '𝄽'] },
+            { id: 26, title: '카드 26', colorHex: '#7986CB', color: 'indigo-400', rhythm: ['♩', '♪', '♪', '𝄽', '♩'] },
+            { id: 27, title: '카드 27', colorHex: '#4DD0E1', color: 'cyan-400', rhythm: ['𝄽', '♩', '♩', '♩'] },
+            { id: 28, title: '카드 28', colorHex: '#AED581', color: 'lime-400', rhythm: ['♩', '𝄽', '♪', '♪', '♩'] },
+            { id: 29, title: '카드 29', colorHex: '#FFB74D', color: 'orange-400', rhythm: ['♩', '♩', '𝄽', '♩'] },
+            { id: 30, title: '카드 30', colorHex: '#A1887F', color: 'neutral-500', rhythm: ['𝄽', '♪', '♪', '♩', '♪', '♪'] }
         ];
 
-        let expandedCardIndex = null;
+        let currentCardsData = [...originalCardsData];
+        let flippedCardId = null;
+        let modalResizeObserver = null; // To track the observer
+        let currentModalCardData = null; // To pass data to the resize function
 
-        function createCard(cardData, index) {
+        // --- DOM 요소 ---
+        const cardsGrid = document.getElementById('cardsGrid');
+        const shuffleButton = document.getElementById('shuffleButton');
+        const resetButton = document.getElementById('resetButton');
+        
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        // --- 함수 ---
+
+        /**
+         * 카드 뒷면의 리듬 패턴 HTML을 생성합니다. (작은 버전)
+         */
+        function createRhythmPattern(rhythm, color) {
+            const notesHTML = rhythm.map(note => `
+                <div class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg text-2xl font-semibold border-2 border-${color} text-${color} bg-${color}/10">
+                    ${note}
+                </div>
+            `).join('');
+            
+            return `<div class="flex flex-wrap justify-center items-center gap-2">${notesHTML}</div>`;
+        }
+
+        /**
+         * 모달에 표시될 리듬 패턴 HTML을 생성합니다. (큰 버전)
+         */
+        function createModalRhythmPattern(rhythm, color) {
+            const notesHTML = rhythm.map(note => `
+                <div class="modal-note flex-shrink-0 flex items-center justify-center rounded-lg font-semibold border-2 border-${color} text-${color} bg-${color}/10" style="transition: width 0.15s ease-out, height 0.15s ease-out, font-size 0.15s ease-out;">
+                    ${note}
+                </div>
+            `).join('');
+            
+            // JS가 크기를 계산하므로, 여기서는 inline-flex로 한 줄 정렬만 보장합니다.
+            return `<div id="modal-rhythm-container" class="inline-flex flex-nowrap items-center">${notesHTML}</div>`;
+        }
+
+        /**
+         * 개별 카드의 DOM 요소를 생성합니다.
+         */
+        function createCard(cardData) {
+            const { id, title, colorHex, color, rhythm } = cardData;
+
+            // 카드 컨테이너
             const cardContainer = document.createElement('div');
-            cardContainer.className = 'card-container';
-            cardContainer.id = `card-container-${index}`;
-            cardContainer.onclick = () => toggleCard(index);
+            cardContainer.className = 'perspective w-full h-40 sm:h-48 rounded-xl';
+            cardContainer.dataset.id = id;
 
-            const rhythmHTML = `
-                <div class="rhythm-row">
-                    ${cardData.rhythm.map(note => `<div class="rhythm-note">${note}</div>`).join('')}
-                </div>
+            // 카드 뒤집기 래퍼
+            const cardInner = document.createElement('div');
+            cardInner.id = `card-${id}`;
+            cardInner.className = 'card-inner relative w-full h-full transform-style-preserve-3d transition-transform duration-700 ease-in-out';
+
+            // 카드 앞면
+            const cardFront = document.createElement('div');
+            cardFront.className = 'card-face absolute w-full h-full rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center justify-center p-4 text-white cursor-pointer';
+            // 그라데이션을 위해 인라인 스타일 사용
+            cardFront.style.background = `linear-gradient(135deg, ${colorHex} 0%, ${colorHex}dd 100%)`;
+            cardFront.innerHTML = `
+                <h2 class="text-xl sm:text-2xl font-semibold">${title}</h2>
+                <p class="text-sm opacity-90 mt-1">클릭하여 뒤집기</p>
             `;
 
-            cardContainer.innerHTML = `
-                <div class="card" id="card-${index}">
-                    <div class="card-face card-front" style="background: linear-gradient(135deg, ${cardData.color} 0%, ${cardData.color}dd 100%);">
-                        <h2>${cardData.title}</h2>
-                        <p>클릭하여 리듬 확인하기</p>
-                    </div>
-                    <div class="card-face card-back">
-                        <button class="close-btn" onclick="event.stopPropagation(); closeExpandedCard();">✕</button>
-                        <h3>🎵 ${cardData.title} 리듬</h3>
-                        <div class="rhythm-pattern">
-                            ${rhythmHTML}
-                        </div>
-                    </div>
+            // 카드 뒷면
+            const cardBack = document.createElement('div');
+            cardBack.className = 'card-face absolute w-full h-full rounded-xl shadow-lg bg-white dark:bg-slate-800 p-4 flex flex-col items-center justify-center rotate-y-180 cursor-pointer';
+            
+            cardBack.innerHTML = `
+                <h3 class="text-lg font-semibold text-${color} dark:text-${color}">${title}</h3>
+                <div class="my-2 scale-75 sm:scale-100">
+                    ${createRhythmPattern(rhythm, color)}
                 </div>
+                <button class="expand-btn mt-2 px-3 py-1 text-xs sm:text-sm font-medium rounded-full bg-${color}/10 text-${color} hover:bg-${color}/20 transition-colors">
+                    크게 보기
+                </button>
             `;
+
+            // 이벤트 리스너
+            cardContainer.addEventListener('click', () => flipCard(id));
+
+            const expandBtn = cardBack.querySelector('.expand-btn');
+            expandBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 부모(카드 컨테이너)의 flipCard 이벤트 방지
+                openModal(cardData);
+            });
+
+            cardInner.appendChild(cardFront);
+            cardInner.appendChild(cardBack);
+            cardContainer.appendChild(cardInner);
 
             return cardContainer;
         }
 
-        function initCards() {
-            const cardsGrid = document.getElementById('cardsGrid');
-            cardsData.forEach((cardData, index) => {
-                const card = createCard(cardData, index);
-                cardsGrid.appendChild(card);
+        /**
+         * 모달에 표시된 음표/쉼표의 크기를 동적으로 계산하고 적용합니다.
+         */
+        function resizeModalNotes() {
+            if (!currentModalCardData || !modalBody) return;
+
+            const container = document.getElementById('modal-rhythm-container');
+            if (!container) return;
+
+            const notes = container.querySelectorAll('.modal-note');
+            const numNotes = notes.length;
+            if (numNotes === 0) return;
+
+            // 1. 사용 가능한 가로폭 계산 (좌우 패딩 제외)
+            const padding = window.innerWidth < 640 ? 48 : 64; // p-6 (3rem) or p-8 (4rem)
+            const availableWidth = modalBody.clientWidth - padding; // 좌우 패딩을 뺀 실제 가용 너비
+
+            // 2. 크기 제약 조건 정의
+            const maxNoteSize = window.innerWidth < 1024 ? 96 : 112; // md:w-24 or lg:w-28
+            const minNoteSize = 40; 
+            const maxGap = 16; 
+            const minGap = 4;
+            
+            // 3. 이상적인 음표 크기 계산 (비율을 0.15 (15%)로 가정)
+            // availableWidth = (noteSize * numNotes) + (gap * (numNotes - 1))
+            // gap = noteSize * 0.15
+            let idealNoteSize = availableWidth / (numNotes + (0.15 * (numNotes - 1)));
+
+            // 4. 계산된 크기를 최대/최소 사이로 제한
+            let calculatedSize = Math.max(minNoteSize, Math.min(maxNoteSize, idealNoteSize));
+            let calculatedGap = Math.max(minGap, Math.min(maxGap, calculatedSize * 0.15));
+
+            // 5. 예외 처리: 최소 크기로도 한 줄에 들어가지 못하는 경우
+            const minRequiredWidth = (minNoteSize * numNotes) + (minGap * (numNotes - 1));
+            
+            if (availableWidth < minRequiredWidth) {
+                // 한 줄에 불가능: 가로 스크롤 활성화 및 최소 크기 적용
+                modalBody.classList.remove('overflow-hidden', 'justify-center');
+                modalBody.classList.add('overflow-x-auto', 'justify-start');
+                calculatedSize = minNoteSize; // 스크롤 시 최소 크기 사용
+                calculatedGap = minGap;
+            } else {
+                // 한 줄에 가능: 가운데 정렬 및 overflow 숨김
+                modalBody.classList.add('overflow-hidden', 'justify-center');
+                modalBody.classList.remove('overflow-x-auto', 'justify-start');
+            }
+
+            // 6. 계산된 스타일 적용
+            const calculatedFontSize = calculatedSize * 0.6; // 박스 크기의 60%
+            
+            container.style.gap = `${calculatedGap}px`;
+            notes.forEach(note => {
+                note.style.width = `${calculatedSize}px`;
+                note.style.height = `${calculatedSize}px`;
+                note.style.fontSize = `${calculatedFontSize}px`;
             });
         }
 
-        function toggleCard(index) {
-            const card = document.getElementById(`card-${index}`);
-            const cardContainer = document.getElementById(`card-container-${index}`);
-            const overlay = document.getElementById('overlay');
+        /**
+         * 모달을 엽니다.
+         */
+        function openModal(cardData) {
+            const { title, rhythm, color } = cardData;
             
-            if (card.classList.contains('flipped')) {
-                // 이미 뒤집힌 카드를 클릭한 경우 닫기
-                closeExpandedCard();
-            } else {
-                // 다른 카드가 열려있으면 먼저 닫기
-                if (expandedCardIndex !== null) {
-                    closeExpandedCard();
-                }
-                
-                // 카드 뒤집기 및 확대
-                card.classList.add('flipped');
+            currentModalCardData = cardData; // 리사이즈를 위해 현재 카드 데이터 저장
+            
+            modalTitle.textContent = `🎵 ${title} 리듬 패턴`;
+            modalBody.innerHTML = createModalRhythmPattern(rhythm, color);
+            
+            // 모달을 표시하기 *전에* 크기 계산을 한 번 실행
+            resizeModalNotes(); 
+
+            modalOverlay.classList.remove('invisible', 'opacity-0');
+            modalContent.classList.remove('scale-95');
+
+            // 모달이 열린 후, modalBody의 크기 변경을 감지하는 Observer 연결
+            if (modalResizeObserver) {
+                modalResizeObserver.disconnect();
+            }
+            modalResizeObserver = new ResizeObserver(resizeModalNotes);
+            modalResizeObserver.observe(modalBody);
+        }
+
+        /**
+         * 모달을 닫습니다.
+         */
+        function closeModal() {
+            modalOverlay.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            
+            // ResizeObserver 연결 해제
+            if (modalResizeObserver) {
+                modalResizeObserver.disconnect();
+                modalResizeObserver = null;
+            }
+            currentModalCardData = null; // 현재 카드 데이터 지우기
+            
+            // 애니메이션이 끝난 후 invisible 추가
+            setTimeout(() => {
+                modalOverlay.classList.add('invisible');
+            }, 300); // transition-duration-300
+        }
+
+        /**
+         * 카드 그리드를 렌더링합니다. (애니메이션 포함)
+         */
+        function renderCards(cards) {
+            cardsGrid.innerHTML = ''; // 그리드 비우기
+            flippedCardId = null; // 뒤집힌 카드 상태 초기화
+            
+            cards.forEach((cardData, index) => {
+                const card = createCard(cardData);
+                card.style.opacity = '0'; // 초기 투명도
+                card.style.transform = 'translateY(20px)'; // 초기 위치
+                cardsGrid.appendChild(card);
+
+                // 스태거 애니메이션 (순차적으로 나타나기)
                 setTimeout(() => {
-                    cardContainer.classList.add('expanded');
-                    overlay.classList.add('active');
-                    expandedCardIndex = index;
-                }, 100);
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                    card.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                }, index * 50); // 50ms 간격
+            });
+        }
+
+        /**
+         * 카드를 뒤집습니다.
+         */
+        function flipCard(id) {
+            const cardInner = document.getElementById(`card-${id}`);
+            if (!cardInner) return;
+
+            // 이미 다른 카드가 뒤집혀있으면, 그 카드를 먼저 원상복구
+            if (flippedCardId && flippedCardId !== id) {
+                const prevFlippedCard = document.getElementById(`card-${flippedCardId}`);
+                if (prevFlippedCard) {
+                    prevFlippedCard.classList.remove('flipped');
+                }
+            }
+
+            // 현재 카드 상태 토글
+            if (flippedCardId === id) {
+                // 이미 뒤집힌 카드를 다시 클릭 (원상복구)
+                cardInner.classList.remove('flipped');
+                flippedCardId = null;
+            } else {
+                // 새 카드 뒤집기
+                cardInner.classList.add('flipped');
+                flippedCardId = id;
             }
         }
 
-        function closeExpandedCard() {
-            if (expandedCardIndex === null) return;
-            
-            const cardContainer = document.getElementById(`card-container-${expandedCardIndex}`);
-            const card = document.getElementById(`card-${expandedCardIndex}`);
-            const overlay = document.getElementById('overlay');
-            
-            cardContainer.classList.remove('expanded');
-            overlay.classList.remove('active');
-            
-            setTimeout(() => {
-                card.classList.remove('flipped');
-                expandedCardIndex = null;
-            }, 300);
-        }
-
-        function resetAllCards() {
-            closeExpandedCard();
-            
-            // 원래 순서로 카드 재배열
-            const cardsGrid = document.getElementById('cardsGrid');
-            cardsGrid.innerHTML = '';
-            
-            cardsData.forEach((cardData, index) => {
-                const card = createCard(cardData, index);
-                cardsGrid.appendChild(card);
-            });
-        }
-
+        /**
+         * 카드를 섞습니다.
+         */
         function shuffleCards() {
-            closeExpandedCard();
+            if (flippedCardId) {
+                flipCard(flippedCardId); // 뒤집힌 카드 원상복구
+            }
+            closeModal(); // 모달 닫기
             
-            // Fisher-Yates 셔플 알고리즘
-            const shuffled = [...cardsData];
+            // Fisher-Yates 셔플
+            let shuffled = [...originalCardsData];
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
             
-            // 카드 그리드 초기화 및 재생성
-            const cardsGrid = document.getElementById('cardsGrid');
-            cardsGrid.innerHTML = '';
-            
-            shuffled.forEach((cardData, index) => {
-                const card = createCard(cardData, index);
-                cardsGrid.appendChild(card);
-            });
+            currentCardsData = shuffled;
+            renderCards(currentCardsData);
         }
 
-        // 페이지 로드 시 카드 생성
-        initCards();
+        /**
+         * 카드를 초기 상태로 되돌립니다.
+         */
+        function resetCards() {
+            if (flippedCardId) {
+                flipCard(flippedCardId); // 뒤집힌 카드 원상복구
+            }
+            closeModal(); // 모달 닫기
+
+            currentCardsData = [...originalCardsData];
+            renderCards(currentCardsData);
+        }
+
+        // --- 이벤트 리스너 초기화 ---
+        shuffleButton.addEventListener('click', shuffleCards);
+        resetButton.addEventListener('click', resetCards);
+        
+        modalCloseBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            // 오버레이 클릭 시 닫기 (컨텐츠 영역 제외)
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        // Escape 키로 모달 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modalOverlay.classList.contains('invisible')) {
+                closeModal();
+            }
+        });
+
+        // --- 초기 실행 ---
+        renderCards(currentCardsData);
+        
     </script>
+
 </body>
 </html>
+
+
+
+

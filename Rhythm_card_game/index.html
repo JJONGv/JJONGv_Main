@@ -348,7 +348,7 @@
             }
         }
     </style>
-<script type="text/javascript" nonce="ee6c35429e434d38928c9f1bfc6" src="//local.adguard.org?ts=1761988475575&amp;type=content-script&amp;dmn=ppl-ai-code-interpreter-files.s3.amazonaws.com&amp;url=https%3A%2F%2Fppl-ai-code-interpreter-files.s3.amazonaws.com%2Fweb%2Fdirect-files%2F8ebf8ed5b01e072671816b9ab4bc70c1%2F35562d29-c728-4ff4-9c26-625b602a5573%2Fcanvas-app%2Findex.html%3Fresponse-content-disposition%3Dattachment%253B%2520filename%253Dindex.html%253B%2520filename%252A%253DUTF-8%2527%2527index.html%26AWSAccessKeyId%3DASIA2F3EMEYERETEMKDG%26Signature%3D5ummeyXoUJFYuvkhLXMNAogclCQ%253D%26x-amz-security-token%3DIQoJb3JpZ2luX2VjEGEaCXVzLWVhc3QtMSJIMEYCIQD797Pd9hHuc9y%252F2Qq65%252Bn66YiSn3zsywnCNw5g57MlXwIhALIKQOxYZ%252FXdYAIbsxIwXu9UkzKVbExxlZXbBJAGKM%252FJKvMECCoQARoMNjk5NzUzMzA5NzA1IgxDZ60K2z9h%252BivhWMsq0ATJGUlW1cCdBscWfY6KvPRoAMJqzBMQKXI83rSla171VFDh6cgXFJ%252BD%252FalAGd18yEZjhZwGDQs0rPQuitrsJTixFhPJSbt7jT8sR0PCPAuUWfF33xobpcyvjEMbce%252Fv6mOSgLnkEVhKMK%252BAkVd3XOMD6js7I9DHt97e1XMC5RfBr9rjy3OsBGOU4lRZ1Nkjtp6VexUcSpnpitBVM3ykqoMgfZCVb4oWsd8Ju2X1uJgx3TbkNNPMRD3CX%252FR4kREVslo8J9y2cY7W%252BlJ%252BopkRihkD3jZdDWOOba6dJa4Hh9ebpkZHsGX7MC8uabcD8FKqOO9qo%252FLKghjFCC366GlfP8cWfB%252FaB7kkD26xYjjmr%252BTerB8bIS5zFAVBBisXGyugEoAMx0oJkTTwQ%252B2%252FsT0J2JnALFXhjAc74MhuE4WEfKo2%252FK6ZPtQcXwjDjfoJJ4XJ1ze%252BRV9QIjVeHfVtgtW2mOvZr6om63zlG0%252BMJkaBnSQq57N35MnYwArRNTba3UB97kHVCGkJ%252BPjkPhjWdE95z2jgYUIVx24zQtrFfJQiBsoSCOBS2Ws4uEK5EA6tEgIk932gep9DQ0ss6l4NbZWTANgzy%252B0f01Hb6UBINv2FY%252B9sJfbZEmwxgXf8B4kuMgc6mj5OYud7Kz63UnZknEqN1InhKTnPX7uHVNswHKZv2H68o8dOAfY8D%252BdzbTdV3v54%252B1OFc%252FCJ63zOx4YLeFrzkLw0LJgRCopbdtq4LkEep4Dl0dzvw8WVSsD6UaQy%252B5ConoFI%252FhP4s2UJFYfsK%252F4QAZuaMKSSl8gGOpcBC%252FsT2047N2gkqdC7WyuxHXkIjqm8i9ZETmjR1W0qk3zjM2SaBueDbz8vFurIzCKpDmc3U3NGi5Gqel2s3KH%252BAl8oSlF%252BlAtueRf4CsMazy%252FuRYQnaFhPu1gJP1E0Oy%252BTbcjEx6pxb4F5jOuRgWCpW6Jm9u2MnyHgTnr1k9pHEL50k3%252BbNKi4V0p4Gx2BUykyYhJTLH6imQ%253D%253D%26Expires%3D1761990113&amp;app=whale.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="ee6c35429e434d38928c9f1bfc6" src="//local.adguard.org?ts=1761988475575&amp;name=AdGuard%20Assistant&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script></head>
+</head>
 <body>
     <div class="overlay" id="overlay" onclick="closeExpandedCard()"></div>
     
@@ -602,6 +602,15 @@
 
         function resetAllCards() {
             closeExpandedCard();
+            
+            // 원래 순서로 카드 재배열
+            const cardsGrid = document.getElementById('cardsGrid');
+            cardsGrid.innerHTML = '';
+            
+            cardsData.forEach((cardData, index) => {
+                const card = createCard(cardData, index);
+                cardsGrid.appendChild(card);
+            });
         }
 
         function shuffleCards() {

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경기도 물리 임용 단기 합격 전략</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <!--
+    Infographic Narrative Plan:
+    1. Title & Premise: Hook with the "Short-Term Pass Strategy" concept and the "Selection & Focus" motto.
+    2. 4 Key Insights: Visualize the 4 core strategies from successful candidates (Section 1).
+    3. The 3-Step Timeline: A process-oriented section showing the 3 phases of study (Section 2).
+    4. Focus Breakdown: Use charts to show the A/B/C rank of Physics subjects and the changing time allocation (80/20 -> 70/10/20).
+    5. The Gyeonggi Difference (2nd Round): Emphasize the high importance (40-50%) and break down the 3 components of the 2nd exam.
+    6. Final Strategic Tips: Conclude with the 3 final pieces of advice.
+    -->
+    <!--
+    Visualization Plan (No SVG, No Mermaid JS):
+    1. 4 Key Insights (Section 1):
+       - Goal: Organize
+       - Viz: 4-column card layout using HTML/Tailwind. Each card with a large icon (Unicode character, e.g., 💡, 🎯, ⚖️, 👥) and the key phrase.
+       - Justification: Clearly segments the 4 foundational principles. (Method: HTML/Tailwind, NO SVG).
+    2. 3-Step Timeline (Section 2):
+       - Goal: Organize (Process)
+       - Viz: Horizontal "Flow Chart" using structured HTML/Tailwind. 3 large blocks connected by arrows (using Tailwind borders or Unicode '→').
+       - Justification: Shows the progression over time clearly. (Method: HTML/Tailwind, NO SVG, NO MERMAID).
+    3. Workload Allocation (Section 2, Steps 1-3):
+       - Goal: Compare (Composition)
+       - Viz: Two Donut Charts (Chart.js).
+       - Chart 1 (Steps 1&2): "Physics (80%)", "Education Theory (20%)".
+       - Chart 2 (Step 3): "Physics (70%)", "2nd Round Prep (20%)", "Ed Theory (10%)".
+       - Justification: Donut charts are perfect for showing simple composition (Goal: Inform/Compare). (Library: Chart.js/Canvas, NO SVG).
+    4. Physics Subject Priority (Section 2, Step 1):
+       - Goal: Compare (Ranking)
+       - Viz: Horizontal Bar Chart (Chart.js).
+       - Data: A-Rank (General, Mechanics, E&M), B-Rank (Quantum, Modern), C-Rank (Thermo, Optics, Physics Ed). Bars will represent priority (e.g., A=3, B=2, C=1).
+       - Justification: An ordered bar chart clearly shows rankings/priority (Goal: Organize). (Library: Chart.js/Canvas, NO SVG).
+    5. Gyeonggi 2nd Round Importance (Section 3):
+       - Goal: Inform (Single data point)
+       - Viz: "Single Big Number" (HTML/Tailwind) - "40-50%".
+       - Justification: Highlights the most critical warning in the text. (Method: HTML/Tailwind, NO SVG).
+    6. Gyeonggi 2nd Round Components (Section 3):
+       - Goal: Organize
+       - Viz: 3-column card layout (HTML/Tailwind) detailing the 3 parts (Demo, Reflection, Interview).
+       - Justification: Breaks down the complex 2nd round into digestible parts. (Method: HTML/Tailwind, NO SVG).
+    7. Final Advice (Section 4):
+       - Goal: Organize (List)
+       - Viz: Styled ordered list (`<ol>`) using HTML/Tailwind.
+       - Justification: Simple, clear way to present final tips. (Method: HTML/Tailwind, NO SVG).
+    -->
+    <!-- Chosen Color Palette: Brilliant Blues -->
+    <!-- Confirmed: No Mermaid JS or SVG graphics are used in this file. -->
+    <style>
+      body {
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 300px;
+        max-height: 350px;
+      }
+      @media (min-width: 768px) {
+        .chart-container {
+          height: 350px;
+          max-height: 400px;
+        }
+      }
+      .flow-arrow {
+        font-size: 3rem;
+        line-height: 1;
+        color: #419AFF;
+      }
+      .details-toggle {
+        cursor: pointer;
+        font-weight: 600;
+        color: #0062E5;
+        margin-top: 1rem;
+        display: inline-block;
+        font-size: 0.9rem;
+      }
+      .details-content {
+        transition: all 0.3s ease-in-out;
+        overflow: hidden;
+        text-align: left;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+      }
+    </style>
+</head>
+<body class="bg-slate-100 text-gray-800">
+
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <h1 class="text-3xl md:text-5xl font-bold text-[#004AAD]">경기도 물리 임용 단기 합격 전략</h1>
+            <p class="text-xl md:text-2xl text-gray-600 mt-4">"선택과 집중"을 통한 합격선 돌파</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <section class="mb-12">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-[#004AAD]">합격 수기 분석: 공통 핵심 전략 4가지</h2>
+            <p class="text-lg text-gray-700 text-center mb-8">수많은 단기 합격자들이 공통적으로 강조하는 4가지 핵심 원칙입니다.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center transition-transform transform hover:scale-105">
+                    <span class="text-5xl mb-4 block">💡</span>
+                    <h3 class="text-xl font-semibold mb-2 text-[#0062E5]">"기출은 답을 알고 있다"</h3>
+                    <p class="text-gray-600">단순 풀이가 아닌, 출제 개념과 유형을 '분석'하여 지도를 만들어야 합니다.</p>
+                    <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                    <div class="details-content hidden">
+                        <p class="font-bold"><strong>분석:</strong></p>
+                        <p class="text-sm">거의 모든 합격자가 "기출"의 중요성을 강조합니다. 임용 시험은 문제 은행식이 아니지만, 출제되는 개념과 문제 유형은 정해진 풀(Pool) 안에서 반복, 변형됩니다.</p>
+                        <p class="font-bold mt-2"><strong>전략:</strong></p>
+                        <p class="text-sm">최소 10개년 치 기출을 놓고, '어떤 단원'에서 '어떤 개념'이 '어떤 형태'(단순 계산, 개념 서술, 실험 설계 등)로 나왔는지 정리해야 합니다. 이 분석표가 단기 합격의 '지도'가 됩니다.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center transition-transform transform hover:scale-105">
+                    <span class="text-5xl mb-4 block">🎯</span>
+                    <h3 class="text-xl font-semibold mb-2 text-[#0062E5]">"완벽주의는 금물, 80%를 노린다"</h3>
+                    <p class="text-gray-600">모든 것을 다 알 수 없습니다. 남들이 맞히는 것을 틀리지 않는 것이 중요합니다.</p>
+                    <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                    <div class="details-content hidden">
+                        <p class="font-bold"><strong>분석:</strong></p>
+                        <p class="text-sm">전공물리는 범위가 방대합니다. (일반물리, 역학, 전자기, 양자, 열통계, 광학 등) 단기간에 모든 원서의 연습문제를 풀고 심화 개념까지 섭렵하는 것은 불가능합니다.</p>
+                        <p class="font-bold mt-2"><strong>전략:</strong></p>
+                        <p class="text-sm">합격자들은 "남들이 다 맞히는 문제"는 절대 틀리지 않고, "킬러 문항" 중 일부를 맞히는 전략을 취합니다. 즉, 기출 빈도가 높은 핵심 주제는 깊게 파고, 너무 지엽적이거나 난해한 부분은 과감히 버리는 용기가 필요합니다.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center transition-transform transform hover:scale-105">
+                    <span class="text-5xl mb-4 block">⚖️</span>
+                    <h3 class="text-xl font-semibold mb-2 text-[#0062E5]">"교육학은 '효율'의 영역이다"</h3>
+                    <p class="text-gray-600">최소 시간을 투자해 최대 효율을 뽑아내는 '키워드' 중심의 학습이 필요합니다.</p>
+                    <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                    <div class="details-content hidden">
+                        <p class="font-bold"><strong>분석:</strong></p>
+                        <p class="text-sm">전공 점수가 아무리 높아도 교육학(20점)에서 과락하거나 낮은 점수를 받으면 1차 합격이 어렵습니다. 단기 합격자들은 교육학에 매몰되지 않고, '최소 시간, 최대 효율'을 뽑아냅니다.</p>
+                        <p class="font-bold mt-2"><strong>전략:</strong></p>
+                        <p class="text-sm">방대한 교육학 이론을 모두 외우기보다, 핵심 키워드와 만능틀(서론/본론/결론 에세이 구조)을 암기합니다. 상반기에는 키워드 암기에 집중하고, 하반기에는 매주 1~2편의 실전 논술을 작성하며 '글쓰기 근육'을 단련합니다.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center transition-transform transform hover:scale-105">
+                    <span class="text-5xl mb-4 block">👥</span>
+                    <h3 class="text-xl font-semibold mb-2 text-[#0062E5]">"스터디는 '강제성'과 '2차 대비'다"</h3>
+                    <p class="text-gray-600">특히 경기도 2차 대비는 스터디가 필수적이며, 학습 강제성을 부여합니다.</p>
+                    <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                    <div class="details-content hidden">
+                        <p class="font-bold"><strong>분석:</strong></p>
+                        <p class="text-sm">특히 경기도 2차 시험(수업실연, 집단토의, 면접)은 혼자 대비하기 불가능에 가깝습니다. 또한, 단기 레이스에서는 쉽게 지치기 때문에 '강제성'을 부여할 스터디가 필수적입니다.</p>
+                        <p class="font-bold mt-2"><strong>전략:</strong></p>
+                        <p class="text-sm">1차 대비(문제풀이 인증, 기상 스터디)도 중요하지만, 경기도 합격을 위해서는 1차 시험 직후부터(혹은 그 이전부터) 2차 스터디를 구해야 합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12 bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-[#004AAD]">단기 합격 3단계 로드맵</h2>
+            <p class="text-lg text-gray-700 text-center mb-8">체계적인 3단계 접근법으로 학습 효율을 극대화합니다.</p>
+            <div class="flex flex-col md:flex-row items-stretch justify-between gap-4">
+                <div class="flex-1 text-center p-4 border-2 border-dashed border-[#89C8FF] rounded-lg flex flex-col justify-between">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-500">STEP 1 (D-6~4개월)</span>
+                        <h3 class="text-xl font-bold text-[#0062E5] mt-2">분석 및 개념 압축</h3>
+                        <p class="text-gray-600 mt-1">기출 분석, 핵심 개념서 단권화 시작</p>
+                    </div>
+                    <div>
+                        <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                        <div class="details-content hidden">
+                            <p class="font-bold"><strong>전공 물리 (80%):</strong></p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><strong>기출 분석:</strong> 10개년 치 분석표 완성 (단원, 주제, 난이도, 형태)</li>
+                                <li><strong>개념서 선택:</strong> 강사 요약서 또는 서브노트 활용 (원서X)</li>
+                                <li><strong>선택과 집중:</strong> A급(일반물리, 역학, 전자기), B급(양자, 현대), C급(열통계, 광학, 물리교육론) 분류</li>
+                            </ul>
+                            <p class="font-bold mt-2"><strong>교육학 (20%):</strong></p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><strong>키워드 암기:</strong> 매일 1~2시간 키워드북 암기</li>
+                                <li><strong>구조화:</strong> 마인드맵으로 전체 지도 그리기</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-arrow hidden md:flex md:items-center">→</div>
+                <div class="flex-1 text-center p-4 border-2 border-dashed border-[#419AFF] rounded-lg flex flex-col justify-between">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-500">STEP 2 (D-3~2개월)</span>
+                        <h3 class="text-xl font-bold text-[#0062E5] mt-2">기출 풀이 및 단권화 완성</h3>
+                        <p class="text-gray-600 mt-1">실전 풀이, 오답노트 통합, 원서 발췌독</p>
+                    </div>
+                    <div>
+                        <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                        <div class="details-content hidden">
+                            <p class="font-bold"><strong>전공 물리 (80%):</strong></p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><strong>기출 문제 풀이:</strong> 분석이 끝난 기출 실전처럼 풀기</li>
+                                <li><strong>오답노트/단권화:</strong> 틀린 개념을 메인 교재에 모두 옮겨 적어 '단 하나의 노트' 완성, 원서는 '발췌독'</li>
+                                <li><strong>문제풀이 스터디:</strong> 주 1~2회 강제성 부여</li>
+                            </ul>
+                            <p class="font-bold mt-2"><strong>교육학 (20%):</strong></p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><strong>논술 실전 연습:</strong> 주 1~2회, 60분 시간 재고 작성</li>
+                                <li><strong>상호 첨삭:</strong> 스터디원과 교환 첨삭 (키워드, 논리)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-arrow hidden md:flex md:items-center">→</div>
+                <div class="flex-1 text-center p-4 border-2 border-dashed border-[#004AAD] rounded-lg flex flex-col justify-between">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-500">STEP 3 (D-1개월)</span>
+                        <h3 class="text-xl font-bold text-[#0062E5] mt-2">실전 모의고사 및 2차 병행</h3>
+                        <p class="text-gray-600 mt-1">실전 감각 극대화, 경기교육시책 암기</p>
+                    </div>
+                    <div>
+                        <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                        <div class="details-content hidden">
+                            <p class="font-bold"><strong>전공 물리 (70%):</strong></p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><strong>실전 모의고사:</strong> 학원/스터디 모의고사 실전 시간 맞춰 풀기</li>
+                                <li><strong>단권화 무한 반복:</strong> 2단계에서 만든 노트 반복 암기</li>
+                            </ul>
+                            <p class="font-bold mt-2"><strong>교육학 (10%):</strong></p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><strong>논술 감 유지:</strong> 주 1회 논술 작성</li>
+                                <li><strong>키워드 복습:</strong> 자투리 시간에 암기한 키워드 복습</li>
+                            </ul>
+                            <p class="font-bold mt-2"><strong>경기도 2차 대비 (20%):</strong></p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><strong>경기교육시책 암기:</strong> 핵심 키워드(자율, 균형, 미래 등) 암기</li>
+                                <li><strong>스터디 결성:</strong> 1차 시험 직후 바로 시작할 수 있게 준비</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-[#004AAD]">전략적 시간 배분 및 과목 집중</h2>
+            <p class="text-lg text-gray-700 text-center mb-8">시간대별로 학습 비중을 조절하고, 전공 내 우선순위를 명확히 해야 합니다.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center text-[#0062E5]">학습 비중 변화 (1단계 → 3단계)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-center font-medium text-gray-700">1-2단계 (D-6~2개월)</p>
+                            <div class="chart-container" style="height: 250px; max-height: 250px;">
+                                <canvas id="workloadChart1"></canvas>
+                            </div>
+                            <p class="text-center text-sm text-gray-600 mt-2">전공에 절대적인 시간을 투자하여 기반을 다집니다.</p>
+                        </div>
+                        <div>
+                            <p class="text-center font-medium text-gray-700">3단계 (D-1개월)</p>
+                            <div class="chart-container" style="height: 250px; max-height: 250px;">
+                                <canvas id="workloadChart2"></canvas>
+                            </div>
+                            <p class="text-center text-sm text-gray-600 mt-2">경기도 2차 대비 비중을 늘려 실전을 준비합니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center text-[#0062E5]">전공 물리 과목별 우선순위 (1단계)</h3>
+                    <p class="text-center text-gray-600 mb-4">모든 과목을 동일하게 공부할 수 없습니다. 기출 빈도에 따른 A/B/C 등급 분류가 핵심입니다.</p>
+                    <div class="chart-container" style="height: 300px; max-height: 350px;">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm text-gray-600 mt-2">A급(필수) 과목은 완벽하게, C급(방어) 과목은 기본 개념 위주로 전략을 세웁니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-[#004AAD]">경기도 2차 시험: 결정적 차별점 (★매우 중요★)</h2>
+            <div class="bg-white rounded-lg shadow-lg p-8 text-center mb-8">
+                <p class="text-lg text-gray-700 mb-2">경기도 2차 시험 비중</p>
+                <div class="text-6xl md:text-8xl font-bold text-[#004AAD] my-4">40~50%</div>
+                <p class="text-lg text-gray-700">1차 점수가 낮아도 2차에서 충분히 역전이 가능합니다. 1차 시험 한 달 전부터 반드시 준비를 병행해야 합니다.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-2 text-[#0062E5]">① 수업실연</h3>
+                    <p class="text-gray-600">'학생 중심'의 배움 중심 수업을 실연해야 합니다. 교과서의 '탐구 활동'을 재구성하는 연습이 필요하며, 제시된 '조건'을 충족하는 것이 핵심입니다.</p>
+                    <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                    <div class="details-content hidden">
+                        <p class="font-bold"><strong>특징:</strong></p>
+                        <p class="text-sm">단순 판서 강의가 아닌, '학생 중심의 배움 중심 수업'을 요구합니다.</p>
+                        <p class="font-bold mt-2"><strong>전략:</strong></p>
+                        <ul class="list-disc list-inside text-sm">
+                            <li>물리 개념 + <strong>"조건"</strong> 충족 (예: 순회 지도, 잠자는 학생 깨우기, 모둠 갈등 해결)</li>
+                            <li>물리 교과서 '탐구 활동' 부분을 학생 참여형 수업으로 재구성하는 연습 필요</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-2 text-[#0062E5]">② 수업나눔 및 집단토의</h3>
+                    <p class="text-gray-600">'경기교육시책' 키워드를 활용해 본인의 수업을 방어(나눔)해야 합니다. 토의에서는 경청과 '디딤돌' 발언을 하는 협력적 태도가 중요합니다.</p>
+                    <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                    <div class="details-content hidden">
+                        <p class="font-bold"><strong>특징:</strong></p>
+                        <ul class="list-disc list-inside text-sm">
+                            <li>(수업나눔) 자신이 실연한 수업을 '경기교육시책' 키워드와 엮어 방어</li>
+                            <li>(집단토의) 특정 주제(AI 교육 등)에 대해 토의</li>
+                        </ul>
+                        <p class="font-bold mt-2"><strong>전략:</strong></p>
+                        <ul class="list-disc list-inside text-sm">
+                            <li><strong>"나눔" 핵심:</strong> "경기교육시책의 OO에 기반하여..." 화법 연습</li>
+                            <li><strong>"토의" 핵심:</strong> 주장보다 '경청'과 '디딤돌' 발언(이어가기) 태도 중요</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-2 text-[#0062E5]">③ 심층면접</h3>
+                    <p class="text-gray-600">'경기도 교육 기본계획'을 암기 수준으로 숙지해야 합니다. 교직관과 생활지도 질문에도 정책을 녹여내는 것이 고득점의 비결입니다.</p>
+                    <span class="details-toggle" data-toggle="details">자세히 보기 <span class="arrow">▼</span></span>
+                    <div class="details-content hidden">
+                        <p class="font-bold"><strong>특징:</strong></p>
+                        <p class="text-sm">교직관, 학생 생활지도 + '경기도 교육 정책' 질문 반드시 나옴</p>
+                        <p class="font-bold mt-2"><strong>전략:</strong></p>
+                        <p class="text-sm">'경기도 교육 기본계획'을 거의 암기해야 함. "고교학점제 하 물리 미이수 학생 지도"와 같은 구체적 질문에 정책을 녹여 답해야 함.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-[#004AAD]">단기 합격자를 위한 최종 조언</h2>
+            <ol class="list-decimal list-inside space-y-4 text-gray-700 text-lg">
+                <li><strong class="text-[#0062E5]">물리교육론을 버리지 마십시오.</strong> 암기만 하면 점수를 얻는 효자 영역이며, 2차 수업실연의 철학적 기반이 됩니다.</li>
+                <li><strong class="text-[#0062E5]">주력 2과목을 정하십시오.</strong> (예: 역학, 전자기) 가장 자신 있는 2과목은 만점을, 나머지는 기본만 하겠다는 전략이 유효합니다.</li>
+                <li><strong class="text-[#0062E5]">스터디를 '활용'하십시오.</strong> 맹신하거나 끌려다니지 말고, 진도 관리와 2차 대비용으로 주도적으로 활용해야 합니다.</li>
+            </ol>
+        </section>
+
+    </main>
+    
+    <footer class="text-center p-6 mt-8 text-gray-500 text-sm">
+        이 인포그래픽은 제공된 합격 수기 분석 자료를 기반으로 제작되었습니다.
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            document.querySelector('main').addEventListener('click', function(e) {
+                const toggleButton = e.target.closest('[data-toggle="details"]');
+                if (toggleButton) {
+                    e.preventDefault();
+                    const parent = toggleButton.parentElement;
+                    const content = parent.querySelector('.details-content');
+                    const arrow = toggleButton.querySelector('.arrow');
+
+                    if (content) {
+                        const isHidden = content.classList.contains('hidden');
+                        content.classList.toggle('hidden');
+                        
+                        if (isHidden) {
+                            arrow.textContent = '▲';
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                        } else {
+                            arrow.textContent = '▼';
+                            content.style.maxHeight = null;
+                        }
+                    }
+                }
+            });
+
+            const tooltipTitleCallback = {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                  return label.join(' ');
+                                } else {
+                                  return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            const chartColors = ['#0062E5', '#419AFF', '#89C8FF'];
+
+            new Chart(document.getElementById('workloadChart1'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['전공 물리', '교육학'],
+                    datasets: [{
+                        data: [80, 20],
+                        backgroundColor: [chartColors[0], chartColors[2]],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...tooltipTitleCallback
+                }
+            });
+
+            new Chart(document.getElementById('workloadChart2'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['전공 물리', '경기도 2차 대비', '교육학'],
+                    datasets: [{
+                        data: [70, 20, 10],
+                        backgroundColor: chartColors,
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...tooltipTitleCallback
+                }
+            });
+
+            new Chart(document.getElementById('priorityChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['일반물리', '역학', '전자기학', '양자역학', '현대물리', '열통계', '광학', '과학교육론(물리교육론)'],
+                    datasets: [{
+                        label: '과목 중요도 (A=3, B=2, C=1)',
+                        data: [3, 3, 3, 2, 2, 1, 1, 1],
+                        backgroundColor: [
+                            chartColors[0], chartColors[0], chartColors[0], 
+                            chartColors[1], chartColors[1], 
+                            chartColors[2], chartColors[2], chartColors[2]
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: function(value) {
+                                    if (value === 3) return 'A급 (필수)';
+                                    if (value === 2) return 'B급 (중요)';
+                                    if (value === 1) return 'C급 (방어)';
+                                    return '';
+                                },
+                                stepSize: 1
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...tooltipTitleCallback.plugins,
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+

@@ -3,469 +3,749 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day별 영단어 4지선다 게임 (Sheets 연동)</title>
+    <title>Day별 영단어 랭킹 게임(워마 2000)</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CSS for Animations -->
     <style>
-        /* Inter 폰트 기본 적용 */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* 타이머 바 애니메이션 (5초로 변경) */
-        @keyframes shrink {
-            from { width: 100%; }
-            to { width: 0%; }
-        }
         .timer-bar-animate {
-            animation: shrink 5s linear forwards;
+            transition: width 5s linear;
+            width: 0% !important;
         }
-        
-        /* 버튼 클릭 시 피드백 애니메이션 (추가) */
         .btn-correct {
-            animation: flash-green 0.5s;
             background-color: #22c55e !important; /* green-500 */
-            color: white !important;
-            transform: scale(1.03);
+            transform: scale(1.05);
         }
         .btn-wrong {
-            animation: flash-red 0.5s;
             background-color: #ef4444 !important; /* red-500 */
-            color: white !important;
+            transform: scale(1.05);
+            animation: shake 0.5s;
         }
-        @keyframes flash-green {
-            0%, 100% { transform: scale(1.03); }
-            50% { transform: scale(1.08); }
-        }
-        @keyframes flash-red {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        /* 기본 버튼 스타일 (회색) */
-        .btn-default {
-            background-color: #f3f4f6; /* gray-100 */
-            color: #1f2937; /* gray-800 */
-        }
-        .btn-default:hover {
-            background-color: #e5e7eb; /* gray-200 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) scale(1.05); }
+            25% { transform: translateX(-10px) scale(1.05); }
+            50% { transform: translateX(10px) scale(1.05); }
+            75% { transform: translateX(-10px) scale(1.05); }
         }
     </style>
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <div id="game-container" class="w-full max-w-md mx-auto bg-white shadow-2xl rounded-2xl p-6 transition-all duration-300">
+    <!-- Firebase SDK (ESM - 모듈 타입) -->
+    <script type="module">
+        // --- Firebase SDK 모듈 가져오기 ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            onSnapshot, 
+            serverTimestamp,
+            getDocs,      // (관리자) 삭제를 위해 추가
+            deleteDoc,    // (관리자) 삭제를 위해 추가
+            writeBatch,   // (관리자) 삭제를 위해 추가
+            doc,          // (관리자) 삭제를 위해 추가
+            setLogLevel 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        <!-- 시작 화면 -->
-        <div id="start-screen" class="text-center">
-            <h1 class="text-3xl font-bold text-indigo-600 mb-4">영단어 4지선다 게임!</h1>
-            <p class="text-gray-600 mb-6">Day를 선택하고, 영단어의 뜻을 맞춰보세요.</p>
-            
-            <div class="mb-8">
-                <label for="day-selector" class="block text-sm font-medium text-gray-700 mb-2">학습할 Day를 선택하세요:</label>
-                <select id="day-selector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    <!-- JS로 채워집니다 -->
-                    <option>단어 로드 중...</option>
-                </select>
-            </div>
+        // --- 1. Google Sheet 설정 ---
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU4mlCRTqgUmcZa_Fr28WUomiGWmGTR18WwHXJpwfNhx43Iejb1CA2Jg-pOFgrFbBztWEMOj9HR8-i/pub?output=csv'; // 올바른 URL
 
-            <button id="start-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform duration-200 hover:scale-105" disabled>
-                데이터 로딩 중...
-            </button>
-            <p id="loading-error" class="text-red-500 text-sm mt-4"></p>
-        </div>
-
-        <!-- 게임 중 화면 (hidden) -->
-        <div id="game-screen" class="hidden">
-            <!-- (이하 게임 화면 HTML은 이전과 동일) -->
-            <!-- 1. 헤더: 점수와 생명 -->
-            <div class="flex justify-between items-center mb-4">
-                <div class="text-lg">
-                    <span class="font-bold text-indigo-600">맞춘 개수</span>
-                    <span id="score" class="text-2xl font-bold ml-2">0</span>
-                </div>
-                <div id="lives" class="flex space-x-1">
-                    <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
-                    <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
-                    <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
-                </div>
-            </div>
-            <!-- 2. 타이머 바 -->
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
-                <div id="timer-bar" class="bg-green-500 h-2.5 rounded-full transition-all duration-100"></div>
-            </div>
-            <!-- 3. 문제 (영단어) -->
-            <div class="text-center mb-8">
-                <p class="text-gray-600 text-lg mb-2">다음 영단어의 뜻은?</p>
-                <h2 id="question-word" class="text-4xl font-bold text-gray-800">Apple</h2>
-            </div>
-            <!-- 4. 선택지 (4지선다 한글 뜻) -->
-            <div id="options-grid" class="grid grid-cols-2 gap-4">
-                <button class="option-btn btn-default font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
-                <button class="option-btn btn-default font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
-                <button class="option-btn btn-default font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
-                <button class="option-btn btn-default font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
-            </div>
-        </div>
-
-        <!-- 게임 오버 화면 (hidden) -->
-        <div id="game-over-screen" class="hidden text-center">
-            <h2 class="text-3xl font-bold text-red-600 mb-4">게임 오버!</h2>
-            <p class="text-gray-600 text-xl mb-6">
-                최종 결과: <span id="final-score" class="font-bold text-2xl">0</span>
-            </p>
-            <button id="restart-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform duration-200 hover:scale-105">
-                다른 Day 도전하기
-            </button>
-        </div>
-
-    </div>
-
-    <script>
-        // ##################################################
-        // ### 1. Google Sheets 설정 ###
-        // ##################################################
-        // 2단계에서 복사한 '웹에 게시' URL을 이 "" 안에 붙여넣으세요.
-        const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU4mlCRTqgUmcZa_Fr28WUomiGWmGTR18WwHXJpwfNhx43Iejb1CA2Jg-pOFgrFbBztWEMOj9HR8-i/pub?gid=0&single=true&output=csv";
-        
-        // ##################################################
-        // ### 게임 로직 (Google Sheets 연동) ###
-        // ##################################################
-
-        let globalWordData = {}; // 불러온 단어 데이터를 저장할 객체
-        // allWordsList (전체 단어 목록)은 더 이상 필요하지 않으므로 제거합니다.
-        let selectedDayWords = []; // 게임에 사용할 단어 목록 (순서 섞음)
+        // --- 2. 전역 변수 설정 ---
+        let WORD_DATA = {};         
+        let allWordsList = [];      
+        let selectedDayWords = [];  
         let currentWordIndex = 0;
         let score = 0;
         let lives = 3;
-        let timerId; // 타이머 ID
-        let isClickable = true; // 중복 클릭 방지
+        let timerId;                
+        let timerBarId;             
+        let isClickable = true;     
+        let currentNickname = "";   
 
-        // --- 2. HTML 요소 가져오기 ---
-        const startScreen = document.getElementById('start-screen');
-        const gameScreen = document.getElementById('game-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
+        let db, auth, userId, appId;
+        let isAuthReady = false; 
 
-        const daySelector = document.getElementById('day-selector');
-        const startButton = document.getElementById('start-button');
-        const restartButton = document.getElementById('restart-button');
-        const loadingError = document.getElementById('loading-error');
-        
-        const scoreDisplay = document.getElementById('score');
-        const livesDisplay = document.getElementById('lives');
-        const questionWordDisplay = document.getElementById('question-word');
-        const timerBar = document.getElementById('timer-bar');
-
-        const optionsGrid = document.getElementById('options-grid');
-        const optionButtons = document.querySelectorAll('.option-btn');
-        const finalScoreDisplay = document.getElementById('final-score');
-
-        // --- 3. 유틸리티 함수 ---
-        
-        // 배열 섞기 (Fisher-Yates Shuffle)
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-
-        // CSV 텍스트를 파싱하여 WORD_DATA 객체 형식으로 변환
-        function parseCSV(csvText) {
-            const data = {};
-            const lines = csvText.split('\n');
+        // --- DOM이 로드된 후 스크립트 실행 ---
+        window.addEventListener('DOMContentLoaded', () => {
             
-            // CSV 파싱 시 첫 번째 줄(헤더)을 건너뛰도록 1부터 시작 (선택 사항)
-            // Google Sheets '웹에 게시'는 헤더를 포함하지 않으므로 0부터 시작이 맞습니다.
-            lines.forEach(line => {
-                const parts = line.split(',');
-                
-                // [수정됨] 쉼표가 3개 이상인 경우(C열에 쉼표가 포함된 경우) 처리
-                if (parts.length >= 3) {
-                    // A열: Day, B열: en
-                    const day = parts[0].trim();
-                    const en = parts[1].trim();
+            // --- 3. HTML 요소 가져오기 ---
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const gameOverScreen = document.getElementById('game-over-screen');
+            
+            const nicknameInput = document.getElementById('nickname-input');
+            const daySelect = document.getElementById('day-select');
+            const startButton = document.getElementById('start-button');
+            const restartButton = document.getElementById('restart-button');
+            
+            const scoreDisplay = document.getElementById('score');
+            const livesDisplay = document.getElementById('lives');
+            const questionWordDisplay = document.getElementById('question-word');
+            const optionsGrid = document.getElementById('options-grid');
+            const optionButtons = document.querySelectorAll('.option-btn');
+            const timerBar = document.getElementById('timer-bar');
+            const finalScoreDisplay = document.getElementById('final-score-text');
+            
+            // 알림창 요소
+            const messageBox = document.getElementById('message-box');
+            const messageTitle = document.getElementById('message-title');
+            const messageBody = document.getElementById('message-body');
+
+            const leaderboardLoading = document.getElementById('leaderboard-loading');
+            const leaderboardList = document.getElementById('leaderboard-list');
+            const adminButton = document.getElementById('admin-button'); // 관리자 버튼
+
+            // --- 4. Firebase 초기화 및 인증 ---
+            async function initializeFirebase() {
+                try {
+                    appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const firebaseConfigJson = typeof __firebase_config !== 'undefined' 
+                        ? __firebase_config 
+                        : '{}'; 
                     
-                    // [수정됨] C열 이후의 모든 부분을 다시 쉼표로 합쳐서 ko로 만듦
-                    let ko = parts.slice(2).join(',').trim();
-                    
-                    // [수정됨] Google Sheets가 CSV로 만들 때 추가하는 앞뒤 큰따옴표 제거
-                    if (ko.startsWith('"') && ko.endsWith('"')) {
-                        ko = ko.substring(1, ko.length - 1);
+                    let firebaseConfig;
+                    try {
+                        firebaseConfig = JSON.parse(firebaseConfigJson);
+                    } catch (e) {
+                        console.error("Firebase config JSON 파싱 오류:", e);
+                        showError("Firebase 설정(config)을 불러오는 데 실패했습니다.");
+                        return; 
                     }
+
+                    if (Object.keys(firebaseConfig).length === 0) {
+                        showError("Firebase 설정(config)이 비어있습니다. (환경 변수 확인 필요)");
+                        loadWordsFromGoogleSheet();
+                        return; 
+                    }
+
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
                     
-                    if (day && en && ko) {
-                        if (!data[day]) {
-                            data[day] = [];
+                    setLogLevel('Debug');
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            isAuthReady = true; 
+                            console.log("Firebase 인증 성공, UID:", userId);
+                            
+                            loadLeaderboard();
+                            loadWordsFromGoogleSheet(); 
+
+                        } else {
+                            console.log("Firebase 로그아웃 상태");
+                            isAuthReady = false;
+                            userId = null;
+                            loadWordsFromGoogleSheet();
                         }
-                        data[day].push({ ko: ko, en: en });
+                    });
+
+                    const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (authToken) {
+                        await signInWithCustomToken(auth, authToken);
+                    } else {
+                        await signInAnonymously(auth);
                     }
-                }
-            });
-            return data;
-        }
 
-        // Google Sheet에서 단어 데이터 불러오기
-        async function loadWordsFromGoogleSheet() {
-            if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL === "YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE") {
-                console.error("Google Sheet URL이 설정되지 않았습니다.");
-                loadingError.textContent = "오류: Google Sheet URL이 설정되지 않았습니다.";
-                startButton.textContent = "설정 오류";
-                return null;
-            }
-            
-            try {
-                // Google Apps Script 프록시를 사용하지 않고 직접 CSV를 fetch
-                // 'no-cors' 모드는 응답 내용을 읽을 수 없으므로 사용하지 않습니다.
-                // Google Sheets의 '웹에 게시' 기능은 CORS를 허용합니다.
-                const response = await fetch(GOOGLE_SHEET_CSV_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const csvText = await response.text();
-                return parseCSV(csvText);
-
-            } catch (e) {
-                console.error("단어 로드 실패:", e);
-                loadingError.textContent = "단어 로드 실패. URL을 확인하세요.";
-                startButton.textContent = "로드 실패";
-                return null;
-            }
-        }
-
-        // Day 선택 옵션 채우기 (불러온 데이터 기반)
-        function initializeWordData(wordData) {
-            // allWordsList 관련 코드를 제거합니다.
-            daySelector.innerHTML = ''; // 선택창 초기화 (로딩 중... 옵션 제거)
-            
-            Object.keys(wordData).forEach(day => {
-                const words = wordData[day];
-                const wordCount = words.length;
-                
-                if (wordCount >= 4) { // 4개 이상의 단어가 있는 Day만 선택 가능
-                    const option = document.createElement('option');
-                    option.value = day;
-                    option.textContent = `${day} (단어 ${wordCount}개)`;
-                    daySelector.appendChild(option);
-                } else if (wordCount > 0) { // 단어는 있으나 4개 미만인 경우
-                    const option = document.createElement('option');
-                    option.value = day;
-                    option.textContent = `${day} (단어 ${wordCount}개, 4지선다 불가)`;
-                    option.disabled = true;
-                    daySelector.appendChild(option);
-                }
-                // wordCount가 0이면 아무것도 표시하지 않음
-            });
-
-            if (daySelector.options.length === 0) {
-                 const option = document.createElement('option');
-                 option.textContent = '시트에 4개 이상의 단어가 있는 Day가 없습니다.';
-                 option.disabled = true;
-                 daySelector.appendChild(option);
-                 startButton.disabled = true;
-                 startButton.textContent = '학습 불가';
-            } else {
-                // 4지선다 구성이 불가능할 경우 (allWordsList.length < 4) 체크 제거
-                // 선택 가능한 Day가 하나라도 있으면 시작 버튼 활성화
-                const hasSelectableOption = Array.from(daySelector.options).some(opt => !opt.disabled);
-                
-                if (hasSelectableOption) {
-                    startButton.disabled = false;
-                    startButton.textContent = '학습 시작';
-                } else {
-                    // 모든 Day가 있지만 4개 미만이라 비활성화된 경우
-                     startButton.disabled = true;
-                     startButton.textContent = '학습 불가';
+                } catch (error) {
+                    console.error("Firebase 초기화 오류:", error);
+                    showError("Firebase 연결에 실패했습니다. 리더보드 기능을 사용할 수 없습니다.");
+                    loadWordsFromGoogleSheet();
                 }
             }
-        }
-
-        // --- 4. 게임 로직 (이전과 동일) ---
-
-        // 게임 시작
-        function startGame() {
-            const selectedDay = daySelector.value;
-            if (!selectedDay || !globalWordData[selectedDay]) return;
-
-            score = 0;
-            lives = 3;
-            currentWordIndex = 0;
-            isClickable = true;
             
-            // 선택한 Day의 단어 목록 복사 및 섞기
-            selectedDayWords = [...globalWordData[selectedDay]];
-            shuffleArray(selectedDayWords);
-            
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden');
-
-            updateScoreAndLives();
-            nextQuestion();
-        }
-
-        // 다음 문제 출제
-        function nextQuestion() {
-            // [수정됨] 모든 단어를 다 풀었는지 확인
-            if (currentWordIndex >= selectedDayWords.length) {
-                // [수정됨] 모든 단어를 다 풀었으면 게임 오버 호출
-                gameOver();
-                return; // 함수 종료
-            }
-
-            const currentWord = selectedDayWords[currentWordIndex];
-            
-            questionWordDisplay.textContent = currentWord.en;
-            const options = generateOptions(currentWord.ko);
-
-            optionButtons.forEach((button, index) => {
-                button.textContent = options[index];
-                button.dataset.answer = options[index];
-                button.disabled = false;
-                button.className = 'option-btn btn-default font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105';
-            });
-            
-            isClickable = true;
-            startTimer();
-            currentWordIndex++;
-        }
-
-        // 4개의 선택지 생성 (정답 1 + 오답 3)
-        function generateOptions(correctKoreanAnswer) {
-            let options = [correctKoreanAnswer];
-            
-            // [수정됨] allWordsList 대신 'selectedDayWords' (현재 Day 단어 목록) 사용
-            let incorrectWords = selectedDayWords
-                                .map(word => word.ko)
-                                .filter(ko => ko !== correctKoreanAnswer);
-            
-            shuffleArray(incorrectWords);
-            
-            let incorrectOptions = new Set();
-            // initializeWordData에서 Day별 단어 수가 4개 이상임을 보장했으므로
-            // incorrectWords에는 항상 3개 이상의 오답이 있습니다.
-            while (incorrectOptions.size < 3) {
-                if (incorrectWords.length > 0) {
-                    incorrectOptions.add(incorrectWords.pop());
-                } else {
-                    // (비상시) 중복된 한글 뜻 등으로 인해 오답 풀이 부족할 경우
-                    incorrectOptions.add(`오답${incorrectOptions.size + 1}`);
+            // --- 5. 리더보드 로드 (Firestore) ---
+            function loadLeaderboard() {
+                if (!isAuthReady || !db) {
+                    console.warn("리더보드 로드: 인증 준비 안됨 또는 DB 없음.");
+                    leaderboardLoading.textContent = "리더보드 연결 실패";
+                    return;
                 }
-            }
 
-            options.push(...Array.from(incorrectOptions));
-            shuffleArray(options);
-            return options;
-        }
+                const collectionPath = `/artifacts/${appId}/public/data/leaderboard`;
+                const q = query(collection(db, collectionPath));
 
-        // 타이머 시작
-        function startTimer() {
-            clearTimeout(timerId);
-            timerBar.classList.remove('timer-bar-animate');
-            void timerBar.offsetWidth;
-            timerBar.classList.add('timer-bar-animate');
-            timerBar.style.backgroundColor = '#22c55e';
+                onSnapshot(q, (snapshot) => {
+                    let records = [];
+                    snapshot.forEach(doc => {
+                        records.push(doc.data());
+                    });
 
-            timerId = setTimeout(() => {
-                if (isClickable) {
-                    handleAnswer(false, null);
-                }
-            }, 5000);
-        }
+                    records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
 
-        // 정답 확인
-        function checkAnswer(event) {
-            if (!isClickable) return;
-            isClickable = false;
-            
-            clearTimeout(timerId);
-            timerBar.classList.remove('timer-bar-animate');
+                    displayLeaderboard(records.slice(0, 20)); 
 
-            const selectedButton = event.target;
-            const selectedAnswer = selectedButton.dataset.answer;
-            const correctAnswer = selectedDayWords[currentWordIndex - 1].ko;
-            
-            handleAnswer(selectedAnswer === correctAnswer, selectedButton);
-        }
-
-        // 정답/오답 처리
-        function handleAnswer(isCorrect, selectedButton) {
-            optionButtons.forEach(btn => btn.disabled = true);
-            const correctAnswer = selectedDayWords[currentWordIndex - 1].ko;
-
-            if (isCorrect) {
-                score++;
-                selectedButton.classList.add('btn-correct');
-            } else {
-                lives--;
-                if (selectedButton) {
-                    selectedButton.classList.add('btn-wrong');
-                } else {
-                    timerBar.style.backgroundColor = '#ef4444';
-                }
-                optionButtons.forEach(btn => {
-                    if (btn.dataset.answer === correctAnswer) {
-                        btn.classList.add('btn-correct');
-                    }
+                }, (error) => {
+                    console.error("리더보드 실시간 로드 오류:", error);
+                    showError("리더보드 실시간 업데이트에 실패했습니다.");
+                    leaderboardLoading.textContent = "리더보드 로드 오류";
                 });
             }
 
-            updateScoreAndLives();
+            function displayLeaderboard(records) {
+                leaderboardLoading.classList.add('hidden'); 
+                leaderboardList.innerHTML = ''; 
 
-            setTimeout(() => {
-                if (lives <= 0) {
-                    gameOver();
-                } else {
-                    nextQuestion();
+                if (records.length === 0) {
+                    leaderboardList.innerHTML = '<li class="text-gray-500 italic">아직 기록이 없습니다.</li>';
+                    return;
                 }
-            }, 1200);
-        }
 
-        // 점수 및 생명 UI 업데이트
-        function updateScoreAndLives() {
-            scoreDisplay.textContent = `${score} / ${selectedDayWords.length}`;
-            let hearts = '';
-            for (let i = 0; i < 3; i++) {
-                if (i < lives) {
-                    hearts += `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`;
-                } else {
-                    hearts += `<svg class="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`;
+                records.forEach(record => {
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between items-center py-2 border-b border-gray-200";
+                    
+                    const timeAgo = formatTimeAgo(record.timestamp.toDate());
+
+                    li.innerHTML = `
+                        <div>
+                            <span class="font-semibold text-indigo-600">${record.nickname}</span>
+                            <span class="text-gray-700 ml-2">(${record.day})</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold text-lg">${record.scoreString}</span>
+                            <span class="text-xs text-gray-500 block">${timeAgo}</span>
+                        </div>
+                    `;
+                    leaderboardList.appendChild(li);
+                });
+            }
+
+            function formatTimeAgo(date) {
+                const seconds = Math.floor((new Date() - date) / 1000);
+                let interval = seconds / 31536000;
+                if (interval > 1) return Math.floor(interval) + "년 전";
+                interval = seconds / 2592000;
+                if (interval > 1) return Math.floor(interval) + "달 전";
+                interval = seconds / 86400;
+                if (interval > 1) return Math.floor(interval) + "일 전";
+                interval = seconds / 3600;
+                if (interval > 1) return Math.floor(interval) + "시간 전";
+                interval = seconds / 60;
+                if (interval > 1) return Math.floor(interval) + "분 전";
+                return Math.floor(seconds) + "초 전";
+            }
+
+            // --- 6. 점수 저장 (Firestore) ---
+            async function saveScoreToLeaderboard() {
+                if (!isAuthReady || !db) {
+                    console.warn("점수 저장: 인증 준비 안됨 또는 DB 없음.");
+                    return; 
+                }
+
+                if (!appId || appId === 'default-app-id') {
+                    console.warn("점수 저장: 유효하지 않은 appId.");
+                    return;
+                }
+
+                try {
+                    const collectionPath = `/artifacts/${appId}/public/data/leaderboard`;
+                    
+                    const docData = {
+                        nickname: currentNickname,
+                        day: selectedDay,
+                        scoreString: `${score} / ${selectedDayWords.length}`,
+                        score: score, 
+                        total: selectedDayWords.length,
+                        timestamp: serverTimestamp(), 
+                        userId: userId
+                    };
+                    
+                    const docRef = await addDoc(collection(db, collectionPath), docData);
+                    console.log("점수 저장 성공, Doc ID:", docRef.id);
+
+                } catch (error) {
+                    console.error("Firestore 점수 저장 오류:", error);
+                    showError("점수 기록 저장에 실패했습니다.");
                 }
             }
-            livesDisplay.innerHTML = hearts;
-        }
-
-        // 게임 오버
-        function gameOver() {
-            gameScreen.classList.add('hidden');
-            gameOverScreen.classList.remove('hidden');
-            finalScoreDisplay.textContent = `${score} / ${selectedDayWords.length}`;
-        }
-
-        // 시작 화면으로 돌아가기 (재시작)
-        function returnToStart() {
-            gameOverScreen.classList.add('hidden');
-            startScreen.classList.remove('hidden');
-            // Day 선택창을 다시 채웁니다. (데이터는 이미 globalWordData에 있으므로 다시 로드할 필요 없음)
-            initializeWordData(globalWordData);
-        }
-
-        // --- 5. 이벤트 리스너 ---
-        
-        // 페이지 로드 시 Google Sheet에서 데이터 가져오기
-        document.addEventListener('DOMContentLoaded', async () => {
-            const wordData = await loadWordsFromGoogleSheet();
-            if (wordData) {
-                globalWordData = wordData; // 전역 변수에 저장
-                initializeWordData(wordData); // Day 선택창 채우기
+            
+            // --- 7. 리더보드 삭제 (관리자) ---
+            async function clearLeaderboard() {
+                if (!isAuthReady || !db) {
+                    showError("Firebase에 연결되지 않아 삭제할 수 없습니다.");
+                    return;
+                }
+                
+                console.log("리더보드 삭제 시작...");
+                
+                try {
+                    const collectionPath = `/artifacts/${appId}/public/data/leaderboard`;
+                    const q = query(collection(db, collectionPath));
+                    
+                    const querySnapshot = await getDocs(q);
+                    
+                    if (querySnapshot.empty) {
+                        showMessage("삭제할 기록이 없습니다."); // alert 대신 showMessage
+                        return;
+                    }
+                    
+                    const batch = writeBatch(db);
+                    querySnapshot.forEach(doc => {
+                        batch.delete(doc.ref); 
+                    });
+                    
+                    await batch.commit();
+                    
+                    console.log("리더보드 삭제 완료.");
+                    showMessage("리더보드 기록이 모두 삭제되었습니다.", true); // 성공 알림
+                    
+                } catch (error) {
+                    console.error("리더보드 삭제 오류:", error);
+                    showError("리더보드 삭제 중 오류가 발생했습니다.");
+                }
             }
-        });
-        
-        startButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', returnToStart);
-        
-        optionButtons.forEach(button => {
-            button.addEventListener('click', checkAnswer);
-        });
+
+
+            // --- 8. Google Sheet 데이터 로드 및 파싱 ---
+            async function loadWordsFromGoogleSheet() {
+                try {
+                    const response = await fetch(GOOGLE_SHEET_CSV_URL);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const csvData = await response.text();
+                    parseCSV(csvData);
+                    
+                    populateDaySelect();
+
+                } catch (error) {
+                    console.error("Google Sheet 로드 오류:", error);
+                    showError("Google Sheet 단어장을 불러오는 데 실패했습니다. URL과 '웹에 게시' 설정을 확인하세요.");
+                }
+            }
+
+            function parseCSV(csvData) {
+                WORD_DATA = {};
+                allWordsList = [];
+                const lines = csvData.trim().split(/\r\n|\n/); 
+
+                lines.forEach((line, index) => {
+                    if (line.trim() === "") return;
+
+                    const firstCommaIndex = line.indexOf(',');
+                    if (firstCommaIndex === -1) {
+                        console.warn(`CSV 파싱 경고 (줄 ${index+1}): 쉼표 없음 - ${line}`);
+                        return;
+                    }
+                    
+                    const day = line.substring(0, firstCommaIndex).trim().replace(/^"|"$/g, ''); 
+                    const rest = line.substring(firstCommaIndex + 1);
+
+                    const secondCommaIndex = rest.indexOf(',');
+                    if (secondCommaIndex === -1) {
+                        console.warn(`CSV 파싱 경고 (줄 ${index+1}): 쉼표 2개 미만 - ${line}`);
+                        return;
+                    }
+                    
+                    const en = rest.substring(0, secondCommaIndex).trim().replace(/^"|"$/g, '');
+                    const ko = rest.substring(secondCommaIndex + 1).trim().replace(/^"|"$/g, '');
+
+                    if (!day || !en || !ko) {
+                        console.warn(`CSV 파싱 경고 (줄 ${index+1}): 비어있는 데이터 - ${line}`);
+                        return;
+                    }
+
+                    if (!WORD_DATA[day]) {
+                        WORD_DATA[day] = [];
+                    }
+                    const wordObject = { ko, en };
+                    WORD_DATA[day].push(wordObject);
+                    allWordsList.push(wordObject); 
+                });
+
+                console.log("단어장 파싱 완료:", WORD_DATA);
+            }
+
+            function populateDaySelect() {
+                daySelect.innerHTML = '<option value="">-- Day 선택 --</option>'; 
+
+                const sortedDays = Object.keys(WORD_DATA).sort();
+
+                let validDaysFound = false;
+                sortedDays.forEach(day => {
+                    if (WORD_DATA[day].length >= 4) {
+                        const option = document.createElement('option');
+                        option.value = day;
+                        option.textContent = day;
+                        daySelect.appendChild(option);
+                        validDaysFound = true;
+                    }
+                });
+
+                const loadingMessage = document.getElementById('day-select-loading');
+                if (validDaysFound) {
+                    loadingMessage.classList.add('hidden'); 
+                    daySelect.classList.remove('hidden'); 
+                } else {
+                    loadingMessage.textContent = "단어장이 비어있거나, 4개 미만의 단어를 가진 Day만 있습니다.";
+                    if(Object.keys(WORD_DATA).length === 0) {
+                        loadingMessage.textContent = "단어장 로드 실패.";
+                    }
+                }
+                
+                validateStartButton();
+            }
+
+            // --- 9. 게임 로직 ---
+
+            function shuffleArray(array) {
+                let newArray = [...array]; 
+                for (let i = newArray.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+                }
+                return newArray;
+            }
+            
+            function validateStartButton() {
+                const daySelected = daySelect.value !== "";
+                const nicknameEntered = nicknameInput.value.trim().length > 0;
+                
+                startButton.disabled = !(daySelected && nicknameEntered);
+
+                if (startButton.disabled) {
+                    startButton.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            let selectedDay = ""; 
+            function startGame() {
+                currentNickname = nicknameInput.value.trim();
+                selectedDay = daySelect.value;
+                
+                if (!currentNickname || !selectedDay) {
+                    showError("닉네임을 입력하고 Day를 선택하세요.");
+                    return;
+                }
+                
+                score = 0;
+                lives = 3;
+                isClickable = true;
+                
+                selectedDayWords = shuffleArray(WORD_DATA[selectedDay]);
+                currentWordIndex = 0; 
+                
+                startScreen.classList.add('hidden');
+                gameOverScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                messageBox.classList.add('hidden'); // 모든 알림창 숨기기
+
+                updateScoreAndLives();
+                nextQuestion();
+            }
+
+            function nextQuestion() {
+                if (currentWordIndex >= selectedDayWords.length) {
+                    gameOver(true); 
+                    return;
+                }
+
+                const currentWord = selectedDayWords[currentWordIndex];
+                
+                questionWordDisplay.textContent = currentWord.en;
+                const options = generateOptions(currentWord.ko);
+
+                optionButtons.forEach((button, index) => {
+                    button.textContent = options[index];
+                    button.dataset.answer = options[index]; 
+                    
+                    button.disabled = false;
+                    button.className = 'option-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105';
+                });
+                
+                isClickable = true;
+                startTimer();
+                currentWordIndex++; 
+            }
+
+            function generateOptions(correctKoreanAnswer) {
+                let options = [correctKoreanAnswer];
+                
+                let incorrectWords = WORD_DATA[selectedDay].filter(word => word.ko !== correctKoreanAnswer);
+                let incorrectOptions = new Set(); 
+
+                incorrectWords = shuffleArray(incorrectWords);
+                
+                while (incorrectOptions.size < 3 && incorrectWords.length > 0) {
+                    incorrectOptions.add(incorrectWords.pop().ko);
+                }
+
+                options.push(...Array.from(incorrectOptions));
+                
+                return shuffleArray(options);
+            }
+
+            function startTimer() {
+                clearTimeout(timerId); 
+                
+                timerBar.classList.remove('timer-bar-animate');
+                void timerBar.offsetWidth; 
+                timerBar.classList.add('timer-bar-animate');
+                timerBar.style.backgroundColor = '#22c55e'; 
+
+                timerId = setTimeout(() => {
+                    if (isClickable) { 
+                        handleAnswer(false, null); 
+                    }
+                }, 5000); 
+            }
+
+            function checkAnswer(event) {
+                if (!isClickable) return; 
+                isClickable = false;
+                
+                clearTimeout(timerId); 
+                timerBar.classList.remove('timer-bar-animate'); 
+
+                const selectedButton = event.target;
+                const selectedAnswer = selectedButton.dataset.answer;
+                const correctAnswer = selectedDayWords[currentWordIndex - 1].ko; 
+                
+                handleAnswer(selectedAnswer === correctAnswer, selectedButton);
+            }
+
+            function handleAnswer(isCorrect, selectedButton) {
+                optionButtons.forEach(btn => btn.disabled = true);
+
+                if (isCorrect) {
+                    score++;
+                    selectedButton.classList.remove('bg-gray-100', 'hover:bg-gray-200');
+                    selectedButton.classList.add('btn-correct', 'text-white');
+                } else {
+                    lives--;
+                    if (selectedButton) { 
+                        selectedButton.classList.remove('bg-gray-100', 'hover:bg-gray-200');
+                        selectedButton.classList.add('btn-wrong', 'text-white');
+                    } else { 
+                        timerBar.style.backgroundColor = '#ef4444'; 
+                    }
+
+                    optionButtons.forEach(btn => {
+                        if (btn.dataset.answer === selectedDayWords[currentWordIndex - 1].ko) {
+                            btn.classList.remove('bg-gray-100', 'hover:bg-gray-200');
+                            btn.classList.add('bg-green-500', 'text-white');
+                        }
+                    });
+                }
+
+                updateScoreAndLives();
+
+                setTimeout(() => {
+                    if (lives <= 0) {
+                        gameOver(false); 
+                    } else {
+                        nextQuestion(); 
+                    }
+                }, 1000); 
+            }
+
+            function updateScoreAndLives() {
+                scoreDisplay.textContent = `${score} / ${selectedDayWords.length}`; 
+                
+                let hearts = '';
+                for (let i = 0; i < 3; i++) {
+                    if (i < lives) {
+                        hearts += `<svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`;
+                    } else {
+                        hearts += `<svg class="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`;
+                    }
+                }
+                livesDisplay.innerHTML = hearts;
+            }
+
+            function gameOver(isCompleted) {
+                gameScreen.classList.add('hidden');
+                gameOverScreen.classList.remove('hidden');
+                
+                const title = gameOverScreen.querySelector('h2');
+                if (isCompleted) {
+                    title.textContent = "✨ 모든 단어 완료! ✨";
+                    title.classList.remove('text-red-600');
+                    title.classList.add('text-indigo-600');
+                } else {
+                    title.textContent = "게임 오버!";
+                    title.classList.remove('text-indigo-600');
+                    title.classList.add('text-red-600');
+                }
+
+                finalScoreDisplay.textContent = `${score} / ${selectedDayWords.length}`;
+
+                saveScoreToLeaderboard();
+            }
+
+            function restartGame() {
+                gameOverScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+                
+                daySelect.value = "";
+                validateStartButton();
+            }
+
+            // --- 10. 알림창 함수 (alert/confirm 대체) ---
+
+            // 오류 메시지 (빨간색)
+            function showError(message) {
+                messageTitle.textContent = "오류!";
+                messageBody.textContent = message;
+                messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
+                messageBox.classList.remove('hidden');
+                
+                // 3초 후 자동으로 사라짐
+                setTimeout(() => messageBox.classList.add('hidden'), 3000);
+            }
+            
+            // 일반/성공 메시지 (파란색/초록색)
+            function showMessage(message, isSuccess = false) {
+                if(isSuccess) {
+                    messageTitle.textContent = "성공!";
+                    messageBody.textContent = message;
+                    messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg z-50";
+                } else {
+                    messageTitle.textContent = "알림";
+                    messageBody.textContent = message;
+                    messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg shadow-lg z-50";
+                }
+                messageBox.classList.remove('hidden');
+                
+                // 3초 후 자동으로 사라짐
+                setTimeout(() => messageBox.classList.add('hidden'), 3000);
+            }
+
+
+            // --- 11. 이벤트 리스너 ---
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', restartGame);
+            
+            optionButtons.forEach(button => {
+                button.addEventListener('click', checkAnswer);
+            });
+            
+            nicknameInput.addEventListener('input', validateStartButton);
+            daySelect.addEventListener('change', validateStartButton);
+            
+            // '관리자 모드' 버튼 클릭
+            adminButton.addEventListener('click', () => {
+                const password = prompt("관리자 비밀번호를 입력하세요:");
+                
+                // ★★★ 비밀번호 변경: '5k6m1o20' ★★★
+                if (password === '5k6m1o20') { 
+                    // confirm() 대신 prompt()로 이중 확인
+                    const confirmation = prompt("정말로 모든 리더보드 기록을 삭제하시겠습니까? 되돌릴 수 없습니다. (삭제하려면 '삭제'라고 입력하세요)");
+                    if (confirmation === '삭제') {
+                        clearLeaderboard();
+                    } else {
+                        showMessage("삭제가 취소되었습니다."); // alert 대신 showMessage
+                    }
+                } else if (password) { // password is not null or empty
+                    showError("비밀번호가 틀렸습니다."); // alert 대신 showError
+                }
+            });
+            
+            // --- 12. 앱 실행 ---
+            initializeFirebase();
+
+        }); 
 
     </script>
+</head>
+<body class="bg-gray-50 font-sans antialiased text-gray-900">
+
+    <!-- 알림창 (오류, 성공, 일반) -->
+    <!-- (id="message-box") -->
+    <div id="message-box" class="hidden fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50" role="alert">
+        <strong id="message-title" class="font-bold">오류!</strong>
+        <span id="message-body" class="block sm:inline">오류 메시지가 여기에 표시됩니다.</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-4 max-w-2xl min-h-screen flex flex-col justify-center">
+
+        <!-- 1. Start Screen -->
+        <div id="start-screen" class="w-full bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center text-indigo-600 mb-6">Day별 영단어 랭킹 게임</h1>
+            
+            <div class="mb-4">
+                <label for="nickname-input" class="block text-sm font-medium text-gray-700 mb-1">닉네임</label>
+                <input type="text" id="nickname-input" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="닉네임을 입력하세요 (예: 홍길동)">
+            </div>
+
+            <div class="mb-6">
+                <label for="day-select" class="block text-sm font-medium text-gray-700 mb-1">학습할 Day</label>
+                <div id="day-select-loading" class="text-center p-4 bg-gray-100 rounded-lg text-gray-600">
+                    단어장 로드 중...
+                </div>
+                <select id="day-select" class="hidden w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <option value="">-- Day 선택 --</option>
+                </select>
+            </div>
+
+            <button id="start-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-lg transform transition-transform duration-200 hover:scale-105 opacity-50 cursor-not-allowed" disabled>
+                게임 시작
+            </button>
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h2 class="text-2xl font-semibold text-center text-gray-800 mb-4">🏆 실시간 리더보드 (TOP 20)</h2>
+                <div id="leaderboard-loading" class="text-center text-gray-500">
+                    리더보드 로드 중...
+                </div>
+                <ul id="leaderboard-list" class="space-y-2 max-h-64 overflow-y-auto pr-2">
+                </ul>
+                
+                <!-- 관리자 버튼 -->
+                <div class="text-center mt-4">
+                    <button id="admin-button" class="text-xs text-gray-400 hover:text-gray-600 hover:underline">
+                        관리자 모드
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Game Screen (Hidden) -->
+        <div id="game-screen" class="hidden w-full bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <span class="text-sm font-medium text-gray-500">맞춘 개수</span>
+                    <div id="score" class="text-2xl font-bold text-indigo-600">0 / 0</div>
+                </div>
+                <div id="lives" class="flex space-x-1">
+                </div>
+            </div>
+
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
+                <div id="timer-bar" class="h-2.5 rounded-full" style="width: 100%; background-color: #22c55e;"></div>
+            </div>
+
+            <div class="mb-8 text-center">
+                <span class="text-sm font-medium text-gray-500">문제</span>
+                <h2 id="question-word" class="text-4xl sm:text-5xl font-bold text-gray-900 my-4" style="min-height: 3rem;">...</h2>
+                <p class="text-lg text-gray-600">알맞은 한글 뜻을 고르세요.</p>
+            </div>
+
+            <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button class="option-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105">Option 1</button>
+                <button class="option-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105">Option 2</button>
+                <button class="option-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105">Option 3</button>
+                <button class="option-btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105">Option 4</button>
+            </div>
+        </div>
+
+        <!-- 3. Game Over Screen (Hidden) -->
+        <div id="game-over-screen" class="hidden w-full bg-white p-6 sm:p-10 rounded-2xl shadow-xl text-center">
+            <h2 class="text-4xl font-bold text-red-600 mb-6">게임 오버!</h2>
+            <p class="text-xl text-gray-700 mb-2">최종 성적</p>
+            <div id="final-score-text" class="text-6xl font-extrabold text-gray-900 mb-8">0 / 0</div>
+            <button id="restart-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-lg transform transition-transform duration-200 hover:scale-105">
+                처음으로 돌아가기
+            </button>
+        </div>
+
+    </div> 
+
 </body>
 </html>

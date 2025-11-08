@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영단어 게임 - 관리자 대시보드</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK (ESM - 모듈 타입) -->
+    <script type="module">
+        // --- Firebase SDK 모듈 가져오기 ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            query, 
+            getDocs,
+            setLogLevel 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase 관련
+        let db, auth;
+        let isAuthReady = false; 
+
+        // DOM 요소
+        const DOM = {};
+
+        // --- DOM이 로드된 후 스크립트 실행 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            
+            // --- HTML 요소 ---
+            DOM.loadingIndicator = document.getElementById('loading-indicator');
+            DOM.statsTableBody = document.getElementById('stats-table-body');
+            DOM.loadButton = document.getElementById('load-button');
+
+            // --- Firebase 초기화 ---
+            async function initializeFirebase() {
+                
+                // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+                // (필수) Firebase 콘솔에서 복사한 config 값을 여기에 붙여넣으세요.
+                // (word-typing-game.html 에 있는 것과 동일한 값을 넣어야 합니다)
+                // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDrrf9SIBjAnLtd0zvfTlCfPTKi-QsYJMg",
+                    authDomain: "word-game-7ff9b.firebaseapp.com",
+                    projectId: "word-game-7ff9b",
+                    storageBucket: "word-game-7ff9b.firebasestorage.app",
+                    messagingSenderId: "284686212123",
+                    appId: "1:284686212123:web:41bf7bb78fd8fb5d2e2cbe"
+                };
+                
+                if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                    showError("Firebase 설정(config)이 필요합니다.");
+                    return; 
+                }
+
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    
+                    setLogLevel('Debug');
+
+                    await signInAnonymously(auth);
+                    isAuthReady = true; 
+                    console.log("Firebase 익명 인증 성공");
+                    DOM.loadButton.disabled = false;
+                    DOM.loadButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    showMessage("Firebase 연결 성공. 데이터를 로드하세요.", true);
+                } catch (error) {
+                    console.error("Firebase 초기화 오류:", error);
+                    showError("Firebase 연결에 실패했습니다.");
+                }
+            }
+            
+            // --- 데이터 로드 및 처리 ---
+            async function loadAndProcessData() {
+                if (!isAuthReady || !db) {
+                    showError("Firebase가 연결되지 않았습니다.");
+                    return;
+                }
+
+                DOM.loadButton.disabled = true;
+                DOM.loadButton.textContent = "데이터 로드 중...";
+                DOM.loadingIndicator.classList.remove('hidden');
+                DOM.statsTableBody.innerHTML = ''; // 테이블 초기화
+
+                try {
+                    // 1. Firestore에서 모든 'leaderboard' 기록 가져오기
+                    const collectionPath = "leaderboard";
+                    const q = query(collection(db, collectionPath));
+                    const querySnapshot = await getDocs(q);
+
+                    console.log(`총 ${querySnapshot.size}개의 기록을 가져왔습니다.`);
+
+                    // 2. 닉네임별로 데이터 집계
+                    const stats = {};
+
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        
+                        if (!data.nickname || data.score === undefined || !data.day) {
+                            return; 
+                        }
+
+                        const nickname = data.nickname;
+                        const score = Number(data.score) || 0; 
+                        const day = data.day;
+
+                        if (!stats[nickname]) {
+                            stats[nickname] = {
+                                nickname: nickname,
+                                totalScore: 0,
+                                totalPlays: 0,
+                                days: new Set(),
+                                highScoreDays: new Set() // 35점 이상 Day (고유)
+                            };
+                        }
+
+                        // 3. 데이터 누적
+                        stats[nickname].totalScore += score;
+                        stats[nickname].totalPlays += 1;
+                        stats[nickname].days.add(day);
+                        
+                        // 35점 이상인 경우, highScoreDays Set에 추가
+                        if (score >= 35) {
+                            stats[nickname].highScoreDays.add(day);
+                        }
+                    });
+
+                    // 4. 집계된 데이터를 배열로 변환
+                    const statsArray = Object.values(stats);
+
+                    // 5. 총점이 높은 순서로 정렬
+                    statsArray.sort((a, b) => b.totalScore - a.totalScore);
+
+                    // 6. 테이블에 표시
+                    displayStats(statsArray);
+
+                } catch (error) {
+                    console.error("데이터 로드/처리 오류:", error);
+                    showError("데이터를 가져오는 중 오류가 발생했습니다.");
+                } finally {
+                    DOM.loadButton.disabled = false;
+                    DOM.loadButton.textContent = "데이터 새로고침";
+                    DOM.loadingIndicator.classList.add('hidden');
+                }
+            }
+            
+            // --- 통계 데이터를 HTML 테이블에 그리기 ---
+            function displayStats(statsArray) {
+                if (statsArray.length === 0) {
+                    DOM.statsTableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">표시할 데이터가 없습니다.</td></tr>';
+                    return;
+                }
+
+                statsArray.forEach(record => {
+                    const tr = document.createElement('tr');
+                    
+                    const daysPlayedCount = record.days.size;
+                    const highScoreDayCount = record.highScoreDays.size; // 35점 이상 Day 수
+                    const daysList = Array.from(record.days).sort().join(', '); 
+
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">${record.nickname}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${daysPlayedCount}일</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${highScoreDayCount}일</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${record.totalPlays}회</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${record.totalScore}점</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${daysList}</td>
+                    `;
+                    DOM.statsTableBody.appendChild(tr);
+                });
+            }
+
+            // --- 알림창 함수 ---
+            function showError(message) {
+                const messageBox = document.getElementById('message-box');
+                const messageTitle = document.getElementById('message-title');
+                const messageBody = document.getElementById('message-body');
+                
+                messageTitle.textContent = "오류!";
+                messageBody.textContent = message;
+                messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
+                messageBox.classList.remove('hidden');
+                setTimeout(() => messageBox.classList.add('hidden'), 3000);
+            }
+
+            function showMessage(message, isSuccess = false) {
+                const messageBox = document.getElementById('message-box');
+                const messageTitle = document.getElementById('message-title');
+                const messageBody = document.getElementById('message-body');
+
+                messageTitle.textContent = isSuccess ? "성공!" : "알림";
+                messageBody.textContent = message;
+                messageBox.className = `fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md ${isSuccess ? 'bg-green-100 border-green-400 text-green-700' : 'bg-blue-100 border-blue-400 text-blue-700'} px-4 py-3 rounded-lg shadow-lg z-50`;
+                messageBox.classList.remove('hidden');
+                setTimeout(() => messageBox.classList.add('hidden'), 3000);
+            }
+
+            // --- 이벤트 리스너 ---
+            DOM.loadButton.addEventListener('click', loadAndProcessData);
+
+            // --- 앱 실행 ---
+            initializeFirebase();
+
+        }); 
+    </script>
+</head>
+<body class="bg-gray-100 font-sans antialiased text-gray-900">
+
+    <!-- 알림창 (오류, 성공, 일반) -->
+    <div id="message-box" class="hidden fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md" role="alert">
+        <strong id="message-title" class="font-bold"></strong>
+        <span id="message-body" class="block sm:inline"></span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-4 sm:p-8">
+        <h1 class="text-3xl font-bold text-indigo-600 mb-6">
+            영단어 게임 - 관리자 대시보드
+        </h1>
+        
+        <div class="mb-4">
+            <button id="load-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md opacity-50 cursor-not-allowed" disabled>
+                데이터 로드
+            </button>
+            <span id="loading-indicator" class="hidden ml-4 text-gray-600">
+                데이터 집계 중...
+            </span>
+        </div>
+
+        <!-- 통계 테이블 -->
+        <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">닉네임</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">참여 Day (고유)</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">고득점 Day (35+)</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">총 플레이 횟수</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">총 맞춘 개수 (Score)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">참여 Day 목록</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- 데이터가 여기에 동적으로 삽입됩니다 -->
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                '데이터 로드' 버튼을 클릭하세요.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div> 
+
+</body>
+</html>

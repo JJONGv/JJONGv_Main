@@ -11,3 +11,4 @@
 - [2510 두드림학교](./2510_Dodream/)
 - [리듬카드 게임](./Rhythm_card_game/)
 - [물리 단기 임용 전략](./physics_exam_strategy/)
+- [물리 단기 임용 전략](./wordmaster_2000_csat/)

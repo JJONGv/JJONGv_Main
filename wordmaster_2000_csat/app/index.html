@@ -20,20 +20,22 @@
             /* 7초 */
             animation: shrink 7s linear forwards;
         }
-        /* 버튼 클릭 시 피드백 */
+        /* [버그 수정 1] 버튼 클릭 시 피드백 (forwards 추가) */
         .btn-correct {
-            animation: flash-green 0.5s;
+            animation: flash-green 0.5s forwards; /* forwards 추가 */
         }
         .btn-wrong {
-            animation: flash-red 0.5s;
+            animation: flash-red 0.5s forwards; /* forwards 추가 */
         }
         @keyframes flash-green {
-            0%, 100% { background-color: #22c55e; transform: scale(1); } /* green-500 */
+            0% { background-color: #22c55e; transform: scale(1); } /* green-500 */
             50% { transform: scale(1.05); }
+            100% { background-color: #22c55e; transform: scale(1); }
         }
         @keyframes flash-red {
-            0%, 100% { background-color: #ef4444; transform: scale(1); } /* red-500 */
+            0% { background-color: #ef4444; transform: scale(1); } /* red-500 */
             50% { transform: scale(1.05); }
+            100% { background-color: #ef4444; transform: scale(1); }
         }
         /* 화면 전환 효과 */
         .screen {
@@ -55,7 +57,6 @@
         <span id="message-body" class="block sm:inline"></span>
     </div>
 
-    <!-- [레이아웃 수정] shadow-2xl -> shadow-xl -->
     <div class="w-full max-w-md mx-auto bg-white shadow-xl rounded-2xl p-6 relative overflow-hidden">
 
         <!-- 0. 로딩 오버레이 -->
@@ -69,7 +70,7 @@
 
         <!-- 1. 시작 화면 -->
         <div id="start-screen" class="screen text-center">
-            <h1 class="text-3xl font-bold text-indigo-600 mb-4">영단어 랭킹 게임</h1>
+            <h1 class="text-3xl font-bold text-indigo-600 mb-4">영단어 랭킹 게임(워드마스터)</h1>
             <p class="text-gray-600 mb-6">닉네임을 입력하고 도전할 Day를 선택하세요.</p>
             
             <div class="mb-4">
@@ -84,7 +85,6 @@
                 </select>
             </div>
 
-            <!-- [레이아웃 수정] disabled: pseudo-class로 상태 관리 -->
             <button id="start-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                 게임 시작
             </button>
@@ -130,12 +130,10 @@
                 <div id="timer-bar" class="bg-green-500 h-2.5 rounded-full"></div>
             </div>
 
-            <!-- [레이아웃 수정] 고정 높이 h-20 제거 -> min-h-[5rem] 적용 -->
             <div class="text-center mb-8 min-h-[5rem] flex items-center justify-center">
                 <h2 id="question-word" class="text-4xl font-bold text-gray-800 break-all">apple</h2>
             </div>
 
-            <!-- [레이아웃 수정] 고정 높이 h-24 제거 -> min-h-24 적용, border 및 hover 효과 추가 -->
             <div id="options-grid" class="grid grid-cols-2 gap-4">
                 <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
                 <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
@@ -200,13 +198,13 @@
         let selectedDayWords = []; // 현재 선택된 Day의 전체 단어 목록
         let questionsForDay = []; // 현재 게임에서 풀 문제 목록 (랜덤 셔플됨)
 
-        // [효율화] 게임 상태를 객체로 그룹화
+        // 게임 상태를 객체로 그룹화
         const gameState = {
             score: 0,
             lives: 3,
             isClickable: true
         };
-        let currentWord = null; // [효율화] 현재 단어 저장 (find() 중복 방지)
+        let currentWord = null; // 현재 단어 저장 (find() 중복 방지)
         let timerId; 
         let currentNickname = "";
 
@@ -513,7 +511,6 @@
                 return;
             }
 
-            // [효율화] gameState 객체 사용
             const scoreStr = `${gameState.score} / ${selectedDayWords.length}`;
             const collectionPath = "leaderboard";
             
@@ -542,7 +539,6 @@
             const daySelected = DOM.daySelect.value !== "";
             const nicknameEntered = DOM.nicknameInput.value.trim() !== "";
             
-            // [효율화] JavaScript에서 classList를 조작하는 대신 'disabled' 속성만 제어
             DOM.startButton.disabled = !(daySelected && nicknameEntered);
         }
         
@@ -565,7 +561,6 @@
             questionsForDay = [...selectedDayWords];
             shuffleArray(questionsForDay);
 
-            // [효율화] gameState 객체 초기화
             gameState.score = 0;
             gameState.lives = 3;
             gameState.isClickable = true;
@@ -583,7 +578,7 @@
                 return;
             }
 
-            currentWord = questionsForDay.pop(); // [효율화] 현재 단어 저장
+            currentWord = questionsForDay.pop(); // 현재 단어 저장
             
             // 1. 문제(영어) 설정
             DOM.questionWord.textContent = currentWord.en;
@@ -598,7 +593,6 @@
                 
                 // 이전 스타일 초기화
                 button.disabled = false;
-                // [레이아웃 수정] className 하드코딩 (애니메이션 클래스 제거)
                 button.className = 'option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105';
             });
             
@@ -675,7 +669,6 @@
             const selectedButton = event.target;
             const selectedAnswer = selectedButton.dataset.answer;
             
-            // [효율화] find() 대신 저장된 currentWord 사용
             const isCorrect = (selectedAnswer === currentWord.ko);
 
             handleAnswer(isCorrect, selectedButton);
@@ -685,7 +678,6 @@
             // 모든 버튼 비활성화
             DOM.optionButtons.forEach(btn => btn.disabled = true);
             
-            // [효율화] find() 대신 저장된 currentWord 사용
             const correctAnswer = currentWord.ko;
 
             if (isCorrect) {
@@ -707,7 +699,6 @@
                         btn.classList.remove('bg-gray-100', 'hover:bg-indigo-50', 'hover:border-indigo-300', 'border-gray-200');
                         btn.classList.add('bg-green-500', 'text-white');
                     } else if (btn !== selectedButton) {
-                        // [레이아웃 수정] 선택 안 된 나머지 버튼들
                         btn.classList.add('opacity-50'); 
                     }
                 });
@@ -726,7 +717,6 @@
         }
 
         function updateScoreAndLives() {
-            // [효율화] gameState 객체 사용
             DOM.scoreDisplay.textContent = `${gameState.score} / ${selectedDayWords.length}`;
             
             let hearts = '';
@@ -741,8 +731,8 @@
         }
 
         function gameOver(isWin) {
-            showScreen('gameover');
-            // [효율화] gameState 객체 사용
+            // [버그 수정 2] 'gameover-screen' -> 'game-over-screen'
+            showScreen('game-over'); 
             DOM.finalScore.textContent = `${gameState.score} / ${selectedDayWords.length}`;
             
             if (isWin) {
@@ -813,7 +803,8 @@
         // UI 화면 전환
         function showScreen(screenName) {
             [DOM.startScreen, DOM.gameScreen, DOM.gameOverScreen].forEach(screen => {
-                if (screen.id === `${screenName}-screen`) {
+                // [버그 수정 2] `gameover-screen` -> `game-over-screen`
+                if (screen.id === `${screenName}-screen`) { 
                     screen.classList.remove('hidden');
                 } else {
                     screen.classList.add('hidden');

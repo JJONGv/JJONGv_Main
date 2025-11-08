@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영단어 랭킹 게임(워마 고등Basic)</title>
+    <title>영단어 랭킹 게임(워드마스터)</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Inter 폰트 기본 적용 */
-        body, input, button {
+        body, input, button, select {
             font-family: 'Inter', sans-serif;
         }
         /* 타이머 바 애니메이션 */
@@ -17,23 +17,22 @@
             to { width: 0%; }
         }
         .timer-bar-animate {
-            /* 7초 */
             animation: shrink 7s linear forwards;
         }
-        /* [버그 수정 1] 버튼 클릭 시 피드백 (forwards 추가) */
+        /* 버튼 클릭 시 피드백 (forwards 추가) */
         .btn-correct {
-            animation: flash-green 0.5s forwards; /* forwards 추가 */
+            animation: flash-green 0.5s forwards;
         }
         .btn-wrong {
-            animation: flash-red 0.5s forwards; /* forwards 추가 */
+            animation: flash-red 0.5s forwards;
         }
         @keyframes flash-green {
-            0% { background-color: #22c55e; transform: scale(1); } /* green-500 */
+            0% { background-color: #22c55e; transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { background-color: #22c55e; transform: scale(1); }
         }
         @keyframes flash-red {
-            0% { background-color: #ef4444; transform: scale(1); } /* red-500 */
+            0% { background-color: #ef4444; transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { background-color: #ef4444; transform: scale(1); }
         }
@@ -46,13 +45,14 @@
             transform: scale(0.95);
             pointer-events: none;
             position: absolute; /* hidden일 때 레이아웃에서 제외 */
+            width: calc(100% - 3rem); /* p-6 만큼 제외 */
         }
     </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
 
     <!-- 알림창 (오류, 성공, 일반) -->
-    <div id="message-box" class="hidden fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md" role="alert">
+    <div id="message-box" class="hidden fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md z-50" role="alert">
         <strong id="message-title" class="font-bold"></strong>
         <span id="message-body" class="block sm:inline"></span>
     </div>
@@ -60,7 +60,7 @@
     <div class="w-full max-w-md mx-auto bg-white shadow-xl rounded-2xl p-6 relative overflow-hidden">
 
         <!-- 0. 로딩 오버레이 -->
-        <div id="loading-overlay" class="absolute inset-0 bg-white bg-opacity-75 flex flex-col items-center justify-center z-50">
+        <div id="loading-overlay" class="absolute inset-0 bg-white bg-opacity-75 flex flex-col items-center justify-center z-40">
             <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -70,18 +70,26 @@
 
         <!-- 1. 시작 화면 -->
         <div id="start-screen" class="screen text-center">
-            <h1 class="text-3xl font-bold text-indigo-600 mb-4">영단어 랭킹 게임(워드마스터)</h1>
-            <p class="text-gray-600 mb-6">닉네임을 입력하고 도전할 Day를 선택하세요.</p>
+            <h1 class="text-3xl font-bold text-indigo-600 mb-4">영단어 랭킹 게임</h1>
+            <p class="text-gray-600 mb-6">닉네임과 단어장을 선택하고 Day에 도전하세요.</p>
             
             <div class="mb-4">
                 <label for="nickname-input" class="block text-sm font-medium text-gray-700 text-left mb-1">닉네임</label>
                 <input type="text" id="nickname-input" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="닉네임을 입력하세요">
             </div>
 
+            <div class="mb-4">
+                <label for="wordbook-select" class="block text-sm font-medium text-gray-700 text-left mb-1">단어장 선택</label>
+                <select id="wordbook-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">-- 단어장을 선택하세요 --</option>
+                    <!-- WORDBOOKS 객체로부터 동적 생성 -->
+                </select>
+            </div>
+
             <div class="mb-6">
                 <label for="day-select" class="block text-sm font-medium text-gray-700 text-left mb-1">Day 선택</label>
                 <select id="day-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
-                    <option value="">단어장 로드 중...</option>
+                    <option value="">단어장을 먼저 선택하세요</option>
                 </select>
             </div>
 
@@ -91,7 +99,7 @@
             
             <!-- 실시간 리더보드 -->
             <div class="mt-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-3 text-left">🔥실시간 플레이 현황</h3>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3 text-left">🏆 실시간 리더보드 (Top 20)</h3>
                 <div id="leaderboard-loading" class="text-gray-500">리더보드 로드 중...</div>
                 <ul id="leaderboard-list" class="h-48 overflow-y-auto bg-gray-50 p-3 rounded-lg text-left text-sm space-y-2">
                     <!-- 리더보드 아이템이 여기에 동적으로 추가됩니다 -->
@@ -109,7 +117,6 @@
                     리더보드 기록 삭제
                 </button>
             </div>
-
         </div>
 
         <!-- 2. 게임 중 화면 -->
@@ -135,10 +142,10 @@
             </div>
 
             <div id="options-grid" class="grid grid-cols-2 gap-4">
-                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
-                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
-                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
-                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105"></button>
+                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:bg-gray-100 disabled:border-gray-200 disabled:hover:bg-gray-100 disabled:hover:border-gray-200"></button>
+                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:bg-gray-100 disabled:border-gray-200 disabled:hover:bg-gray-100 disabled:hover:border-gray-200"></button>
+                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:bg-gray-100 disabled:border-gray-200 disabled:hover:bg-gray-100 disabled:hover:border-gray-200"></button>
+                <button class="option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:bg-gray-100 disabled:border-gray-200 disabled:hover:bg-gray-100 disabled:hover:border-gray-200"></button>
             </div>
         </div>
 
@@ -149,7 +156,7 @@
                 최종 결과: <span id="final-score" class="font-bold text-2xl">0 / 0</span>
             </p>
             <button id="restart-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform duration-200 hover:scale-105">
-                메인 화면으로 돌아가기
+                단어장 선택으로 돌아가기
             </button>
         </div>
     </div>
@@ -181,9 +188,18 @@
 
         // --- 2. Google Sheet 및 전역 변수 설정 ---
         
-        // (설정 유지) Google Sheet "웹에 게시" -> "CSV" 링크
-        const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU4mlCRTqgUmcZa_Fr28WUomiGWmGTR18WwHXJpwfNhx43Iejb1CA2Jg-pOFgrFbBztWEMOj9HR8-i/pub?output=csv";
-        
+        // (필수!) 단어장 이름과 Google Sheet CSV 링크를 여기에 추가하세요.
+        const WORDBOOKS = {
+            "basic": {
+                name: "워드마스터 고등 Basic",
+                url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU4mlCRTqgUmcZa_Fr28WUomiGWmGTR18WwHXJpwfNhx43Iejb1CA2Jg-pOFgrFbBztWEMOj9HR8-i/pub?gid=1450723026&single=true&output=csv"
+            },
+            "advanced": {
+                name: "워드마스터 수능 2000",
+                url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU4mlCRTqgUmcZa_Fr28WUomiGWmGTR18WwHXJpwfNhx43Iejb1CA2Jg-pOFgrFbBztWEMOj9HR8-i/pub?gid=1251879268&single=true&output=csv" // <-- 여기에 '수능 2000'의 .csv 링크를 붙여넣으세요.
+            }
+        };
+
         const ADMIN_PASSWORD = "5k6m1o20";
 
         // Firebase 관련
@@ -192,8 +208,9 @@
         let isAuthReady = false; 
 
         // 단어장 데이터
-        let wordsByDay = {}; // { "Day 01": [{en, ko, isMultiWord}, ...], "Day 02": [...] }
-        let allWordsList = []; // 모든 Day의 단어 객체 리스트
+        let currentWordbookCache = {}; // { "Day 01": [...], "Day 02": [...] }
+        let allWordsListCache = []; // 현재 단어장의 모든 단어 리스트
+        let selectedWordbookKey = "";
         let selectedDay = "";
         let selectedDayWords = []; // 현재 선택된 Day의 전체 단어 목록
         let questionsForDay = []; // 현재 게임에서 풀 문제 목록 (랜덤 셔플됨)
@@ -208,7 +225,7 @@
         let timerId; 
         let currentNickname = "";
 
-        // DOM 요소
+        // DOM 요소 (그룹화)
         const DOM = {};
 
         // --- 3. DOM 로드 완료 후 초기화 ---
@@ -226,6 +243,7 @@
                 gameOverScreen: document.getElementById('game-over-screen'),
                 
                 nicknameInput: document.getElementById('nickname-input'),
+                wordbookSelect: document.getElementById('wordbook-select'),
                 daySelect: document.getElementById('day-select'),
                 startButton: document.getElementById('start-button'),
                 restartButton: document.getElementById('restart-button'),
@@ -260,19 +278,24 @@
             });
             DOM.adminSubmitButton.addEventListener('click', handleAdminClear);
             
+            // 시작 버튼 활성화 로직
+            DOM.wordbookSelect.addEventListener('change', handleWordbookChange);
             DOM.daySelect.addEventListener('change', checkStartButton);
             DOM.nicknameInput.addEventListener('input', checkStartButton);
 
             // 앱 실행
-            initializeFirebaseAndLoadData();
+            initializeFirebaseAndLoadUI();
         });
         
         // --- 4. 초기화 함수 ---
 
-        async function initializeFirebaseAndLoadData() {
+        async function initializeFirebaseAndLoadUI() {
             showScreen('start'); // 우선 시작 화면 표시
             DOM.loadingText.textContent = "Firebase 연결 중...";
             
+            // 단어장 선택 UI 채우기
+            populateWordbookSelect();
+
             try {
                 await initializeFirebase();
                 // Firebase 인증이 완료될 때까지 대기
@@ -281,10 +304,8 @@
                 DOM.loadingText.textContent = "리더보드 로드 중...";
                 loadLeaderboard(); // 리더보드 실시간 감시 시작
 
-                DOM.loadingText.textContent = "단어장 로드 중...";
-                await loadWordsFromGoogleSheet();
-                
-                DOM.loadingOverlay.classList.add('hidden'); // 모든 로딩 완료
+                DOM.loadingOverlay.classList.add('hidden'); // Firebase/리더보드 로딩 완료
+                // 단어장 로드는 사용자가 선택할 때 시작
                 
             } catch (error) {
                 console.error("초기화 실패:", error);
@@ -294,7 +315,6 @@
         }
         
         async function initializeFirebase() {
-            // (설정 유지) GitHub 환경용 Firebase config
             const firebaseConfig = {
                 apiKey: "AIzaSyDrrf9SIBjAnLtd0zvfTlCfPTKi-QsYJMg",
                 authDomain: "word-game-7ff9b.firebaseapp.com",
@@ -304,7 +324,6 @@
                 appId: "1:284686212123:web:41bf7bb78fd8fb5d2e2cbe"
             };
 
-            // GitHub 환경인지 확인
             if (firebaseConfig.apiKey === "YOUR_API_KEY") {
                 const errorMsg = "Firebase 설정(config)이 비어있습니다. (GitHub 환경)";
                 showError(errorMsg);
@@ -315,19 +334,16 @@
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                
                 setLogLevel('Debug');
 
-                // 인증 상태 리스너
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
-                        isAuthReady = true; // 인증 성공!
+                        isAuthReady = true; 
                         console.log("Firebase 인증 성공 (익명):", userId);
                     }
                 });
 
-                // Firebase 익명 로그인 시도
                 await signInAnonymously(auth);
 
             } catch (error) {
@@ -336,7 +352,6 @@
             }
         }
         
-        // 인증이 완료될 때까지 기다리는 Promise
         function whenAuthReady() {
             return new Promise((resolve) => {
                 if (isAuthReady) {
@@ -354,24 +369,58 @@
 
         // --- 5. Google Sheet 데이터 로드 및 처리 ---
 
-        async function loadWordsFromGoogleSheet() {
+        // 단어장 드롭다운 채우기
+        function populateWordbookSelect() {
+            Object.keys(WORDBOOKS).forEach(key => {
+                const book = WORDBOOKS[key];
+                // URL이 유효한 단어장만 추가
+                if (book.url !== "YOUR_ADVANCED_CSV_URL_HERE" && book.url.startsWith("https://")) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = book.name;
+                    DOM.wordbookSelect.appendChild(option);
+                }
+            });
+        }
+
+        // 단어장 선택 시 Day 목록 로드
+        async function handleWordbookChange() {
+            selectedWordbookKey = DOM.wordbookSelect.value;
+            DOM.daySelect.innerHTML = '<option value="">-- Day 선택 --</option>';
+            DOM.daySelect.disabled = true;
+            checkStartButton();
+
+            if (!selectedWordbookKey) {
+                DOM.daySelect.innerHTML = '<option value="">단어장을 먼저 선택하세요</option>';
+                return;
+            }
+
+            DOM.daySelect.innerHTML = '<option value="">단어장 로드 중...</option>';
+            
             try {
-                const response = await fetch(GOOGLE_SHEET_CSV_URL);
+                const book = WORDBOOKS[selectedWordbookKey];
+                const response = await fetch(book.url);
                 if (!response.ok) {
                     throw new Error(`Google Sheet 로드 실패 (HTTP ${response.status})`);
                 }
                 const csvData = await response.text();
-                parseCSV(csvData);
+                
+                // 단어장 데이터 파싱 및 캐시
+                parseCSV(csvData); 
+                
+                // Day 드롭다운 채우기
                 populateDaySelect();
+
             } catch (error) {
                 console.error("Google Sheet 로드 오류:", error);
-                showError("단어장을 불러오지 못했습니다. Google Sheet URL 또는 '웹에 게시' 설정을 확인하세요.");
+                showError(`${WORDBOOKS[selectedWordbookKey].name} 단어장을 불러오지 못했습니다.`);
+                DOM.daySelect.innerHTML = '<option value="">로드 실패</option>';
             }
         }
 
         function parseCSV(csvData) {
-            wordsByDay = {};
-            allWordsList = [];
+            currentWordbookCache = {};
+            allWordsListCache = [];
             const rows = csvData.trim().split('\n');
 
             rows.forEach(row => {
@@ -379,12 +428,11 @@
                 let inQuotes = false;
                 let currentPart = '';
 
-                // C열에 쉼표(,)가 포함된 경우("A, B")를 처리하는 파서
                 for (let i = 0; i < row.length; i++) {
                     const char = row[i];
                     if (char === '"' && (i === 0 || row[i-1] !== '\\')) {
                         inQuotes = !inQuotes;
-                        continue; // 따옴표 자체는 저장하지 않음
+                        continue; 
                     }
                     if (char === ',' && !inQuotes) {
                         parts.push(currentPart.trim());
@@ -393,7 +441,7 @@
                     }
                     currentPart += char;
                 }
-                parts.push(currentPart.trim()); // 마지막 부분 추가
+                parts.push(currentPart.trim()); 
 
                 if (parts.length === 3) {
                     const [day, en, ko] = parts.map(part => part.replace(/^"|"$/g, '').replace(/\\"/g, '"').trim());
@@ -402,19 +450,19 @@
                         const isMultiWord = en.includes(' '); // 단어 유형 (true/false)
                         const wordData = { en, ko, isMultiWord };
 
-                        if (!wordsByDay[day]) {
-                            wordsByDay[day] = [];
+                        if (!currentWordbookCache[day]) {
+                            currentWordbookCache[day] = [];
                         }
-                        wordsByDay[day].push(wordData);
-                        allWordsList.push({ day, en, ko, isMultiWord });
+                        currentWordbookCache[day].push(wordData);
+                        allWordsListCache.push({ day, en, ko, isMultiWord });
                     }
                 }
             });
-            console.log("단어장 파싱 완료:", wordsByDay);
+            console.log(`"${WORDBOOKS[selectedWordbookKey].name}" 파싱 완료:`, currentWordbookCache);
         }
 
         function populateDaySelect() {
-            const dayKeys = Object.keys(wordsByDay).sort();
+            const dayKeys = Object.keys(currentWordbookCache).sort();
             if (dayKeys.length === 0) {
                 DOM.daySelect.innerHTML = '<option value="">단어장이 비어있습니다</option>';
                 showError("로드된 단어가 없습니다. Google Sheet 내용을 확인하세요.");
@@ -423,7 +471,7 @@
 
             DOM.daySelect.innerHTML = '<option value="">-- Day를 선택하세요 --</option>';
             dayKeys.forEach(day => {
-                const count = wordsByDay[day].length;
+                const count = currentWordbookCache[day].length;
                 // 4지선다 구성이 가능한 4개 이상의 단어가 있는 Day만 추가
                 if (count >= 4) {
                     const option = document.createElement('option');
@@ -451,13 +499,11 @@
                 const records = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    // 방어 코드: timestamp가 유효한 데이터만 필터링
                     if (data.timestamp) {
                         records.push(data);
                     }
                 });
                 
-                // (방어 코드) 클라이언트 사이드 정렬
                 records.sort((a, b) => {
                     const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
                     const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
@@ -486,18 +532,20 @@
                 const li = document.createElement('li');
                 li.className = "border-b border-gray-200 pb-2";
                 
-                // (방어 코드) timestamp가 유효한지 다시 확인
                 const timeAgo = (record.timestamp && typeof record.timestamp.toDate === 'function') 
                                 ? formatTimeAgo(record.timestamp.toDate()) 
                                 : '방금 전';
                 
+                // 단어장 이름 표시
+                const wordbookName = record.wordbookName || "워드마스터 고등 Basic (Old)"; // 이전 버전 호환
+
                 li.innerHTML = `
                     <div class="flex justify-between items-center">
                         <span class="font-semibold text-indigo-700">${record.nickname || '익명'}</span>
                         <span class="font-bold text-gray-800">${record.scoreString || '0 / 0'}</span>
                     </div>
                     <div class="flex justify-between items-center text-gray-500">
-                        <span>(${record.day || 'Day ??'})</span>
+                        <span class="truncate pr-2">(${wordbookName} / ${record.day || '??'})</span>
                         <span>${timeAgo}</span>
                     </div>
                 `;
@@ -513,9 +561,12 @@
 
             const scoreStr = `${gameState.score} / ${selectedDayWords.length}`;
             const collectionPath = "leaderboard";
+            const wordbookName = WORDBOOKS[selectedWordbookKey]?.name || "알 수 없음";
             
             const docData = {
                 nickname: currentNickname,
+                wordbookKey: selectedWordbookKey, // 'basic' or 'advanced'
+                wordbookName: wordbookName, // "워드마스터 고등 Basic"
                 day: selectedDay,
                 score: gameState.score, // 숫자 점수 (관리자 대시보드 집계용)
                 total: selectedDayWords.length,
@@ -538,26 +589,26 @@
         function checkStartButton() {
             const daySelected = DOM.daySelect.value !== "";
             const nicknameEntered = DOM.nicknameInput.value.trim() !== "";
+            const wordbookSelected = DOM.wordbookSelect.value !== "";
             
-            DOM.startButton.disabled = !(daySelected && nicknameEntered);
+            DOM.startButton.disabled = !(daySelected && nicknameEntered && wordbookSelected);
         }
         
         function startGame() {
             selectedDay = DOM.daySelect.value;
             currentNickname = DOM.nicknameInput.value.trim();
             
-            if (!selectedDay || !currentNickname) {
-                showError("닉네임과 Day를 모두 선택해야 합니다.");
+            if (!selectedDay || !currentNickname || !selectedWordbookKey) {
+                showError("닉네임, 단어장, Day를 모두 선택해야 합니다.");
                 return;
             }
             
-            selectedDayWords = wordsByDay[selectedDay] || [];
+            selectedDayWords = currentWordbookCache[selectedDay] || [];
             if (selectedDayWords.length < 4) {
                 showError("단어 수가 4개 미만이라 퀴즈를 시작할 수 없습니다.");
                 return;
             }
             
-            // 문제 목록 생성 및 셔플
             questionsForDay = [...selectedDayWords];
             shuffleArray(questionsForDay);
 
@@ -573,85 +624,65 @@
 
         function nextQuestion() {
             if (questionsForDay.length === 0) {
-                // 모든 문제 완료
                 gameOver(true);
                 return;
             }
 
-            currentWord = questionsForDay.pop(); // 현재 단어 저장
+            currentWord = questionsForDay.pop(); 
             
-            // 1. 문제(영어) 설정
             DOM.questionWord.textContent = currentWord.en;
-
-            // 2. 선택지(한글) 생성
             const options = generateOptions(currentWord.ko, currentWord.isMultiWord);
 
-            // 3. 선택지 버튼에 설정
             DOM.optionButtons.forEach((button, index) => {
                 button.textContent = options[index];
-                button.dataset.answer = options[index]; // 정답 확인을 위해 데이터 저장
+                button.dataset.answer = options[index];
                 
-                // 이전 스타일 초기화
                 button.disabled = false;
-                button.className = 'option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105';
+                button.className = 'option-btn min-h-24 border border-gray-200 bg-gray-100 hover:bg-indigo-50 hover:border-indigo-300 text-gray-800 font-semibold py-4 px-4 rounded-lg text-lg transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:bg-gray-100 disabled:border-gray-200 disabled:hover:bg-gray-100 disabled:hover:border-gray-200';
             });
             
             gameState.isClickable = true;
             startTimer();
         }
 
-        // 4개의 선택지 생성 (정답 1 + 오답 3)
         function generateOptions(correctKoreanAnswer, isMultiWord) {
             const options = new Set([correctKoreanAnswer]);
             
-            // 1. 현재 Day의 한글 뜻 목록 (오답 제외용)
             const currentDayKoSet = new Set(selectedDayWords.map(w => w.ko));
+            const otherDayWords = allWordsListCache.filter(word => !currentDayKoSet.has(word.ko));
 
-            // 2. '다른 Day' 단어 목록 (오답 풀)
-            const otherDayWords = allWordsList.filter(word => 
-                !currentDayKoSet.has(word.ko)
-            );
-
-            // 3. 오답 풀을 '유형'에 따라 분리
             const sameTypePool = otherDayWords.filter(word => word.isMultiWord === isMultiWord);
             const differentTypePool = otherDayWords.filter(word => word.isMultiWord !== isMultiWord);
             
             shuffleArray(sameTypePool);
             shuffleArray(differentTypePool);
 
-            // 4. 선지 채우기 (1순위: 다른 Day + 같은 유형)
             while (options.size < 4 && sameTypePool.length > 0) {
                 options.add(sameTypePool.pop().ko);
             }
-
-            // 5. 선지 채우기 (2순위: 다른 Day + 다른 유형)
             while (options.size < 4 && differentTypePool.length > 0) {
                 options.add(differentTypePool.pop().ko);
             }
 
-            // 6. 선지 채우기 (3순위: Fallback - 모든 단어)
-            const fallbackPool = allWordsList.filter(word => !options.has(word.ko));
+            const fallbackPool = allWordsListCache.filter(word => !options.has(word.ko));
             shuffleArray(fallbackPool);
             while (options.size < 4 && fallbackPool.length > 0) {
                 options.add(fallbackPool.pop().ko);
             }
             
             const finalOptions = Array.from(options);
-            shuffleArray(finalOptions); // 정답과 오답 섞기
-            return finalOptions.slice(0, 4); // 4개 보장
+            shuffleArray(finalOptions);
+            return finalOptions.slice(0, 4);
         }
 
-
         function startTimer() {
-            clearTimeout(timerId); // 이전 타이머 취소
+            clearTimeout(timerId); 
             
-            // 타이머 바 애니메이션 재시작 (Reflow 트릭)
             DOM.timerBar.classList.remove('timer-bar-animate');
             void DOM.timerBar.offsetWidth; 
             DOM.timerBar.classList.add('timer-bar-animate');
             DOM.timerBar.style.backgroundColor = '#22c55e'; // green-500
 
-            // 7초 타이머
             timerId = setTimeout(() => {
                 if (gameState.isClickable) { 
                     handleAnswer(false, null); // 시간 초과 = 오답
@@ -668,14 +699,12 @@
 
             const selectedButton = event.target;
             const selectedAnswer = selectedButton.dataset.answer;
-            
             const isCorrect = (selectedAnswer === currentWord.ko);
 
             handleAnswer(isCorrect, selectedButton);
         }
 
         function handleAnswer(isCorrect, selectedButton) {
-            // 모든 버튼 비활성화
             DOM.optionButtons.forEach(btn => btn.disabled = true);
             
             const correctAnswer = currentWord.ko;
@@ -686,14 +715,13 @@
                 selectedButton.classList.add('btn-correct', 'text-white');
             } else {
                 gameState.lives--;
-                if (selectedButton) { // 시간 초과가 아닌 클릭 오답
+                if (selectedButton) { 
                     selectedButton.classList.remove('bg-gray-100', 'hover:bg-indigo-50', 'hover:border-indigo-300', 'border-gray-200');
                     selectedButton.classList.add('btn-wrong', 'text-white');
-                } else { // 시간 초과
+                } else { 
                     DOM.timerBar.style.backgroundColor = '#ef4444'; // red-500
                 }
 
-                // 정답 버튼 표시 및 나머지 버튼 비활성화
                 DOM.optionButtons.forEach(btn => {
                     if (btn.dataset.answer === correctAnswer) {
                         btn.classList.remove('bg-gray-100', 'hover:bg-indigo-50', 'hover:border-indigo-300', 'border-gray-200');
@@ -706,7 +734,6 @@
 
             updateScoreAndLives();
 
-            // 1.5초 후 다음
             setTimeout(() => {
                 if (gameState.lives <= 0) {
                     gameOver(false); // 생명 소진
@@ -731,7 +758,6 @@
         }
 
         function gameOver(isWin) {
-            // [버그 수정 2] 'gameover-screen' -> 'game-over-screen'
             showScreen('game-over'); 
             DOM.finalScore.textContent = `${gameState.score} / ${selectedDayWords.length}`;
             
@@ -744,8 +770,6 @@
                 DOM.gameOverTitle.classList.remove('text-green-600');
                 DOM.gameOverTitle.classList.add('text-red-600');
             }
-
-            // 점수 저장
             saveScoreToLeaderboard();
         }
 
@@ -785,10 +809,8 @@
             const querySnapshot = await getDocs(q);
             
             if (querySnapshot.empty) {
-                return; // 삭제할 것이 없음
+                return;
             }
-
-            // Batch Write로 한 번에 삭제
             const batch = writeBatch(db);
             querySnapshot.forEach(doc => {
                 batch.delete(doc.ref);
@@ -800,19 +822,16 @@
 
         // --- 9. 유틸리티 함수 ---
 
-        // UI 화면 전환
         function showScreen(screenName) {
             [DOM.startScreen, DOM.gameScreen, DOM.gameOverScreen].forEach(screen => {
-                // [버그 수정 2] `gameover-screen` -> `game-over-screen`
                 if (screen.id === `${screenName}-screen`) { 
-                    screen.classList.remove('hidden');
+                    screen.classList.remove('hidden', 'absolute');
                 } else {
-                    screen.classList.add('hidden');
+                    screen.classList.add('hidden', 'absolute');
                 }
             });
         }
         
-        // 배열 섞기 (Fisher-Yates Shuffle)
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -820,7 +839,6 @@
             }
         }
         
-        // "XX 전" 시간 포맷
         function formatTimeAgo(date) {
             const seconds = Math.floor((new Date() - date) / 1000);
             let interval = seconds / 31536000;
@@ -836,16 +854,13 @@
             return "방금 전";
         }
 
-        // 알림창 (오류)
         function showError(message) {
             DOM.messageTitle.textContent = "오류!";
             DOM.messageBody.textContent = message;
             DOM.messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
             DOM.messageBox.classList.remove('hidden');
-            // 사라지지 않도록 setTimeout 제거
         }
         
-        // 알림창 (성공/일반)
         function showMessage(message, isSuccess = false) {
             DOM.messageTitle.textContent = isSuccess ? "성공!" : "알림";
             DOM.messageBody.textContent = message;

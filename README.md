@@ -11,4 +11,5 @@
 - [2510 두드림학교](./2510_Dodream/)
 - [리듬카드 게임](./Rhythm_card_game/)
 - [물리 단기 임용 전략](./physics_exam_strategy/)
-- [워마2000 암기](./wordmaster_2000_csat/)
+- [워마2000 암기](./wordmaster_2000_csat/app/)
+- [워마2000 암기 리더보드](./wordmaster_2000_csat/admin_dashboard/)

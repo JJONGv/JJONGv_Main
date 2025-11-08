@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day별 영단어 랭킹 게임(워마 2000)</title>
+    <title>Day별 영단어 랭킹 게임</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -43,7 +43,6 @@
             onSnapshot, 
             serverTimestamp,
             getDocs,      // (관리자) 삭제를 위해 추가
-            deleteDoc,    // (관리자) 삭제를 위해 추가
             writeBatch,   // (관리자) 삭제를 위해 추가
             doc,          // (관리자) 삭제를 위해 추가
             setLogLevel 
@@ -51,6 +50,7 @@
 
         // --- 1. Google Sheet 설정 ---
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU4mlCRTqgUmcZa_Fr28WUomiGWmGTR18WwHXJpwfNhx43Iejb1CA2Jg-pOFgrFbBztWEMOj9HR8-i/pub?output=csv'; // 올바른 URL
+        const ADMIN_PASSWORD = '5k6m1o20'; // 관리자 비밀번호
 
         // --- 2. 전역 변수 설정 ---
         let WORD_DATA = {};         
@@ -63,39 +63,52 @@
         let timerBarId;             
         let isClickable = true;     
         let currentNickname = "";   
+        let selectedDay = ""; 
 
+        // Firebase 관련
         let db, auth, userId, appId;
         let isAuthReady = false; 
+
+        // DOM 요소들을 담을 객체
+        const DOM = {};
 
         // --- DOM이 로드된 후 스크립트 실행 ---
         window.addEventListener('DOMContentLoaded', () => {
             
-            // --- 3. HTML 요소 가져오기 ---
-            const startScreen = document.getElementById('start-screen');
-            const gameScreen = document.getElementById('game-screen');
-            const gameOverScreen = document.getElementById('game-over-screen');
+            // --- 3. HTML 요소 가져오기 (DOM 객체로 그룹화) ---
+            DOM.startScreen = document.getElementById('start-screen');
+            DOM.gameScreen = document.getElementById('game-screen');
+            DOM.gameOverScreen = document.getElementById('game-over-screen');
             
-            const nicknameInput = document.getElementById('nickname-input');
-            const daySelect = document.getElementById('day-select');
-            const startButton = document.getElementById('start-button');
-            const restartButton = document.getElementById('restart-button');
+            DOM.nicknameInput = document.getElementById('nickname-input');
+            DOM.daySelect = document.getElementById('day-select');
+            DOM.startButton = document.getElementById('start-button');
+            DOM.restartButton = document.getElementById('restart-button');
             
-            const scoreDisplay = document.getElementById('score');
-            const livesDisplay = document.getElementById('lives');
-            const questionWordDisplay = document.getElementById('question-word');
-            const optionsGrid = document.getElementById('options-grid');
-            const optionButtons = document.querySelectorAll('.option-btn');
-            const timerBar = document.getElementById('timer-bar');
-            const finalScoreDisplay = document.getElementById('final-score-text');
+            DOM.scoreDisplay = document.getElementById('score');
+            DOM.livesDisplay = document.getElementById('lives');
+            DOM.questionWordDisplay = document.getElementById('question-word');
+            DOM.optionsGrid = document.getElementById('options-grid');
+            DOM.optionButtons = document.querySelectorAll('.option-btn');
+            DOM.timerBar = document.getElementById('timer-bar');
+            DOM.finalScoreDisplay = document.getElementById('final-score-text');
             
             // 알림창 요소
-            const messageBox = document.getElementById('message-box');
-            const messageTitle = document.getElementById('message-title');
-            const messageBody = document.getElementById('message-body');
+            DOM.messageBox = document.getElementById('message-box');
+            DOM.messageTitle = document.getElementById('message-title');
+            DOM.messageBody = document.getElementById('message-body');
 
-            const leaderboardLoading = document.getElementById('leaderboard-loading');
-            const leaderboardList = document.getElementById('leaderboard-list');
-            const adminButton = document.getElementById('admin-button'); // 관리자 버튼
+            // 리더보드 요소
+            DOM.leaderboardLoading = document.getElementById('leaderboard-loading');
+            DOM.leaderboardList = document.getElementById('leaderboard-list');
+            
+            // 관리자 요소 (새로 추가됨)
+            DOM.adminButton = document.getElementById('admin-button'); 
+            DOM.adminLoginPanel = document.getElementById('admin-login-panel');
+            DOM.adminPasswordInput = document.getElementById('admin-password-input');
+            DOM.adminSubmitButton = document.getElementById('admin-submit-button');
+            DOM.adminCancelButton = document.getElementById('admin-cancel-button');
+
 
             // --- 4. Firebase 초기화 및 인증 ---
             async function initializeFirebase() {
@@ -111,7 +124,7 @@
                     } catch (e) {
                         console.error("Firebase config JSON 파싱 오류:", e);
                         showError("Firebase 설정(config)을 불러오는 데 실패했습니다.");
-                        return; 
+                        return;
                     }
 
                     if (Object.keys(firebaseConfig).length === 0) {
@@ -161,7 +174,7 @@
             function loadLeaderboard() {
                 if (!isAuthReady || !db) {
                     console.warn("리더보드 로드: 인증 준비 안됨 또는 DB 없음.");
-                    leaderboardLoading.textContent = "리더보드 연결 실패";
+                    DOM.leaderboardLoading.textContent = "리더보드 연결 실패";
                     return;
                 }
 
@@ -171,26 +184,37 @@
                 onSnapshot(q, (snapshot) => {
                     let records = [];
                     snapshot.forEach(doc => {
-                        records.push(doc.data());
+                        const data = doc.data();
+                        // ★★★ 오류 수정: timestamp가 유효한 데이터만 필터링
+                        if (data && data.timestamp && typeof data.timestamp.toDate === 'function') {
+                            records.push(data);
+                        } else {
+                            console.warn("잘못된 리더보드 데이터 발견(timestamp 누락):", data);
+                        }
                     });
 
-                    records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+                    // ★★★ 오류 수정: 정렬 시에도 timestamp 유효성 검사
+                    records.sort((a, b) => {
+                        const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
+                        const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
+                        return timeB - timeA;
+                    });
 
                     displayLeaderboard(records.slice(0, 20)); 
 
                 }, (error) => {
                     console.error("리더보드 실시간 로드 오류:", error);
                     showError("리더보드 실시간 업데이트에 실패했습니다.");
-                    leaderboardLoading.textContent = "리더보드 로드 오류";
+                    DOM.leaderboardLoading.textContent = "리더보드 로드 오류";
                 });
             }
 
             function displayLeaderboard(records) {
-                leaderboardLoading.classList.add('hidden'); 
-                leaderboardList.innerHTML = ''; 
+                DOM.leaderboardLoading.classList.add('hidden'); 
+                DOM.leaderboardList.innerHTML = ''; 
 
                 if (records.length === 0) {
-                    leaderboardList.innerHTML = '<li class="text-gray-500 italic">아직 기록이 없습니다.</li>';
+                    DOM.leaderboardList.innerHTML = '<li class="text-gray-500 italic">아직 기록이 없습니다.</li>';
                     return;
                 }
 
@@ -198,24 +222,33 @@
                     const li = document.createElement('li');
                     li.className = "flex justify-between items-center py-2 border-b border-gray-200";
                     
-                    const timeAgo = formatTimeAgo(record.timestamp.toDate());
+                    // ★★★ 오류 수정: formatTimeAgo 호출 전 timestamp 유효성 검사
+                    const timeAgo = (record.timestamp && typeof record.timestamp.toDate === 'function')
+                                    ? formatTimeAgo(record.timestamp.toDate())
+                                    : '시간 정보 없음';
 
                     li.innerHTML = `
                         <div>
-                            <span class="font-semibold text-indigo-600">${record.nickname}</span>
-                            <span class="text-gray-700 ml-2">(${record.day})</span>
+                            <span class="font-semibold text-indigo-600">${record.nickname || '익명'}</span>
+                            <span class="text-gray-700 ml-2">(${record.day || 'Day ?'})</span>
                         </div>
                         <div class="text-right">
-                            <span class="font-bold text-lg">${record.scoreString}</span>
+                            <span class="font-bold text-lg">${record.scoreString || '0 / 0'}</span>
                             <span class="text-xs text-gray-500 block">${timeAgo}</span>
                         </div>
                     `;
-                    leaderboardList.appendChild(li);
+                    DOM.leaderboardList.appendChild(li);
                 });
             }
 
             function formatTimeAgo(date) {
+                // ★★★ 오류 수정: date 객체가 유효하지 않을 경우 방어
+                if (!date || !(date instanceof Date)) {
+                    return '방금 전';
+                }
                 const seconds = Math.floor((new Date() - date) / 1000);
+                if (isNaN(seconds) || seconds < 0) return '방금 전';
+
                 let interval = seconds / 31536000;
                 if (interval > 1) return Math.floor(interval) + "년 전";
                 interval = seconds / 2592000;
@@ -279,7 +312,7 @@
                     const querySnapshot = await getDocs(q);
                     
                     if (querySnapshot.empty) {
-                        showMessage("삭제할 기록이 없습니다."); // alert 대신 showMessage
+                        showMessage("삭제할 기록이 없습니다.");
                         return;
                     }
                     
@@ -326,12 +359,12 @@
                 lines.forEach((line, index) => {
                     if (line.trim() === "") return;
 
+                    // (기존 A,B,C 파싱 로직 유지 - 견고함 확인됨)
                     const firstCommaIndex = line.indexOf(',');
                     if (firstCommaIndex === -1) {
                         console.warn(`CSV 파싱 경고 (줄 ${index+1}): 쉼표 없음 - ${line}`);
                         return;
                     }
-                    
                     const day = line.substring(0, firstCommaIndex).trim().replace(/^"|"$/g, ''); 
                     const rest = line.substring(firstCommaIndex + 1);
 
@@ -340,7 +373,6 @@
                         console.warn(`CSV 파싱 경고 (줄 ${index+1}): 쉼표 2개 미만 - ${line}`);
                         return;
                     }
-                    
                     const en = rest.substring(0, secondCommaIndex).trim().replace(/^"|"$/g, '');
                     const ko = rest.substring(secondCommaIndex + 1).trim().replace(/^"|"$/g, '');
 
@@ -361,7 +393,7 @@
             }
 
             function populateDaySelect() {
-                daySelect.innerHTML = '<option value="">-- Day 선택 --</option>'; 
+                DOM.daySelect.innerHTML = '<option value="">-- Day 선택 --</option>'; 
 
                 const sortedDays = Object.keys(WORD_DATA).sort();
 
@@ -371,7 +403,7 @@
                         const option = document.createElement('option');
                         option.value = day;
                         option.textContent = day;
-                        daySelect.appendChild(option);
+                        DOM.daySelect.appendChild(option);
                         validDaysFound = true;
                     }
                 });
@@ -379,7 +411,7 @@
                 const loadingMessage = document.getElementById('day-select-loading');
                 if (validDaysFound) {
                     loadingMessage.classList.add('hidden'); 
-                    daySelect.classList.remove('hidden'); 
+                    DOM.daySelect.classList.remove('hidden'); 
                 } else {
                     loadingMessage.textContent = "단어장이 비어있거나, 4개 미만의 단어를 가진 Day만 있습니다.";
                     if(Object.keys(WORD_DATA).length === 0) {
@@ -402,22 +434,21 @@
             }
             
             function validateStartButton() {
-                const daySelected = daySelect.value !== "";
-                const nicknameEntered = nicknameInput.value.trim().length > 0;
+                const daySelected = DOM.daySelect.value !== "";
+                const nicknameEntered = DOM.nicknameInput.value.trim().length > 0;
                 
-                startButton.disabled = !(daySelected && nicknameEntered);
+                DOM.startButton.disabled = !(daySelected && nicknameEntered);
 
-                if (startButton.disabled) {
-                    startButton.classList.add('opacity-50', 'cursor-not-allowed');
+                if (DOM.startButton.disabled) {
+                    DOM.startButton.classList.add('opacity-50', 'cursor-not-allowed');
                 } else {
-                    startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    DOM.startButton.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
             }
-
-            let selectedDay = ""; 
+ 
             function startGame() {
-                currentNickname = nicknameInput.value.trim();
-                selectedDay = daySelect.value;
+                currentNickname = DOM.nicknameInput.value.trim();
+                selectedDay = DOM.daySelect.value;
                 
                 if (!currentNickname || !selectedDay) {
                     showError("닉네임을 입력하고 Day를 선택하세요.");
@@ -431,10 +462,8 @@
                 selectedDayWords = shuffleArray(WORD_DATA[selectedDay]);
                 currentWordIndex = 0; 
                 
-                startScreen.classList.add('hidden');
-                gameOverScreen.classList.add('hidden');
-                gameScreen.classList.remove('hidden');
-                messageBox.classList.add('hidden'); // 모든 알림창 숨기기
+                showScreen('game'); // UI 상태 변경
+                DOM.messageBox.classList.add('hidden'); 
 
                 updateScoreAndLives();
                 nextQuestion();
@@ -448,10 +477,10 @@
 
                 const currentWord = selectedDayWords[currentWordIndex];
                 
-                questionWordDisplay.textContent = currentWord.en;
+                DOM.questionWordDisplay.textContent = currentWord.en;
                 const options = generateOptions(currentWord.ko);
 
-                optionButtons.forEach((button, index) => {
+                DOM.optionButtons.forEach((button, index) => {
                     button.textContent = options[index];
                     button.dataset.answer = options[index]; 
                     
@@ -484,10 +513,10 @@
             function startTimer() {
                 clearTimeout(timerId); 
                 
-                timerBar.classList.remove('timer-bar-animate');
-                void timerBar.offsetWidth; 
-                timerBar.classList.add('timer-bar-animate');
-                timerBar.style.backgroundColor = '#22c55e'; 
+                DOM.timerBar.classList.remove('timer-bar-animate');
+                void DOM.timerBar.offsetWidth; 
+                DOM.timerBar.classList.add('timer-bar-animate');
+                DOM.timerBar.style.backgroundColor = '#22c55e'; 
 
                 timerId = setTimeout(() => {
                     if (isClickable) { 
@@ -501,7 +530,7 @@
                 isClickable = false;
                 
                 clearTimeout(timerId); 
-                timerBar.classList.remove('timer-bar-animate'); 
+                DOM.timerBar.classList.remove('timer-bar-animate'); 
 
                 const selectedButton = event.target;
                 const selectedAnswer = selectedButton.dataset.answer;
@@ -511,7 +540,7 @@
             }
 
             function handleAnswer(isCorrect, selectedButton) {
-                optionButtons.forEach(btn => btn.disabled = true);
+                DOM.optionButtons.forEach(btn => btn.disabled = true);
 
                 if (isCorrect) {
                     score++;
@@ -523,10 +552,10 @@
                         selectedButton.classList.remove('bg-gray-100', 'hover:bg-gray-200');
                         selectedButton.classList.add('btn-wrong', 'text-white');
                     } else { 
-                        timerBar.style.backgroundColor = '#ef4444'; 
+                        DOM.timerBar.style.backgroundColor = '#ef4444'; 
                     }
 
-                    optionButtons.forEach(btn => {
+                    DOM.optionButtons.forEach(btn => {
                         if (btn.dataset.answer === selectedDayWords[currentWordIndex - 1].ko) {
                             btn.classList.remove('bg-gray-100', 'hover:bg-gray-200');
                             btn.classList.add('bg-green-500', 'text-white');
@@ -546,7 +575,7 @@
             }
 
             function updateScoreAndLives() {
-                scoreDisplay.textContent = `${score} / ${selectedDayWords.length}`; 
+                DOM.scoreDisplay.textContent = `${score} / ${selectedDayWords.length}`; 
                 
                 let hearts = '';
                 for (let i = 0; i < 3; i++) {
@@ -556,14 +585,13 @@
                         hearts += `<svg class="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`;
                     }
                 }
-                livesDisplay.innerHTML = hearts;
+                DOM.livesDisplay.innerHTML = hearts;
             }
 
             function gameOver(isCompleted) {
-                gameScreen.classList.add('hidden');
-                gameOverScreen.classList.remove('hidden');
+                showScreen('gameover'); // UI 상태 변경
                 
-                const title = gameOverScreen.querySelector('h2');
+                const title = DOM.gameOverScreen.querySelector('h2');
                 if (isCompleted) {
                     title.textContent = "✨ 모든 단어 완료! ✨";
                     title.classList.remove('text-red-600');
@@ -574,81 +602,113 @@
                     title.classList.add('text-red-600');
                 }
 
-                finalScoreDisplay.textContent = `${score} / ${selectedDayWords.length}`;
+                DOM.finalScoreDisplay.textContent = `${score} / ${selectedDayWords.length}`;
 
                 saveScoreToLeaderboard();
             }
 
             function restartGame() {
-                gameOverScreen.classList.add('hidden');
-                startScreen.classList.remove('hidden');
+                showScreen('start'); // UI 상태 변경
                 
-                daySelect.value = "";
+                DOM.daySelect.value = "";
                 validateStartButton();
             }
 
-            // --- 10. 알림창 함수 (alert/confirm 대체) ---
+            // --- 10. 알림창 및 UI 상태 함수 ---
+
+            // UI 화면 전환
+            function showScreen(screenName) {
+                // 모든 화면 숨기기
+                DOM.startScreen.classList.add('hidden');
+                DOM.gameScreen.classList.add('hidden');
+                DOM.gameOverScreen.classList.add('hidden');
+                DOM.adminLoginPanel.classList.add('hidden'); // 관리자 패널도 숨기기
+
+                // 요청된 화면 보이기
+                if (screenName === 'start') {
+                    DOM.startScreen.classList.remove('hidden');
+                } else if (screenName === 'game') {
+                    DOM.gameScreen.classList.remove('hidden');
+                } else if (screenName === 'gameover') {
+                    DOM.gameOverScreen.classList.remove('hidden');
+                } else if (screenName === 'adminLogin') {
+                    // 관리자 로그인 요청은 시작 화면 위에 띄움
+                    DOM.startScreen.classList.remove('hidden');
+                    DOM.adminLoginPanel.classList.remove('hidden');
+                }
+            }
+
 
             // 오류 메시지 (빨간색)
             function showError(message) {
-                messageTitle.textContent = "오류!";
-                messageBody.textContent = message;
-                messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
-                messageBox.classList.remove('hidden');
+                DOM.messageTitle.textContent = "오류!";
+                DOM.messageBody.textContent = message;
+                DOM.messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
+                DOM.messageBox.classList.remove('hidden');
                 
                 // 3초 후 자동으로 사라짐
-                setTimeout(() => messageBox.classList.add('hidden'), 3000);
+                setTimeout(() => DOM.messageBox.classList.add('hidden'), 3000);
             }
             
             // 일반/성공 메시지 (파란색/초록색)
             function showMessage(message, isSuccess = false) {
                 if(isSuccess) {
-                    messageTitle.textContent = "성공!";
-                    messageBody.textContent = message;
-                    messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg z-50";
+                    DOM.messageTitle.textContent = "성공!";
+                    DOM.messageBody.textContent = message;
+                    DOM.messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg z-50";
                 } else {
-                    messageTitle.textContent = "알림";
-                    messageBody.textContent = message;
-                    messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg shadow-lg z-50";
+                    DOM.messageTitle.textContent = "알림";
+                    DOM.messageBody.textContent = message;
+                    DOM.messageBox.className = "fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg shadow-lg z-50";
                 }
-                messageBox.classList.remove('hidden');
+                DOM.messageBox.classList.remove('hidden');
                 
                 // 3초 후 자동으로 사라짐
-                setTimeout(() => messageBox.classList.add('hidden'), 3000);
+                setTimeout(() => DOM.messageBox.classList.add('hidden'), 3000);
             }
 
 
             // --- 11. 이벤트 리스너 ---
-            startButton.addEventListener('click', startGame);
-            restartButton.addEventListener('click', restartGame);
+            DOM.startButton.addEventListener('click', startGame);
+            DOM.restartButton.addEventListener('click', restartGame);
             
-            optionButtons.forEach(button => {
+            DOM.optionButtons.forEach(button => {
                 button.addEventListener('click', checkAnswer);
             });
             
-            nicknameInput.addEventListener('input', validateStartButton);
-            daySelect.addEventListener('change', validateStartButton);
+            DOM.nicknameInput.addEventListener('input', validateStartButton);
+            DOM.daySelect.addEventListener('change', validateStartButton);
             
-            // '관리자 모드' 버튼 클릭
-            adminButton.addEventListener('click', () => {
-                const password = prompt("관리자 비밀번호를 입력하세요:");
+            // 관리자 모드 이벤트
+            DOM.adminButton.addEventListener('click', () => {
+                showScreen('adminLogin'); // 관리자 패널 보이기
+                DOM.adminPasswordInput.focus();
+            });
+
+            DOM.adminCancelButton.addEventListener('click', () => {
+                DOM.adminLoginPanel.classList.add('hidden'); // 패널 숨기기
+                DOM.adminPasswordInput.value = ""; // 입력값 초기화
+            });
+
+            DOM.adminSubmitButton.addEventListener('click', () => {
+                const password = DOM.adminPasswordInput.value;
                 
-                // ★★★ 비밀번호 변경: '5k6m1o20' ★★★
-                if (password === '5k6m1o20') { 
-                    // confirm() 대신 prompt()로 이중 확인
-                    const confirmation = prompt("정말로 모든 리더보드 기록을 삭제하시겠습니까? 되돌릴 수 없습니다. (삭제하려면 '삭제'라고 입력하세요)");
-                    if (confirmation === '삭제') {
+                if (password === ADMIN_PASSWORD) { 
+                    if (confirm("정말로 모든 리더보드 기록을 삭제하시겠습니까? 되돌릴 수 없습니다.")) {
                         clearLeaderboard();
                     } else {
-                        showMessage("삭제가 취소되었습니다."); // alert 대신 showMessage
+                        showMessage("삭제가 취소되었습니다.");
                     }
-                } else if (password) { // password is not null or empty
-                    showError("비밀번호가 틀렸습니다."); // alert 대신 showError
+                    DOM.adminLoginPanel.classList.add('hidden');
+                    DOM.adminPasswordInput.value = "";
+                } else { 
+                    showError("비밀번호가 틀렸습니다.");
                 }
             });
             
             // --- 12. 앱 실행 ---
             initializeFirebase();
+            showScreen('start'); // 앱 시작 시 첫 화면 표시
 
         }); 
 
@@ -657,7 +717,6 @@
 <body class="bg-gray-50 font-sans antialiased text-gray-900">
 
     <!-- 알림창 (오류, 성공, 일반) -->
-    <!-- (id="message-box") -->
     <div id="message-box" class="hidden fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50" role="alert">
         <strong id="message-title" class="font-bold">오류!</strong>
         <span id="message-body" class="block sm:inline">오류 메시지가 여기에 표시됩니다.</span>
@@ -667,7 +726,21 @@
     <div class="container mx-auto p-4 max-w-2xl min-h-screen flex flex-col justify-center">
 
         <!-- 1. Start Screen -->
-        <div id="start-screen" class="w-full bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+        <div id="start-screen" class="w-full bg-white p-6 sm:p-8 rounded-2xl shadow-xl relative">
+            
+            <!-- Admin Login Panel (새로 추가됨) -->
+            <div id="admin-login-panel" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-10 flex flex-col justify-center items-center p-8 rounded-2xl border border-gray-200 shadow-lg">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">관리자 모드</h3>
+                <input type="password" id="admin-password-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="관리자 비밀번호">
+                <button id="admin-submit-button" class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
+                    리더보드 기록 삭제
+                </button>
+                <button id="admin-cancel-button" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
+                    취소
+                </button>
+            </div>
+            
+            <!-- (기존 시작 화면 내용) -->
             <h1 class="text-3xl sm:text-4xl font-bold text-center text-indigo-600 mb-6">Day별 영단어 랭킹 게임</h1>
             
             <div class="mb-4">
@@ -697,7 +770,6 @@
                 <ul id="leaderboard-list" class="space-y-2 max-h-64 overflow-y-auto pr-2">
                 </ul>
                 
-                <!-- 관리자 버튼 -->
                 <div class="text-center mt-4">
                     <button id="admin-button" class="text-xs text-gray-400 hover:text-gray-600 hover:underline">
                         관리자 모드

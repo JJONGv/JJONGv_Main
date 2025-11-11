@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 토큰 가이드 | 인터랙티브 리포트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Neutrals & Subtle Accents -->
+    <!-- Application Structure Plan: 데스크톱에서는 왼쪽에 고정 사이드바, 모바일에서는 상단 햄버거 메뉴를 사용하는 반응형 대시보드 레이아웃을 선택했습니다. 이 구조는 사용자가 보고서의 5가지 핵심 섹션(소개, 정의, 중요성, 소모량, 전략)을 비선형적으로, 원하는 순서대로 자유롭게 탐색할 수 있게 하여 학습 및 정보 접근성을 극대화합니다. 각 내비게이션 링크는 JS를 통해 해당 콘텐츠 섹션만 동적으로 표시하여 SPA의 상호작용성을 구현합니다. 이는 단순 스크롤 방식보다 사용자가 특정 정보를 찾는 데 훨씬 효율적입니다. -->
+    <!-- Visualization & Content Choices: 
+        - [보고서 전체] -> Goal: Organize -> Viz: 사이드바 내비게이션 SPA -> Interaction: 클릭 시 섹션 전환 -> Justification: 정보 탐색 효율성 극대화 -> Method: HTML/Tailwind/JS
+        - [섹션 2: 토큰화 예시] -> Goal: Inform -> Viz: 스타일링된 HTML 블록 -> Interaction: 없음 -> Justification: 명확한 시각적 구분 -> Method: HTML/Tailwind
+        - [섹션 3: 컨텍스트 윈도우] -> Goal: Compare -> Viz: Bar Chart (Logarithmic) -> Interaction: 툴팁 -> Justification: 모델 간의 압도적인 스케일 차이를 효과적으로 비교 -> Library: Chart.js (Canvas)
+        - [섹션 4: 작업별 소모량] -> Goal: Compare/Rank -> Viz: Horizontal Bar Chart + Interactive Filters -> Interaction: 카테고리(규모)별 필터 버튼 -> Justification: 사용자가 데이터의 특정 하위 집합(예: '대' 작업)에 집중하여 탐색할 수 있음 -> Library: Chart.js (Canvas) + JS
+        - [섹션 5: 관리 전략] -> Goal: Organize -> Viz: 탭 인터페이스 -> Interaction: 탭 클릭 시 콘텐츠 전환 -> Justification: 3가지 전략을 깔끔하게 구분하여 한 번에 하나의 정보에 집중 -> Method: HTML/Tailwind/JS
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+                max-height: 450px;
+            }
+        }
+        .prose-custom h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .prose-custom h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        .prose-custom p {
+            font-size: 1rem;
+            line-height: 1.75;
+            margin-bottom: 1.25rem;
+        }
+        .prose-custom ul {
+            list-style-position: inside;
+            margin-left: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .prose-custom li {
+            margin-bottom: 0.5rem;
+        }
+        .prose-custom table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+        .prose-custom th, .prose-custom td {
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+        .prose-custom table th:nth-child(1),
+        .prose-custom table td:nth-child(1) {
+            min-width: 160px;
+            white-space: nowrap;
+        }
+        .prose-custom code {
+            background-color: #e2e8f0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .nav-link.active {
+            background-color: #4f46e5;
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .strategy-tab-btn {
+            flex: 1 1 0%;
+            padding: 0.75rem 0.5rem;
+            font-weight: 500;
+            text-align: center;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        @media (min-width: 640px) {
+            .strategy-tab-btn {
+                font-size: 1rem;
+            }
+        }
+        .strategy-tab-btn:not(.active):hover {
+            background-color: #f1f5f9;
+        }
+        .strategy-tab-content {
+            display: none;
+        }
+        .strategy-tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flex h-screen bg-slate-50">
+        
+        <aside id="sidebar" class="fixed z-20 inset-y-0 left-0 w-64 bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-slate-900">AI 토큰 가이드</h1>
+                <p class="text-sm text-slate-500">인터랙티브 리포트</p>
+            </div>
+            <nav class="mt-4 px-4">
+                <a href="#intro" class="nav-link active" data-target="intro">소개</a>
+                <a href="#what" class="nav-link" data-target="what">1. 토큰이란?</a>
+                <a href="#why" class="nav-link" data-target="why">2. 토큰의 중요성</a>
+                <a href="#workload" class="nav-link" data-target="workload">3. 작업별 소모량</a>
+                <a href="#strategy" class="nav-link" data-target="strategy">4. 관리 전략</a>
+            </nav>
+        </aside>
+
+        <div id="backdrop" class="fixed inset-0 bg-black opacity-50 z-10 md:hidden hidden"></div>
+
+        <div class="flex-1 flex flex-col md:ml-64">
+            
+            <header class="md:hidden flex justify-between items-center bg-white shadow-md p-4 sticky top-0 z-10">
+                <h1 class="text-xl font-bold text-slate-900">AI 토큰 가이드</h1>
+                <button id="menu-toggle" class="p-2">
+                    <span class="text-2xl">☰</span>
+                </button>
+            </header>
+
+            <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+                <div class="max-w-4xl mx-auto prose-custom">
+
+                    <section id="intro" class="content-section active">
+                        <h2>소개: AI 토큰 완벽 가이드</h2>
+                        <p>AI, 특히 거대 언어 모델(LLM)을 사용할 때 '토큰'은 가장 기본이 되는 핵심 개념입니다. 토큰은 AI의 비용, 속도, 성능(기억력)을 결정하는 기준이 됩니다.</p>
+                        <p>이 인터랙티브 리포트는 AI 토큰의 정의부터 실제 작업에서의 소모량, 그리고 이를 효율적으로 관리하는 전략까지 AI 토큰의 모든 것을 탐색합니다. 왼쪽 메뉴를 클릭하여 원하는 섹션으로 바로 이동해 보세요.</p>
+                    </section>
+                    
+                    <section id="what" class="content-section">
+                        <h2>1. AI와 '토큰(Token)'이란?</h2>
+                        <p>토큰은 <strong>AI가 텍스트를 처리하는 기본 단위</strong>입니다.</p>
+                        <p>사람이 '단어'나 '문장'으로 세상을 이해한다면, AI는 텍스트를 '토큰'이라는 작은 조각으로 나눠서 숫자로 변환한 뒤 이해합니다.</p>
+                        
+                        <h3>비유 (레고 블록)</h3>
+                        <ul>
+                            <li><strong>문장:</strong> "나는 오늘 학교에 갔다."</li>
+                            <li><strong>토큰:</strong> <code>["나", "는", "오늘", "학교", "에", "갔다", "."]</code> (7개의 토큰)</li>
+                        </ul>
+                        
+                        <h3>왜 '단어'가 아닌 '토큰'인가?</h3>
+                        <p><strong>효율성 (Subword):</strong> 현대 AI는 '단어'가 아닌 '서브워드(Subword)' 단위로 텍스트를 나눕니다. 이렇게 나누면 모르는 신조어에도 대응할 수 있고, 한국어처럼 조사가 붙거나 동사가 변형되는 언어를 효율적으로 학습할 수 있습니다.</p>
+                        
+                        <div class="bg-slate-100 rounded-lg p-6 my-6 text-center">
+                            <h4 class="text-lg font-semibold text-slate-800 mb-4">토큰화(Tokenization) 예시</h4>
+                            <div class="flex flex-col md:flex-row md:items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                                <span class="p-3 bg-slate-200 rounded-lg shadow-sm text-lg font-medium text-slate-800">"Tokenization"</span>
+                                <span class="text-3xl font-bold text-indigo-600">→</span>
+                                <div class="flex justify-center space-x-2">
+                                    <span class="p-3 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm text-lg font-medium">"Token"</span>
+                                    <span class="p-3 bg-amber-100 text-amber-700 rounded-lg shadow-sm text-lg font-medium">"ization"</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="why" class="content-section">
+                        <h2>2. 토큰이 사용자에게 중요한 이유</h2>
+                        <p>토큰은 사용자에게 두 가지 실질적인 영향을 줍니다: AI 사용 비용과 AI의 기억력입니다.</p>
+                        
+                        <h3>1) AI 사용 비용 (Cost)</h3>
+                        <p>대부분의 AI 서비스는 사용자가 요청한 <strong>'총 토큰 수'</strong>를 기준으로 비용을 청구합니다.</p>
+                        <div class="bg-slate-100 rounded-lg p-6 my-6 text-center shadow-inner">
+                            <div class="text-xl md:text-2xl font-semibold text-slate-800">
+                                <span class="p-2 rounded-lg bg-amber-100 text-amber-700">입력(Input) 토큰</span>
+                                <span class="text-3xl font-bold mx-2 text-indigo-600">+</span>
+                                <span class="p-2 rounded-lg bg-indigo-100 text-indigo-700">출력(Output) 토큰</span>
+                            </div>
+                            <div class="text-3xl font-bold mt-4 text-slate-900">= 총 비용</div>
+                        </div>
+
+                        <h3>2) AI의 기억력 (Context Window)</h3>
+                        <p>AI가 한 번의 대화에서 기억할 수 있는 텍스트의 총량(한계)을 <strong>'컨텍스트 윈도우'</strong>라고 부르며, 이 단위 역시 '토큰'입니다. 이 기억력을 초과하는 정보(예: 너무 긴 문서)를 입력하면, AI는 앞부분의 내용을 잊어버려 답변의 퀄리티가 떨어집니다.</p>
+                        <p>특히 최신 모델인 Gemini 1.5 Pro와 2.5 Pro는 100만 토큰이라는 압도적인 컨텍스트 윈도우를 제공하며, 이는 기존 모델과 차원이 다른 성능을 가능하게 합니다.</p>
+                        
+                        <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 mt-8">
+                            <h3 class="text-center mb-6">컨텍스트 윈도우 크기 비교 (Log Scale)</h3>
+                            <p class="text-center mb-6 max-w-2xl mx-auto">
+                                모델별 기억력의 차이는 단순한 수치 이상입니다. 100만 토큰은 32,000 토큰 대비 30배 이상 큰 규모입니다. 이 극적인 차이를 표현하기 위해 Y축에 로그 스케일을 적용했습니다.
+                            </p>
+                            <div class="chart-container" style="max-width: 700px; height: 350px; max-height: 400px;">
+                                <canvas id="contextWindowChart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="workload" class="content-section">
+                        <h2>3. 작업별 상대적 토큰 소모량</h2>
+                        <p>모든 AI 작업이 동일한 토큰을 소모하지 않습니다. 교사와 학생 등 사용자들이 자주 요청하는 작업들의 상대적인 토큰 '무게'를 비교해 보았습니다.</p>
+                        <p>아래 필터 버튼을 클릭하여 특정 규모의 작업만 차트에서 확인해 보세요.</p>
+                        
+                        <div id="filter-buttons" class="flex flex-wrap justify-center gap-2 mb-6">
+                            <button class="filter-btn active" data-filter="all">전체 보기</button>
+                            <button class="filter-btn" data-filter="극소">🟢 극소</button>
+                            <button class="filter-btn" data-filter="소">🟡 소</button>
+                            <button class="filter-btn" data-filter="중">🟠 중</button>
+                            <button class="filter-btn" data-filter="대">🔴 대</button>
+                            <button class="filter-btn" data-filter="초대">🟣 초대</button>
+                            <button class="filter-btn" data-filter="특수">⚛️ 특수</button>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 mt-8">
+                            <h3 class="text-center mb-6">작업별 토큰 소모량 비교 차트</h3>
+                            <div class="chart-container" style="height: 500px; max-height: 600px;">
+                                <canvas id="workloadChart"></canvas>
+                            </div>
+                            <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 rounded-md shadow-sm mt-6">
+                                <p class="font-bold">⚛️ 특수 작업 참고</p>
+                                <p>'그림 생성' 및 'PDF 스캔' 항목은 차트의 상대적 토큰 소모량(Prompt/Response) 외에, 별도의 고비용 컴퓨팅 자원(α)을 사용하므로 실제 총 비용은 더 높게 책정됩니다.</p>
+                            </div>
+                        </div>
+
+                        <h3 class="mt-8">전체 데이터 표</h3>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>작업 규모</th>
+                                        <th>주요 작업 예시</th>
+                                        <th>토큰 소모 주체</th>
+                                        <th>비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workload-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section id="strategy" class="content-section">
+                        <h2>4. 토큰을 효율적으로 관리하는 전략 (Prompt Engineering)</h2>
+                        <p>토큰은 '비용'이자 '자원'입니다. 이 자원을 효율적으로 관리하여 원하는 답변을 얻어내는 전략은 AI 활용의 핵심입니다. 3가지 핵심 관리 전략을 확인해 보세요.</p>
+
+                        <div class="w-full mx-auto">
+                            <div class="mb-4 flex space-x-1 p-1 bg-slate-100 rounded-lg">
+                                <button class="strategy-tab-btn active" data-target="strategy-input">1) 입력(Input) 관리</button>
+                                <button class="strategy-tab-btn" data-target="strategy-output">2) 출력(Output) 관리</button>
+                                <button class="strategy-tab-btn" data-target="strategy-context">3) 기억력(Context) 관리</button>
+                            </div>
+                            
+                            <div class="p-6 bg-white rounded-lg shadow">
+                                <div id="strategy-input" class="strategy-tab-content active">
+                                    <h3><span class="text-2xl mr-2">💡</span> "질문은 명확하고 간결하게"</h3>
+                                    <p>AI가 사용자의 의도를 파악하는 데 불필요한 토큰을 낭비하지 않도록 하는 것이 핵심입니다.</p>
+                                    <ul>
+                                        <li><strong>구체적인 형식과 길이 지정:</strong> (예) "이 기사를 핵심만 3줄로 요약해 줘."</li>
+                                        <li><strong>명확한 역할(Persona) 부여:</strong> (예) "너는 전문 카피라이터야. 광고 문구 5개만 만들어 줘."</li>
+                                        <li><strong>불필요한 정보 제거:</strong> 답변에 꼭 필요한 부분만 발췌하여 제공합니다.</li>
+                                        <li><strong>배경 정보(Context) 제공:</strong> AI가 추측하지 않도록 예시를 먼저 제공합니다.</li>
+                                    </ul>
+                                </div>
+                                <div id="strategy-output" class="strategy-tab-content">
+                                    <h3><span class="text-2xl mr-2">🎯</span> "AI의 답변을 제어하기"</h3>
+                                    <p>AI가 너무 길거나 짧게, 혹은 엉뚱한 형식으로 답변하여 토큰과 시간을 낭비하는 것을 막습니다.</p>
+                                    <ul>
+                                        <li><strong>출력 형식(Format) 고정:</strong> (예) "장단점을 표(Table)로 정리해 줘."</li>
+                                        <li><strong>단계적(Iterative)으로 요청하기:</strong> 한 번의 거대한 질문보다 작은 질문으로 시작해 완성해 나갑니다.</li>
+                                        <li><strong>'최대 토큰' 설정 (API 사용 시):</strong> AI가 실수로 너무 긴 답변을 생성하는 것을 물리적으로 차단합니다.</li>
+                                    </ul>
+                                </div>
+                                <div id="strategy-context" class="strategy-tab-content">
+                                    <h3><span class="text-2xl mr-2">🧠</span> "AI의 한계 이해하기"</h3>
+                                    <p>모델의 기억력 한계를 이해하고 그 안에서 효율적으로 작동하도록 유도합니다.</p>
+                                    <ul>
+                                        <li><strong>긴 대화는 요약하기:</strong> 대화가 길어지면 중간에 "지금까지의 대화 내용을 요약해 줘"라고 요청합니다.</li>
+                                        <li><strong>핵심 정보는 마지막에:</strong> AI 모델은 종종 프롬프트의 맨 마지막 부분을 가장 잘 기억합니다.</li>
+                                        <li><strong>작업에 맞는 모델 선택:</strong> 100만 토큰이 필요한 작업(책 요약)에 32k 토큰 모델을 사용하면 안 됩니다.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            
+            const wrapLabel = (label, maxLen = 16) => {
+                if (typeof label !== 'string' || label.length <= maxLen) {
+                    return label;
+                }
+                const words = label.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach((word) => {
+                    if ((currentLine + ' ' + word).trim().length > maxLen && currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        currentLine = (currentLine + ' ' + word).trim();
+                    }
+                });
+                if (currentLine.length > 0) {
+                    lines.push(currentLine);
+                }
+                return lines;
+            };
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                if (!item) return '';
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                } else {
+                    return label;
+                }
+            };
+            
+            const sharedChartOptions = {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        },
+                        backgroundColor: '#ffffff',
+                        titleColor: '#0f172a',
+                        bodyColor: '#334155',
+                        borderColor: '#e2e8f0',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: false
+                    },
+                    legend: {
+                        labels: {
+                            color: '#1e293b',
+                            font: {
+                                size: 14,
+                                family: "'Noto Sans KR', sans-serif"
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#475569',
+                            font: {
+                                size: 12,
+                                family: "'Noto Sans KR', sans-serif"
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#475569',
+                            font: {
+                                size: 12,
+                                family: "'Noto Sans KR', sans-serif"
+                            }
+                        },
+                        grid: {
+                            color: '#e2e8f0',
+                            drawBorder: false
+                        }
+                    }
+                }
+            };
+
+            const allWorkloadData = [
+                { scale: '🟢 [극소]', task: '일상 대화 (1문장)', subject: '입력(소) + 출력(소)', note: '가장 가볍고 저렴한 작업.', relative: 1 },
+                { scale: '🟢 [극소]', task: '간단한 번역, 맞춤법 검사', subject: '입력(소) + 출력(소)', note: '가장 가볍고 저렴한 작업.', relative: 1 },
+                { scale: '🟡 [소]', task: '이메일 1통 작성', subject: '입력(소) + 출력(중)', note: '일상적인 생산성 작업.', relative: 5 },
+                { scale: '🟡 [소]', task: '1페이지 미만 짧은 요약', subject: '입력(소) + 출력(중)', note: '일상적인 생산성 작업.', relative: 5 },
+                { scale: '🟡 [소]', task: '블로그 게시물 1개 작성 (1000자)', subject: '입력(소) + 출력(중)', note: '일반적인 콘텐츠 생성 작업.', relative: 15 },
+                { scale: '🟠 [중]', task: '마크다운 테이블(10x10x30자) 학습', subject: '입력(중) + 출력(중)', note: '입력 데이터가 많아지거나 출력 결과물이 길어짐.', relative: 20 },
+                { scale: '🟠 [중]', task: '1페이지 분량 리포트 작성', subject: '입력(중) + 출력(중)', note: '입력 데이터가 많아지거나 출력 결과물이 길어짐.', relative: 25 },
+                { scale: '🟠 [중]', task: '50줄 Python 스크립트 작성', subject: '입력(중) + 출력(중)', note: '논리적인 코드 생성이 필요함.', relative: 35 },
+                { scale: '🔴 [대]', task: '긴 대화(30턴) 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 40 },
+                { scale: '🔴 [대]', task: '리뷰 100개 감성 분석 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 45 },
+                { scale: '🔴 [대]', task: '10분 유튜브 동영상 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 50 },
+                { scale: '🔴 [대]', task: '수능 수학 30번 풀이', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 60 },
+                { scale: '🔴 [대]', task: '복잡한 법률/의학 질문 답변', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 65 },
+                { scale: '🔴 [대]', task: '10페이지 논문 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 70 },
+                { scale: '🟣 [초대]', task: '500줄 HTML 코드 작성', subject: '입력(초대) + 출력(초대)', note: '모델의 최대 \'기억력\'이 필요한 작업. (Gemini 1.5/2.5 Pro 특화)', relative: 90 },
+                { scale: '🟣 [초대]', task: '엑셀 raw data (1만 줄) 범주화', subject: '입력(초대) + 출력(초대)', note: '모델의 최대 \'기억력\'이 필요한 작업. (Gemini 1.5/2.5 Pro 특화)', relative: 100 },
+                { scale: '🟣 [초대]', task: '책 1권 / 1시간 강의 영상 요약', subject: '입력(초대) + 출력(초대)', note: '모델의 최대 \'기억력\'이 필요한 작업. (Gemini 1.5/2.5 Pro 특화)', relative: 100 },
+                { scale: '⚛️ [특수]', task: '그림 생성하기 (Image Gen)', subject: '컴퓨팅 비용 + 텍스트 토큰', note: '텍스트 토큰 외에 별도의 컴퓨팅(이미지 생성, OCR) 비용이 발생함.', relative: 5 },
+                { scale: '⚛️ [특수]', task: 'PDF/사진 스캔(OCR)하기', subject: '컴퓨팅 비용 + 텍스트 토큰', note: '텍스트 토큰 외에 별도의 컴퓨팅(이미지 생성, OCR) 비용이 발생함.', relative: 10 },
+            ];
+
+            let workloadChart;
+
+            const updateTable = (data) => {
+                const tableBody = document.getElementById('workload-table-body');
+                tableBody.innerHTML = '';
+                data.forEach(item => {
+                    const row = `
+                        <tr>
+                            <td>${item.scale}</td>
+                            <td>${item.task}</td>
+                            <td>${item.subject}</td>
+                            <td>${item.note}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            };
+
+            const updateWorkloadChart = (data) => {
+                if (workloadChart) {
+                    workloadChart.destroy();
+                }
+                const ctxWorkload = document.getElementById('workloadChart');
+                if (!ctxWorkload) return;
+
+                const labels = data.map(d => wrapLabel(d.task, 25));
+                const relativeData = data.map(d => d.relative);
+                const colors = data.map(d => {
+                    if (d.scale.includes('극소')) return '#22c55e';
+                    if (d.scale.includes('소')) return '#eab308';
+                    if (d.scale.includes('중')) return '#f97316';
+                    if (d.scale.includes('대')) return '#ef4444';
+                    if (d.scale.includes('초대')) return '#a855f7';
+                    if (d.scale.includes('특수')) return '#64748b';
+                    return '#94a3b8';
+                });
+
+                workloadChart = new Chart(ctxWorkload, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '상대적 토큰 소모량',
+                            data: relativeData,
+                            backgroundColor: colors,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        ...sharedChartOptions,
+                        indexAxis: 'y',
+                        plugins: {
+                            ...sharedChartOptions.plugins,
+                            legend: { display: false },
+                            tooltip: {
+                                ...sharedChartOptions.plugins.tooltip,
+                                callbacks: {
+                                    ...sharedChartOptions.plugins.tooltip.callbacks,
+                                    footer: function(tooltipItems) {
+                                        if (!tooltipItems || tooltipItems.length === 0) return '';
+                                        const item = tooltipItems[0];
+                                        const label = item.label || '';
+                                        if (label.includes('그림 생성') || label.includes('PDF/사진 스캔')) {
+                                            return '※ 별도 컴퓨팅 비용(α) 발생';
+                                        }
+                                        return '';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: { display: true, text: '상대적 토큰 소모량 (Relative)', color: '#0f172a' },
+                                grid: { display: true, color: '#e2e8f0', drawBorder: false }
+                            },
+                            y: {
+                                ticks: { color: '#334155', font: { size: 13 } },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            };
+
+            const filterWorkload = (filter) => {
+                let filteredData;
+                const scaleFilter = filter;
+                
+                if (filter === 'all') {
+                    filteredData = allWorkloadData;
+                } else {
+                    filteredData = allWorkloadData.filter(d => d.scale.includes(scaleFilter));
+                }
+                updateWorkloadChart(filteredData);
+                updateTable(filteredData);
+            };
+
+            document.querySelectorAll('.filter-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active', 'bg-indigo-600', 'text-white'));
+                    e.target.classList.add('active', 'bg-indigo-600', 'text-white');
+                    e.target.style.backgroundColor = '#4f46e5';
+                    e.target.style.color = '#ffffff';
+
+                    document.querySelectorAll('.filter-btn:not(.active)').forEach(btn => {
+                        btn.style.backgroundColor = '';
+                        btn.style.color = '';
+                    });
+
+                    filterWorkload(e.target.dataset.filter);
+                });
+            });
+
+            updateWorkloadChart(allWorkloadData);
+            updateTable(allWorkloadData);
+
+            const ctxContext = document.getElementById('contextWindowChart');
+            if (ctxContext) {
+                new Chart(ctxContext, {
+                    type: 'bar',
+                    data: {
+                        labels: [wrapLabel('Gemini 1.0 (Standard 32k)'), wrapLabel('Gemini 2.5 Pro (1M+)')],
+                        datasets: [{
+                            label: '컨텍스트 윈도우 (토큰)',
+                            data: [32000, 1000000],
+                            backgroundColor: ['#fde047', '#4ade80'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        ...sharedChartOptions,
+                        plugins: { ...sharedChartOptions.plugins, legend: { display: false } },
+                        scales: {
+                            y: {
+                                type: 'logarithmic',
+                                title: { display: true, text: '토큰 수 (Log Scale)', color: '#0f172a' },
+                                ticks: {
+                                    color: '#475569',
+                                    callback: function(value) {
+                                        if ([1000, 10000, 100000, 1000000].includes(value)) return value.toLocaleString('ko-KR');
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: { color: '#1e293b', font: { size: 14, weight: 'bold' } },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.dataset.target;
+                    
+                    document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+                    document.getElementById(targetId).classList.add('active');
+
+                    if (window.innerWidth < 768) {
+                        document.getElementById('sidebar').classList.add('-translate-x-full');
+                        document.getElementById('backdrop').classList.add('hidden');
+                    }
+                });
+            });
+
+            document.getElementById('menu-toggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('-translate-x-full');
+                document.getElementById('backdrop').classList.toggle('hidden');
+            });
+
+            document.getElementById('backdrop').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('backdrop').classList.add('hidden');
+            });
+
+            document.querySelectorAll('.strategy-tab-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.strategy-tab-btn').forEach(btn => {
+                        btn.classList.remove('active', 'bg-white', 'text-indigo-600', 'shadow');
+                        btn.classList.add('text-slate-600');
+                    });
+                    this.classList.add('active', 'bg-white', 'text-indigo-600', 'shadow');
+                    this.classList.remove('text-slate-600');
+                    
+                    const targetId = this.dataset.target;
+                    document.querySelectorAll('.strategy-tab-content').forEach(content => content.classList.remove('active'));
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+            
+            document.querySelector('.strategy-tab-btn[data-target="strategy-input"]').click();
+            document.querySelector('.filter-btn[data-filter="all"]').click();
+            document.querySelector('.nav-link[data-target="intro"]').click();
+
+        })();
+    </script>
+</body>
+</html>

@@ -13,3 +13,4 @@
 - [물리 단기 임용 전략](./physics_exam_strategy/)
 - [워마2000 암기](./wordmaster_2000_csat/app/)
 - [워마2000 암기 리더보드](./wordmaster_2000_csat/admin_dashboard/)
+- [251117 전학공](./1117_PLC/)

@@ -76,9 +76,12 @@
             padding: 0.75rem 1rem;
             text-align: left;
         }
-        .prose-custom table th:nth-child(1),
-        .prose-custom table td:nth-child(1) {
-            min-width: 160px;
+        .prose-custom th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+        }
+        .prose-custom table th:first-child {
+            min-width: 120px;
             white-space: nowrap;
         }
         .prose-custom code {
@@ -234,28 +237,29 @@
                     </section>
 
                     <section id="workload" class="content-section">
-                        <h2>3. 작업별 상대적 토큰 소모량</h2>
-                        <p>모든 AI 작업이 동일한 토큰을 소모하지 않습니다. 교사와 학생 등 사용자들이 자주 요청하는 작업들의 상대적인 토큰 '무게'를 비교해 보았습니다.</p>
+                        <h2>3. 작업별 토큰 소모량 (최대 100만 기준)</h2>
+                        <p>모든 AI 작업이 동일한 토큰을 소모하지 않습니다. 자주 요청하는 작업들의 '추정 토큰 소모량'을 최대 컨텍스트 윈도우(100만)를 기준으로 비교해 보았습니다.</p>
                         <p>아래 필터 버튼을 클릭하여 특정 규모의 작업만 차트에서 확인해 보세요.</p>
                         
                         <div id="filter-buttons" class="flex flex-wrap justify-center gap-2 mb-6">
                             <button class="filter-btn active" data-filter="all">전체 보기</button>
-                            <button class="filter-btn" data-filter="극소">🟢 극소</button>
-                            <button class="filter-btn" data-filter="소">🟡 소</button>
-                            <button class="filter-btn" data-filter="중">🟠 중</button>
-                            <button class="filter-btn" data-filter="대">🔴 대</button>
-                            <button class="filter-btn" data-filter="초대">🟣 초대</button>
-                            <button class="filter-btn" data-filter="특수">⚛️ 특수</button>
+                            <button class="filter-btn" data-filter="극소">🟢 극소 (1 ~ 500)</button>
+                            <button class="filter-btn" data-filter="소">🟡 소 (501 ~ 5k)</button>
+                            <button class="filter-btn" data-filter="중">🟠 중 (5k ~ 50k)</button>
+                            <button class="filter-btn" data-filter="대">🔴 대 (50k ~ 500k)</button>
+                            <button class="filter-btn" data-filter="초대">🟣 초대 (500k+)</button>
                         </div>
 
                         <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 mt-8">
-                            <h3 class="text-center mb-6">작업별 토큰 소모량 비교 차트</h3>
+                            <h3 class="text-center mb-6">작업별 추정 토큰 소모량 (Log Scale)</h3>
                             <div class="chart-container" style="height: 500px; max-height: 600px;">
                                 <canvas id="workloadChart"></canvas>
                             </div>
-                            <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 rounded-md shadow-sm mt-6">
-                                <p class="font-bold">⚛️ 특수 작업 참고</p>
-                                <p>'그림 생성' 및 'PDF 스캔' 항목은 차트의 상대적 토큰 소모량(Prompt/Response) 외에, 별도의 고비용 컴퓨팅 자원(α)을 사용하므로 실제 총 비용은 더 높게 책정됩니다.</p>
+                            <div class="mt-6 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
+                                <p class="font-semibold text-amber-800">※ 환산 비용 경고</p>
+                                <p class="text-sm text-amber-700">
+                                    '그림 생성', 'PDF 스캔' 항목은 순수 토큰 비용이 아닌, 컴퓨팅 자원 비용을 토큰으로 '환산'한 추정치입니다. 이는 실제 토큰 소모량이 아니며, 별도 과금(α)이 발생합니다.
+                                </p>
                             </div>
                         </div>
 
@@ -266,7 +270,7 @@
                                     <tr>
                                         <th>작업 규모</th>
                                         <th>주요 작업 예시</th>
-                                        <th>토큰 소모 주체</th>
+                                        <th>추정 토큰</th>
                                         <th>비고</th>
                                     </tr>
                                 </thead>
@@ -366,11 +370,21 @@
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            title: tooltipTitleCallback
+                            title: tooltipTitleCallback,
+                            footer: (tooltipItems) => {
+                                const item = tooltipItems[0];
+                                if (!item) return '';
+                                const dataPoint = item.chart.data.datasets[item.datasetIndex].data[item.dataIndex];
+                                if (dataPoint.isConverted) {
+                                    return '※ 별도 컴퓨팅 비용(α) 환산 추정치';
+                                }
+                                return '';
+                            }
                         },
                         backgroundColor: '#ffffff',
                         titleColor: '#0f172a',
                         bodyColor: '#334155',
+                        footerColor: '#ef4444',
                         borderColor: '#e2e8f0',
                         borderWidth: 1,
                         padding: 10,
@@ -416,25 +430,25 @@
             };
 
             const allWorkloadData = [
-                { scale: '🟢 [극소]', task: '일상 대화 (1문장)', subject: '입력(소) + 출력(소)', note: '가장 가볍고 저렴한 작업.', relative: 1 },
-                { scale: '🟢 [극소]', task: '간단한 번역, 맞춤법 검사', subject: '입력(소) + 출력(소)', note: '가장 가볍고 저렴한 작업.', relative: 1 },
-                { scale: '🟡 [소]', task: '이메일 1통 작성', subject: '입력(소) + 출력(중)', note: '일상적인 생산성 작업.', relative: 5 },
-                { scale: '🟡 [소]', task: '1페이지 미만 짧은 요약', subject: '입력(소) + 출력(중)', note: '일상적인 생산성 작업.', relative: 5 },
-                { scale: '🟡 [소]', task: '블로그 게시물 1개 작성 (1000자)', subject: '입력(소) + 출력(중)', note: '일반적인 콘텐츠 생성 작업.', relative: 15 },
-                { scale: '🟠 [중]', task: '마크다운 테이블(10x10x30자) 학습', subject: '입력(중) + 출력(중)', note: '입력 데이터가 많아지거나 출력 결과물이 길어짐.', relative: 20 },
-                { scale: '🟠 [중]', task: '1페이지 분량 리포트 작성', subject: '입력(중) + 출력(중)', note: '입력 데이터가 많아지거나 출력 결과물이 길어짐.', relative: 25 },
-                { scale: '🟠 [중]', task: '50줄 Python 스크립트 작성', subject: '입력(중) + 출력(중)', note: '논리적인 코드 생성이 필요함.', relative: 35 },
-                { scale: '🔴 [대]', task: '긴 대화(30턴) 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 40 },
-                { scale: '🔴 [대]', task: '리뷰 100개 감성 분석 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 45 },
-                { scale: '🔴 [대]', task: '10분 유튜브 동영상 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 50 },
-                { scale: '🔴 [대]', task: '수능 수학 30번 풀이', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 60 },
-                { scale: '🔴 [대]', task: '복잡한 법률/의학 질문 답변', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 65 },
-                { scale: '🔴 [대]', task: '10페이지 논문 요약', subject: '입력(대) + 출력(대)', note: '긴 자료(입력)를 분석하거나, 논리적이고 긴 답변(출력)이 필요함.', relative: 70 },
-                { scale: '🟣 [초대]', task: '500줄 HTML 코드 작성', subject: '입력(초대) + 출력(초대)', note: '모델의 최대 \'기억력\'이 필요한 작업. (Gemini 1.5/2.5 Pro 특화)', relative: 90 },
-                { scale: '🟣 [초대]', task: '엑셀 raw data (1만 줄) 범주화', subject: '입력(초대) + 출력(초대)', note: '모델의 최대 \'기억력\'이 필요한 작업. (Gemini 1.5/2.5 Pro 특화)', relative: 100 },
-                { scale: '🟣 [초대]', task: '책 1권 / 1시간 강의 영상 요약', subject: '입력(초대) + 출력(초대)', note: '모델의 최대 \'기억력\'이 필요한 작업. (Gemini 1.5/2.5 Pro 특화)', relative: 100 },
-                { scale: '⚛️ [특수]', task: '그림 생성하기 (Image Gen)', subject: '컴퓨팅 비용 + 텍스트 토큰', note: '텍스트 토큰 외에 별도의 컴퓨팅(이미지 생성, OCR) 비용이 발생함.', relative: 5 },
-                { scale: '⚛️ [특수]', task: 'PDF/사진 스캔(OCR)하기', subject: '컴퓨팅 비용 + 텍스트 토큰', note: '텍스트 토큰 외에 별도의 컴퓨팅(이미지 생성, OCR) 비용이 발생함.', relative: 10 },
+                { scale: '극소', task: '일상 대화 (1문장)', subject: '입력(소) + 출력(소)', note: '가장 가볍고 저렴한 작업.', tokens: 40, isConverted: false },
+                { scale: '극소', task: '간단한 번역', subject: '입력(소) + 출력(소)', note: '가장 가볍고 저렴한 작업.', tokens: 20, isConverted: false },
+                { scale: '극소', task: '맞춤법 검사', subject: '입력(소) + 출력(소)', note: '가장 가볍고 저렴한 작업.', tokens: 50, isConverted: false },
+                { scale: '소', task: '이메일 1통 작성', subject: '입력(소) + 출력(중)', note: '일상적인 생산성 작업.', tokens: 300, isConverted: false },
+                { scale: '소', task: '블로그 게시물 1개 (1000자)', subject: '입력(소) + 출력(중)', note: '일상적인 생산성 작업.', tokens: 1500, isConverted: false },
+                { scale: '소', task: 'PDF 스캔(OCR) 1장', subject: '컴퓨팅 비용 + 텍스트 토큰', note: '별도 컴퓨팅(α) 비용 환산 추정치', tokens: 2000, isConverted: true },
+                { scale: '중', task: '50줄 Python 스크립트', subject: '입력(소) + 출력(중)', note: '중간 규모의 코드 생성', tokens: 6000, isConverted: false },
+                { scale: '중', task: '긴 대화(30턴) 요약', subject: '입력(중) + 출력(소)', note: '컨텍스트 누적', tokens: 8000, isConverted: false },
+                { scale: '중', task: '1페이지 분량 리포트 작성', subject: '입력(소) + 출력(중)', note: '긴 텍스트 생성', tokens: 1500, isConverted: false },
+                { scale: '중', task: '리뷰 100개 감성 분석 요약', subject: '입력(중) + 출력(소)', note: '데이터 분석 및 요약', tokens: 10000, isConverted: false },
+                { scale: '중', task: '마크다운 테이블 학습', subject: '입력(중) + 출력(소)', note: '데이터 입력 작업', tokens: 5000, isConverted: false },
+                { scale: '대', task: '10분 유튜브 동영상 요약', subject: '입력(대) + 출력(소)', note: '오디오 스크립트 분석', tokens: 15000, isConverted: false },
+                { scale: '대', task: '그림 생성하기 (1장)', subject: '컴퓨팅 비용 + 텍스트 토큰', note: '별도 컴퓨팅(α) 비용 환산 추정치', tokens: 20000, isConverted: true },
+                { scale: '대', task: '복잡한 법률/의학 질문 답변', subject: '입력(소) + 출력(대)', note: '전문 지식 기반 긴 답변', tokens: 12000, isConverted: false },
+                { scale: '대', task: '수능 수학 30번 풀이', subject: '입력(중) + 출력(대)', note: '복잡한 논리 전개', tokens: 10000, isConverted: false },
+                { scale: '대', task: '10페이지 논문 요약', subject: '입력(대) + 출력(소)', note: '긴 문서 분석', tokens: 25000, isConverted: false },
+                { scale: '초대', task: '500줄 HTML 코드 작성', subject: '입력(소) + 출력(초대)', note: '매우 긴 코드 생성', tokens: 70000, isConverted: false },
+                { scale: '초대', task: '엑셀(1만 줄) 데이터 범주화', subject: '입력(초대) + 출력(중)', note: '방대한 데이터 입력', tokens: 400000, isConverted: false },
+                { scale: '초대', task: '책 1권(100페이지) 요약', subject: '입력(초대) + 출력(대)', note: '초대형 컨텍스트 필요', tokens: 900000, isConverted: false },
             ];
 
             let workloadChart;
@@ -442,12 +456,12 @@
             const updateTable = (data) => {
                 const tableBody = document.getElementById('workload-table-body');
                 tableBody.innerHTML = '';
-                data.forEach(item => {
+                data.sort((a, b) => a.tokens - b.tokens).forEach(item => {
                     const row = `
                         <tr>
-                            <td>${item.scale}</td>
-                            <td>${item.task}</td>
-                            <td>${item.subject}</td>
+                            <td>${item.scale.includes('극소') ? '🟢' : item.scale.includes('소') ? '🟡' : item.scale.includes('중') ? '🟠' : item.scale.includes('대') ? '🔴' : '🟣'} [${item.scale}]</td>
+                            <td>${item.task} ${item.isConverted ? '<span class="text-red-600" title="환산 추정치">※</span>' : ''}</td>
+                            <td>${item.tokens.toLocaleString('ko-KR')}</td>
                             <td>${item.note}</td>
                         </tr>
                     `;
@@ -462,15 +476,16 @@
                 const ctxWorkload = document.getElementById('workloadChart');
                 if (!ctxWorkload) return;
 
-                const labels = data.map(d => wrapLabel(d.task, 25));
-                const relativeData = data.map(d => d.relative);
-                const colors = data.map(d => {
+                const sortedData = [...data].sort((a, b) => a.tokens - b.tokens);
+                const labels = sortedData.map(d => wrapLabel(d.task, 25));
+                const tokenValues = sortedData.map(d => d.tokens);
+                
+                const colors = sortedData.map(d => {
                     if (d.scale.includes('극소')) return '#22c55e';
                     if (d.scale.includes('소')) return '#eab308';
                     if (d.scale.includes('중')) return '#f97316';
                     if (d.scale.includes('대')) return '#ef4444';
                     if (d.scale.includes('초대')) return '#a855f7';
-                    if (d.scale.includes('특수')) return '#64748b';
                     return '#94a3b8';
                 });
 
@@ -479,10 +494,11 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: '상대적 토큰 소모량',
-                            data: relativeData,
+                            label: '추정 토큰 소모량',
+                            data: tokenValues,
                             backgroundColor: colors,
-                            borderWidth: 0
+                            borderWidth: 0,
+                            customData: sortedData
                         }]
                     },
                     options: {
@@ -492,28 +508,46 @@
                             ...sharedChartOptions.plugins,
                             legend: { display: false },
                             tooltip: {
-                                ...sharedChartOptions.plugins.tooltip,
                                 callbacks: {
-                                    ...sharedChartOptions.plugins.tooltip.callbacks,
-                                    footer: function(tooltipItems) {
-                                        if (!tooltipItems || tooltipItems.length === 0) return '';
+                                    title: tooltipTitleCallback,
+                                    label: function(context) {
+                                        const value = context.parsed.x;
+                                        return `추정 토큰: ${value.toLocaleString('ko-KR')}`;
+                                    },
+                                    footer: (tooltipItems) => {
                                         const item = tooltipItems[0];
-                                        const label = item.label || '';
-                                        if (label.includes('그림 생성') || label.includes('PDF/사진 스캔')) {
-                                            return '※ 별도 컴퓨팅 비용(α) 발생';
+                                        if (!item) return '';
+                                        const dataPoint = item.chart.data.datasets[item.datasetIndex].customData[item.dataIndex];
+                                        if (dataPoint && dataPoint.isConverted) {
+                                            return '※ 별도 컴퓨팅 비용(α) 환산 추정치';
                                         }
                                         return '';
                                     }
-                                }
+                                },
+                                backgroundColor: '#ffffff',
+                                titleColor: '#0f172a',
+                                bodyColor: '#334155',
+                                footerColor: '#ef4444',
+                                borderColor: '#e2e8f0',
+                                borderWidth: 1,
+                                padding: 10,
+                                displayColors: false
                             }
                         },
                         scales: {
                             x: {
-                                title: { display: true, text: '상대적 토큰 소모량 (Relative)', color: '#0f172a' },
-                                grid: { display: true, color: '#e2e8f0', drawBorder: false }
+                                type: 'logarithmic',
+                                title: { display: true, text: '추정 토큰 소모량 (Estimated Tokens, Log Scale)', color: '#0f172a' },
+                                grid: { display: true, color: '#e2e8f0', drawBorder: false },
+                                ticks: {
+                                    color: '#475569',
+                                    callback: function(value) {
+                                        if ([1, 10, 100, 1000, 10000, 100000, 1000000].includes(value)) return value.toLocaleString('ko-KR');
+                                    }
+                                }
                             },
                             y: {
-                                ticks: { color: '#334155', font: { size: 13 } },
+                                ticks: { color: '#334155', font: { size: 12 } },
                                 grid: { display: false }
                             }
                         }
@@ -523,12 +557,12 @@
 
             const filterWorkload = (filter) => {
                 let filteredData;
-                const scaleFilter = filter;
+                const scaleFilter = filter.split(' ')[0];
                 
-                if (filter === 'all') {
+                if (scaleFilter === 'all') {
                     filteredData = allWorkloadData;
                 } else {
-                    filteredData = allWorkloadData.filter(d => d.scale.includes(scaleFilter));
+                    filteredData = allWorkloadData.filter(d => d.scale.Sincludes(scaleFilter));
                 }
                 updateWorkloadChart(filteredData);
                 updateTable(filteredData);
@@ -536,22 +570,22 @@
 
             document.querySelectorAll('.filter-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
-                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active', 'bg-indigo-600', 'text-white'));
-                    e.target.classList.add('active', 'bg-indigo-600', 'text-white');
-                    e.target.style.backgroundColor = '#4f46e5';
-                    e.target.style.color = '#ffffff';
-
-                    document.querySelectorAll('.filter-btn:not(.active)').forEach(btn => {
+                    document.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.remove('active');
                         btn.style.backgroundColor = '';
                         btn.style.color = '';
+                        btn.style.boxShadow = '';
                     });
+                    
+                    const targetButton = e.currentTarget;
+                    targetButton.classList.add('active');
+                    targetButton.style.backgroundColor = '#4f46e5';
+                    targetButton.style.color = '#ffffff';
+                    targetButton.style.boxShadow = '0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06)';
 
-                    filterWorkload(e.target.dataset.filter);
+                    filterWorkload(targetButton.dataset.filter);
                 });
             });
-
-            updateWorkloadChart(allWorkloadData);
-            updateTable(allWorkloadData);
 
             const ctxContext = document.getElementById('contextWindowChart');
             if (ctxContext) {

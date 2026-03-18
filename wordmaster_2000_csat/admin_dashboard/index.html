@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>영단어 게임 - 관리자 대시보드</title>
-    <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -13,11 +12,16 @@
             padding: 12px 16px;
             border-bottom: 1px solid #e5e7eb; /* gray-200 */
         }
+        /* 헤더 고정을 위한 설정 */
         th {
             background-color: #f9fafb; /* gray-50 */
             text-align: left;
             font-weight: 600;
             color: #374151; /* gray-700 */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 0 #e5e7eb;
         }
         tr:nth-child(even) {
             background-color: #f9fafb; /* gray-50 */
@@ -27,12 +31,24 @@
 <body class="bg-gray-100 min-h-screen p-8">
 
     <div class="max-w-7xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h1 class="text-3xl font-bold text-indigo-600">관리자 대시보드</h1>
-            <p class="text-gray-600 mt-2">닉네임별 게임 플레이 통계입니다.</p>
+        <div class="p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-600">관리자 대시보드</h1>
+                <p class="text-gray-600 mt-1">닉네임별 게임 플레이 통계입니다.</p>
+            </div>
+            
+            <div class="relative w-full md:w-64">
+                <input type="text" id="search-input" 
+                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                    placeholder="닉네임 검색...">
+                <div class="absolute left-3 top-2.5 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
         </div>
 
-        <!-- 로딩 스피너 -->
         <div id="loading" class="flex items-center justify-center h-64">
             <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -41,15 +57,13 @@
             <span class="text-indigo-600 font-semibold ml-3">데이터 집계 중...</span>
         </div>
 
-        <!-- 오류 메시지 -->
         <div id="error-box" class="hidden p-6 text-center">
             <h3 class="text-xl font-semibold text-red-600">오류 발생</h3>
             <p id="error-message" class="text-gray-700 mt-2"></p>
         </div>
         
-        <!-- 데이터 테이블 (처음엔 숨김) -->
         <div id="data-container" class="hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto overflow-y-auto max-h-[600px]">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -62,42 +76,29 @@
                         </tr>
                     </thead>
                     <tbody id="stats-table-body" class="bg-white divide-y divide-gray-200">
-                        <!-- 데이터가 여기에 동적으로 삽입됩니다 -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK (ESM - 모듈 타입) -->
     <script type="module">
-        // --- 1. Firebase SDK 모듈 가져오기 ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInAnonymously, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            query, 
-            getDocs 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // DOM 요소
         const loading = document.getElementById('loading');
         const errorBox = document.getElementById('error-box');
         const errorMessage = document.getElementById('error-message');
         const dataContainer = document.getElementById('data-container');
         const tableBody = document.getElementById('stats-table-body');
+        const searchInput = document.getElementById('search-input');
 
         let isAuthReady = false;
         let auth, db;
+        let cachedData = []; // 검색을 위한 전체 데이터 저장
 
-        // --- 2. Firebase 초기화 및 인증 ---
         async function initializeFirebase() {
-            // (필수!) word-typing-game.html과 동일한 Firebase config를 사용해야 합니다.
             const firebaseConfig = {
                 apiKey: "AIzaSyDrrf9SIBjAnLtd0zvfTlCfPTKi-QsYJMg",
                 authDomain: "word-game-7ff9b.firebaseapp.com",
@@ -107,117 +108,59 @@
                 appId: "1:284686212123:web:41bf7bb78fd8fb5d2e2cbe"
             };
 
-            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-                throw new Error("Firebase 설정(config)이 비어있습니다.");
-            }
-
             try {
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        isAuthReady = true;
-                        console.log("Firebase 인증 성공 (익명):", user.uid);
-                    }
-                });
-
+                onAuthStateChanged(auth, (user) => { if (user) isAuthReady = true; });
                 await signInAnonymously(auth);
             } catch (error) {
-                console.error("Firebase 초기화 오류:", error);
                 throw new Error("Firebase 연결에 실패했습니다.");
             }
         }
-        
-        // 인증이 완료될 때까지 기다리는 Promise
+
         function whenAuthReady() {
-            return new Promise((resolve, reject) => {
-                if (isAuthReady) {
-                    resolve();
-                } else {
-                    const unsubscribe = onAuthStateChanged(auth, (user) => {
-                        if (user) {
-                            unsubscribe();
-                            resolve();
-                        }
-                    }, (error) => reject(error));
-                }
+            return new Promise((resolve) => {
+                if (isAuthReady) resolve();
+                else onAuthStateChanged(auth, (user) => { if (user) resolve(); });
             });
         }
 
-        // --- 3. 데이터 가져오기 및 집계 ---
         async function fetchAndAggregateData() {
-            if (!db || !isAuthReady) {
-                throw new Error("Firestore가 준비되지 않았습니다.");
-            }
-
-            const collectionPath = "leaderboard";
-            const q = query(collection(db, collectionPath));
-            const querySnapshot = await getDocs(q);
-
-            const allRecords = [];
-            querySnapshot.forEach((doc) => {
-                allRecords.push(doc.data());
-            });
-
-            // 닉네임별, 단어장별로 데이터 집계
-            // stats = { "홍길동_basic": { ... }, "홍길동_advanced": { ... } }
+            const querySnapshot = await getDocs(query(collection(db, "leaderboard")));
             const stats = {};
-            const oldBasicName = "워드마스터 고등 Basic (Old)"; // 이전 버전 호환용
-
-            allRecords.forEach(record => {
+            
+            querySnapshot.forEach((doc) => {
+                const record = doc.data();
                 const nickname = record.nickname || "익명";
-                
-                // 단어장 키 생성 (이전 버전 호환)
-                let wordbookKey = record.wordbookKey; // 'basic', 'advanced'
-                if (!wordbookKey) {
-                    // wordbookKey가 없는 이전 데이터는 'basic'으로 간주
-                    wordbookKey = "basic_old"; 
-                }
-                
+                const wordbookKey = record.wordbookKey || "basic_old";
                 const key = `${nickname}_${wordbookKey}`;
 
                 if (!stats[key]) {
                     stats[key] = {
-                        nickname: nickname,
-                        wordbookName: record.wordbookName || oldBasicName,
+                        nickname,
+                        wordbookName: record.wordbookName || "워드마스터 고등 Basic (Old)",
                         playedDays: new Set(),
                         playCount: 0,
                         totalScore: 0,
-                        highScoreDays: new Set() // 35점 이상 Day
+                        highScoreDays: new Set()
                     };
                 }
 
                 const data = stats[key];
                 data.playedDays.add(record.day);
                 data.playCount++;
-                data.totalScore += (record.score || 0); // score 필드가 숫자라고 가정
-
-                // 35점 이상 고득점 Day 카운트
-                if (record.score >= 35) {
-                    data.highScoreDays.add(record.day);
-                }
+                data.totalScore += (record.score || 0);
+                if (record.score >= 35) data.highScoreDays.add(record.day);
             });
 
-            // 객체를 배열로 변환하고 닉네임, 단어장 순으로 정렬
-            const aggregatedList = Object.values(stats).sort((a, b) => {
-                if (a.nickname < b.nickname) return -1;
-                if (a.nickname > b.nickname) return 1;
-                if (a.wordbookName < b.wordbookName) return -1;
-                if (a.wordbookName > b.wordbookName) return 1;
-                return 0;
-            });
-
-            return aggregatedList;
+            return Object.values(stats).sort((a, b) => a.nickname.localeCompare(b.nickname));
         }
 
-        // --- 4. 테이블 렌더링 ---
         function renderTable(data) {
-            tableBody.innerHTML = ''; // 테이블 비우기
-
+            tableBody.innerHTML = '';
             if (data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-500">아직 집계할 데이터가 없습니다.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-500">데이터가 없습니다.</td></tr>`;
                 return;
             }
 
@@ -235,21 +178,24 @@
             });
         }
 
-        // --- 5. 메인 실행 로직 ---
+        // 검색 이벤트 리스너
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = cachedData.filter(item => 
+                item.nickname.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        });
+
         async function main() {
             try {
                 await initializeFirebase();
                 await whenAuthReady();
-                const aggregatedData = await fetchAndAggregateData();
-                renderTable(aggregatedData);
-
-                // 로딩 숨기고 데이터 표시
+                cachedData = await fetchAndAggregateData();
+                renderTable(cachedData);
                 loading.classList.add('hidden');
                 dataContainer.classList.remove('hidden');
-
             } catch (error) {
-                console.error("대시보드 로드 실패:", error);
-                // 로딩 숨기고 오류 표시
                 loading.classList.add('hidden');
                 errorMessage.textContent = error.message;
                 errorBox.classList.remove('hidden');
@@ -257,7 +203,6 @@
         }
 
         main();
-
     </script>
 </body>
 </html>

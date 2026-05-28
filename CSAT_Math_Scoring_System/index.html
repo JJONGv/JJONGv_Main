@@ -887,7 +887,7 @@
             State.save();
         },
 
-        async submitExam() {
+async submitExam() {
             clearInterval(State.timerInterval);
             
             const { totalScore, resultsArray } = this.calculateScoreAndResults();
@@ -896,6 +896,11 @@
             DOM.resultScreen.classList.remove('hidden');
             UI.displayResults(totalScore, resultsArray);
 
+            // 🟢 타이머 설정 값 파싱 ('100분' -> '100', '미설정' -> 'X')
+            const timerValue = State.currentExamData.timerSetting === '미설정' 
+                ? 'X' 
+                : State.currentExamData.timerSetting.replace('분', '');
+
             const submissionData = {
                 gid: State.currentExamData.gid,
                 name: State.currentExamData.name.trim() || '미입력',
@@ -903,7 +908,8 @@
                 subject: State.currentExamData.subject,
                 results: resultsArray,
                 totalScore: totalScore,
-                timestamp: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+                timestamp: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
+                timerValue: timerValue // 🟢 새로 추가된 타이머 값
             };
 
             await API.submitResultsToSheet(submissionData);

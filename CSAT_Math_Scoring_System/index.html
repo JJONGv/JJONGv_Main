@@ -836,8 +836,11 @@
                 State.currentExamData.name = ""; // Will be filled by user
                 State.currentExamData.studentId = ""; // Will be filled by user
                 State.currentExamData.timerSetting = DOM.timerCheckbox.checked ? `${DOM.timerMinutesInput.value}분` : '미설정';
+                // 🟢 시험 시작 시각 기록 (Unix Timestamp 저장)
+                State.currentExamData.startTimestamp = Date.now(); 
                 State.userAnswers = {};
             }
+// ... (이하 기존 코드 동일)
             
             // 2. Sync UI from state
             UI.populateSubjectDropdown(State.currentExamData.availableSubjects);
@@ -896,7 +899,20 @@ async submitExam() {
             DOM.resultScreen.classList.remove('hidden');
             UI.displayResults(totalScore, resultsArray);
 
-            // 🟢 타이머 설정 값 파싱 ('100분' -> '100', '미설정' -> 'X')
+            // 🟢 시간 계산 로직
+            const endTimestamp = Date.now();
+            const startTimestamp = State.currentExamData.startTimestamp || endTimestamp;
+            const durationMs = endTimestamp - startTimestamp;
+            
+            const formatTime = (ts) => new Date(ts).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
+            const examStartTime = formatTime(startTimestamp);
+            const examEndTime = formatTime(endTimestamp);
+            
+            // 소요 시간을 'OO분 OO초' 형식으로 변환
+            const durationMin = Math.floor(durationMs / 60000);
+            const durationSec = Math.floor((durationMs % 60000) / 1000);
+            const examDuration = `${durationMin}분 ${durationSec}초`;
+
             const timerValue = State.currentExamData.timerSetting === '미설정' 
                 ? 'X' 
                 : State.currentExamData.timerSetting.replace('분', '');
@@ -908,8 +924,11 @@ async submitExam() {
                 subject: State.currentExamData.subject,
                 results: resultsArray,
                 totalScore: totalScore,
-                timestamp: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
-                timerValue: timerValue // 🟢 새로 추가된 타이머 값
+                timestamp: examEndTime,       // 기존 AV열 (제출 시각)
+                timerValue: timerValue,       // 기존 AW열 (타이머 값)
+                examStartTime: examStartTime, // 🟢 AX열: 시작 시각
+                examEndTime: examEndTime,     // 🟢 AY열: 종료 시각 (제출 시각과 동일)
+                examDuration: examDuration    // 🟢 AZ열: 소요 시간
             };
 
             await API.submitResultsToSheet(submissionData);

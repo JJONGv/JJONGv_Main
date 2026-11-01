@@ -200,7 +200,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
 
-    <!-- 상단 글로벌 네비게이션 (외부 수험생에게는 응시 센터 / 나의 성적표만 깔끔하게 노출) -->
+    <!-- 상단 글로벌 네비게이션 -->
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
@@ -218,7 +218,7 @@
                 </div>
             </div>
 
-            <!-- 메인 탭 네비게이션 (수험생 전용 메뉴 + 우측 관리자 진입 버튼) -->
+            <!-- 메인 탭 네비게이션 -->
             <div class="flex items-center gap-2">
                 <nav class="flex items-center gap-1 sm:gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
                     <button id="nav-home-btn" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-slate-900 shadow-sm">
@@ -250,11 +250,8 @@
     <!-- 메인 컨텐츠 영역 -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-        <!-- ========================================================= -->
-        <!-- 1. 시작 화면 (수험생 전용 응시 센터) -->
-        <!-- ========================================================= -->
+        <!-- 1. 시작 화면 -->
         <section id="start-screen" class="space-y-6">
-            <!-- 상단 히어로 배너 (내부 기술 용어 제거, 순수 수험생 안내용) -->
             <div class="relative rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-lg overflow-hidden">
                 <div class="relative z-10 max-w-3xl space-y-3">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-medium text-indigo-200">
@@ -287,7 +284,7 @@
                 </div>
             </div>
 
-            <!-- 이어하기 알림 배너 (저장된 시험이 있을 때 표시) -->
+            <!-- 이어하기 알림 배너 -->
             <div id="resume-banner" class="hidden rounded-2xl bg-amber-50 border border-amber-300 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
                 <div class="flex items-start gap-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
@@ -308,7 +305,7 @@
                 </div>
             </div>
 
-            <!-- 메인 설정 그리드: 좌측 수험생 입장 폼 / 우측 공개 회차 선택 및 유의사항 -->
+            <!-- 메인 설정 그리드 -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- 좌측: 수험생 시험 입장 카드 -->
                 <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
@@ -377,7 +374,7 @@
                         </div>
                     </div>
 
-                    <!-- 시험 시작 버튼 (단일화된 깔끔한 문구) -->
+                    <!-- 시험 시작 버튼 -->
                     <div class="pt-2">
                         <button id="start-exam-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-base">
                             <span>모의고사 응시 시작</span>
@@ -386,9 +383,8 @@
                     </div>
                 </div>
 
-                <!-- 우측: 상시 응시 가능 모의고사 목록 & 수험생 유의사항 -->
+                <!-- 우측: 상시 응시 가능 모의고사 목록 -->
                 <div class="lg:col-span-5 space-y-6">
-                    <!-- 상시 공개 모의고사 카드 -->
                     <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-base font-bold text-slate-900">상시 응시 가능 모의고사</h3>
@@ -400,7 +396,6 @@
                         <div id="public-exam-list" class="space-y-2.5"></div>
                     </div>
 
-                    <!-- OMR 답안지 작성 유의사항 -->
                     <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
                         <h3 class="text-base font-bold text-slate-900">OMR 답안 마킹 유의사항</h3>
                         <ul class="space-y-2.5 text-xs sm:text-sm text-slate-600">
@@ -422,15 +417,10 @@
             </div>
         </section>
 
-        <!-- ========================================================= -->
-        <!-- 2. 시험 응시 화면 (실전 OMR 카드 + 라이브 네비게이터) -->
-        <!-- ========================================================= -->
+        <!-- 2. 시험 응시 화면 -->
         <section id="exam-screen" class="hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-                <!-- 좌측/중앙: 실제 평가원 스타일 OMR 카드 본체 -->
                 <div class="lg:col-span-9 omr-sheet">
-                    <!-- 상단 OMR 리더기 타이밍 마크 트랙 -->
                     <div class="omr-timing-track" aria-hidden="true">
                         <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
                         <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
@@ -439,7 +429,6 @@
                     </div>
 
                     <div class="p-4 sm:p-6">
-                        <!-- OMR 헤더 타이틀 -->
                         <div class="flex flex-col sm:flex-row items-center justify-between border-b-2 border-pink-600 pb-4 mb-5 gap-3">
                             <div class="flex items-center gap-2">
                                 <span class="px-2.5 py-1 border-2 border-pink-700 text-pink-800 font-extrabold text-xs rounded">제 2 교시</span>
@@ -456,9 +445,8 @@
                             </div>
                         </div>
 
-                        <!-- 수험생 인적사항 & 필적확인란 & 수험번호 & 선택과목 -->
+                        <!-- 수험생 인적사항 & 필적확인란 -->
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-px bg-pink-400 border-2 border-pink-600 mb-6 text-xs sm:text-sm rounded overflow-hidden">
-                            <!-- 성명 -->
                             <div class="md:col-span-2 bg-white flex flex-col">
                                 <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">성 명</div>
                                 <div class="p-2 flex-grow flex items-center justify-center">
@@ -466,7 +454,6 @@
                                 </div>
                             </div>
 
-                            <!-- 필적확인란 -->
                             <div class="md:col-span-4 bg-white flex flex-col">
                                 <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">필 적 확 인 란</div>
                                 <div class="p-2 flex-grow flex flex-col justify-center gap-1">
@@ -476,7 +463,6 @@
                                 </div>
                             </div>
 
-                            <!-- 수험번호 -->
                             <div class="md:col-span-4 bg-white flex flex-col">
                                 <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">수 험 번 호</div>
                                 <div class="p-2 flex-grow flex items-center">
@@ -493,7 +479,6 @@
                                 </div>
                             </div>
 
-                            <!-- 선택과목 -->
                             <div class="md:col-span-2 bg-white flex flex-col">
                                 <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">선 택 과 목</div>
                                 <div class="p-2 flex-grow flex items-center">
@@ -524,11 +509,9 @@
                             </div>
                         </div>
 
-                        <!-- OMR 본문 답안란 (공통과목 + 선택과목) -->
+                        <!-- OMR 본문 답안란 -->
                         <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 main-grid">
-                            <!-- 공통과목 (1~22번) -->
                             <div class="xl:col-span-8 space-y-5">
-                                <!-- 공통과목 5지선다 (1~15번) -->
                                 <div>
                                     <div class="flex items-center justify-between mb-1.5">
                                         <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 공통과목 객관식 (1~15번 · 5지선다형)</span>
@@ -554,7 +537,6 @@
                                     </div>
                                 </div>
 
-                                <!-- 공통과목 단답형 (16~22번) -->
                                 <div>
                                     <div class="flex items-center justify-between mb-1.5">
                                         <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 공통과목 단답형 (16~22번 · 세 자리 이하 자연수)</span>
@@ -574,9 +556,7 @@
                                 </div>
                             </div>
 
-                            <!-- 선택과목 (23~30번) -->
                             <div class="xl:col-span-4 space-y-5">
-                                <!-- 선택과목 5지선다 (23~28번) -->
                                 <div>
                                     <div class="flex items-center justify-between mb-1.5">
                                         <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 선택과목 객관식 (23~28번)</span>
@@ -596,7 +576,6 @@
                                     </table>
                                 </div>
 
-                                <!-- 선택과목 단답형 (29~30번) -->
                                 <div>
                                     <div class="flex items-center justify-between mb-1.5">
                                         <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 선택과목 단답형 (29~30번)</span>
@@ -607,7 +586,6 @@
                         </div>
                     </div>
 
-                    <!-- 하단 OMR 리더기 타이밍 마크 트랙 -->
                     <div class="omr-timing-track border-t border-b-0" aria-hidden="true">
                         <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
                         <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
@@ -616,7 +594,7 @@
                     </div>
                 </div>
 
-                <!-- 우측: 실시간 마킹 현황판 & 컨트롤러 (Sticky) -->
+                <!-- 우측: 실시간 마킹 현황판 -->
                 <aside class="lg:col-span-3 lg:sticky lg:top-20 space-y-4">
                     <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
                         <div class="flex items-center justify-between">
@@ -624,12 +602,10 @@
                             <span id="progress-fraction" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">0 / 30 완료</span>
                         </div>
 
-                        <!-- 진행률 프로그레스 바 -->
                         <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                             <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-indigo-600 to-rose-600 transition-all duration-300" style="width: 0%;"></div>
                         </div>
 
-                        <!-- 상태 요약 카운트 -->
                         <div class="grid grid-cols-3 gap-2 text-center text-xs">
                             <div class="p-2 rounded-xl bg-slate-900 text-white">
                                 <div class="text-[11px] text-slate-300">마킹 완료</div>
@@ -645,14 +621,12 @@
                             </div>
                         </div>
 
-                        <!-- 필터 버튼 -->
                         <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold">
                             <button type="button" data-nav-filter="all" class="nav-filter-btn flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm">전체(30)</button>
                             <button type="button" data-nav-filter="unanswered" class="nav-filter-btn flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900">미마킹</button>
                             <button type="button" data-nav-filter="flagged" class="nav-filter-btn flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900">★보류</button>
                         </div>
 
-                        <!-- 1~30번 미니 그리드 -->
                         <div id="question-nav-grid" class="grid grid-cols-5 gap-1.5"></div>
 
                         <div class="pt-3 border-t border-slate-100 space-y-2">
@@ -665,18 +639,13 @@
                         </div>
                     </div>
                 </aside>
-
             </div>
         </section>
 
-        <!-- ========================================================= -->
         <!-- 3. 채점 결과 및 성적 분석 리포트 화면 -->
-        <!-- ========================================================= -->
         <section id="result-screen" class="hidden space-y-6"></section>
 
-        <!-- ========================================================= -->
-        <!-- 4. 나의 성적표 (수험생 개인 응시 내역) 화면 -->
-        <!-- ========================================================= -->
+        <!-- 4. 나의 성적표 화면 -->
         <section id="history-screen" class="hidden space-y-6">
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
@@ -698,9 +667,7 @@
             </div>
         </section>
 
-        <!-- ========================================================= -->
-        <!-- 5. 관리자 전용 화면 (등록된 Google 계정 인증 게이트 + 전체 사이트 관리 콘솔) -->
-        <!-- ========================================================= -->
+        <!-- 5. 관리자 전용 화면 -->
         <section id="admin-screen" class="hidden space-y-6">
             <!-- 5-A. 비로그인 상태: Google 계정 인증 게이트 -->
             <div id="admin-login-gate" class="max-w-lg mx-auto bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6 my-6">
@@ -714,7 +681,6 @@
                     </p>
                 </div>
 
-                <!-- Google Identity Services 로그인 버튼 영역 -->
                 <div class="space-y-3 pt-2">
                     <button type="button" id="google-oauth-login-btn" class="w-full py-3 px-4 rounded-xl border border-slate-300 hover:bg-slate-50 bg-white text-slate-800 font-bold text-sm flex items-center justify-center gap-3 shadow-xs transition">
                         <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -728,7 +694,6 @@
                     <div id="gsi-render-container" class="flex justify-center"></div>
                 </div>
 
-                <!-- 이메일 + 관리자 보안키 직접 인증 (GSI Client ID 미설정 환경 및 즉시 프리뷰 지원) -->
                 <div class="relative flex py-1 items-center">
                     <div class="flex-grow border-t border-slate-200"></div>
                     <span class="flex-shrink mx-3 text-xs text-slate-400 font-medium">또는 등록된 관리자 이메일 인증</span>
@@ -741,7 +706,7 @@
                         <input type="email" id="admin-email-input" value="admin@gmail.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="admin@gmail.com">
                     </div>
                     <div>
-                        <label for="admin-passcode-input" class="block text-xs font-bold text-slate-600 mb-1">관리자 보안 코드 (초기값: <code class="text-indigo-600">admin1234</code>)</label>
+                        <label for="admin-passcode-input" class="block text-xs font-bold text-slate-600 mb-1">관리자 보안 코드</label>
                         <input type="password" id="admin-passcode-input" value="admin1234" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="보안 코드 입력">
                     </div>
                     <button type="button" id="admin-direct-login-btn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl text-sm transition shadow-sm">
@@ -750,9 +715,8 @@
                 </div>
             </div>
 
-            <!-- 5-B. 로그인 완료 상태: 전체 사이트 관리자 대시보드 -->
+            <!-- 5-B. 로그인 완료 상태: 관리자 대시보드 -->
             <div id="admin-dashboard-panel" class="hidden space-y-6">
-                <!-- 상단 관리자 상태 바 -->
                 <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md">
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
@@ -784,7 +748,6 @@
 
                 <!-- 탭 1: 시험 회차 & 정답지 관리 -->
                 <div id="admin-tab-exams" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <!-- 등록된 시험 목록 -->
                     <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="font-bold text-slate-900 text-base">등록된 모의고사 목록</h3>
@@ -793,11 +756,10 @@
                         <div id="admin-exam-catalog-list" class="space-y-3"></div>
                     </div>
 
-                    <!-- 신규 모의고사 등록 / 정답 입력 폼 -->
                     <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                         <div class="border-b border-slate-100 pb-3">
                             <h3 class="font-bold text-slate-900 text-base">신규 모의고사 등록 및 정답 설정</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">새로운 시험 코드와 문항별 정답을 등록하면 수험생이 해당 코드로 즉시 응시할 수 있습니다.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">새로운 시험 코드와 문항별 정답을 등록하면 sample 시트를 복제하여 즉시 배포합니다.</p>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -811,7 +773,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1">시트 GID (선택)</label>
-                                <input type="text" id="adm-new-gid" placeholder="예) 0" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono">
+                                <input type="text" id="adm-new-gid" placeholder="자동 생성" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono">
                             </div>
                         </div>
 
@@ -854,16 +816,22 @@
                     </div>
                 </div>
 
-                <!-- 탭 2: 전체 응시자 채점 결과 관리 -->
+                <!-- 탭 2: 전체 응시자 채점 결과 관리 (스프레드시트 실시간 동기화) -->
                 <div id="admin-tab-submissions" class="hidden bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                         <div>
-                            <h3 class="font-bold text-slate-900 text-base">응시자 제출 답안 및 성적 로그</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">제출된 응시 기록을 확인하고 CSV(엑셀 호환)로 다운로드합니다.</p>
+                            <h3 class="font-bold text-slate-900 text-base">스프레드시트 실시간 응시자 성적 로그</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">구글 스프레드시트에 제출된 실시간 응시 기록을 직접 불러와 조회 및 CSV로 다운로드합니다.</p>
                         </div>
-                        <button type="button" id="adm-export-submissions-btn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition self-start sm:self-center">
-                            전체 응시 데이터 CSV 다운로드
-                        </button>
+                        <div class="flex items-center gap-2 self-start sm:self-center">
+                            <button type="button" id="adm-refresh-submissions-btn" class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition flex items-center gap-1.5 border border-indigo-200">
+                                <span>🔄</span>
+                                <span>실시간 새로고침</span>
+                            </button>
+                            <button type="button" id="adm-export-submissions-btn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                                전체 응시 데이터 CSV 다운로드
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs sm:text-sm text-left border-collapse">
@@ -894,7 +862,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">채점/데이터 수집 서버 URL (Apps Script Web App 또는 Supabase Edge URL)</label>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">채점/데이터 수집 서버 URL (Apps Script Web App)</label>
                                 <input type="url" id="adm-setting-script-url" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono">
                             </div>
                             <div>
@@ -904,8 +872,8 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">채점 모드 선택</label>
                                 <select id="adm-setting-grading-mode" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-semibold bg-white">
-                                    <option value="hybrid">서버 채점 우선 + 로컬 폴백 (권장: Cloudflare Pages + Apps Script 구조)</option>
-                                    <option value="client">클라이언트 즉시 채점 + 백그라운드 결과 전송 (기존 방식)</option>
+                                    <option value="hybrid">서버 채점 우선 + 로컬 폴백 (권장)</option>
+                                    <option value="client">클라이언트 즉시 채점 + 백그라운드 결과 전송</option>
                                 </select>
                             </div>
                         </div>
@@ -916,7 +884,7 @@
                                 <input type="text" id="adm-setting-allowed-emails" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono" placeholder="admin@gmail.com, teacher@school.kr">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Google OAuth Client ID (실제 도메인 배포 시 GIS 원클릭 로그인용)</label>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Google OAuth Client ID</label>
                                 <input type="text" id="adm-setting-google-client-id" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono" placeholder="1234567890-abc.apps.googleusercontent.com">
                             </div>
                             <div>
@@ -989,25 +957,21 @@
     };
 
     const Config = {
-    SHEET_ID: '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw',
-    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwi3N8rE45sG_hXhEcoGg7UfbiQ3VK5p7UfN-TUM6BFNl4Y1G4-XQjMoHWOC6BhyAXe8A/exec",
-    // 1. 발급받은 Google OAuth Client ID를 여기에 영구 등록
-    GOOGLE_CLIENT_ID: "334251398934-u8eaoe2srkl1vg30g1bvbr5f6gaempch.apps.googleusercontent.com",
-    // 2. 관리자 권한을 부여할 구글 계정 이메일 목록
-    ADMIN_EMAILS: ['wowhd93@gmail.com'],
-    // 3. 비상용 마스터 비밀번호
-    ADMIN_PASSCODE: '5k6m1o20@@',
-    
-    POINTS: {
-        1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4,
-        11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4,
-        21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4
-    },
-    STORAGE_KEY: 'mathExamState',
-    HISTORY_KEY: 'mathExamHistoryV2',
-    ADMIN_CONFIG_KEY: 'mathExamAdminConfigV1',
-    CUSTOM_EXAMS_KEY: 'mathExamCustomCatalogV1'
-};
+        SHEET_ID: '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw',
+        APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwi3N8rE45sG_hXhEcoGg7UfbiQ3VK5p7UfN-TUM6BFNl4Y1G4-XQjMoHWOC6BhyAXe8A/exec",
+        GOOGLE_CLIENT_ID: "334251398934-u8eaoe2srkl1vg30g1bvbr5f6gaempch.apps.googleusercontent.com",
+        ADMIN_EMAILS: ['wowhd93@gmail.com'],
+        ADMIN_PASSCODE: '5k6m1o20@@',
+        POINTS: {
+            1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4,
+            11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4,
+            21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4
+        },
+        STORAGE_KEY: 'mathExamState',
+        HISTORY_KEY: 'mathExamHistoryV2',
+        ADMIN_CONFIG_KEY: 'mathExamAdminConfigV1',
+        CUSTOM_EXAMS_KEY: 'mathExamCustomCatalogV1'
+    };
 
     // ===================================================================================
     // 2. DOM 요소 참조 (DOM Elements)
@@ -1080,6 +1044,7 @@
         adminCurrentUserBadge: document.getElementById('admin-current-user-badge'),
         adminExamCatalogList: document.getElementById('admin-exam-catalog-list'),
         adminSubmissionsTbody: document.getElementById('admin-submissions-tbody'),
+        admRefreshSubmissionsBtn: document.getElementById('adm-refresh-submissions-btn'),
         admExportSubmissionsBtn: document.getElementById('adm-export-submissions-btn'),
         admSaveExamBtn: document.getElementById('adm-save-exam-btn'),
         admSaveSettingsBtn: document.getElementById('adm-save-settings-btn'),
@@ -1105,13 +1070,14 @@
         navFilter: 'all',
         chartInstances: [],
         adminUser: null,
+        realtimeSubmissions: [],
         adminConfig: {
             scriptUrl: Config.APPS_SCRIPT_URL,
             sheetId: Config.SHEET_ID,
             gradingMode: 'hybrid',
-            allowedEmails: Config.ADMIN_EMAILS,           // Config 기본값 연결
-            googleClientId: Config.GOOGLE_CLIENT_ID,     // Config 기본값 연결
-            passcode: Config.ADMIN_PASSCODE              // Config 기본값 연결
+            allowedEmails: Config.ADMIN_EMAILS,
+            googleClientId: Config.GOOGLE_CLIENT_ID,
+            passcode: Config.ADMIN_PASSCODE
         },
 
         loadAdminConfig() {
@@ -1247,7 +1213,7 @@
     };
 
     // ===================================================================================
-    // 5. 데이터 조회 및 제출 API (수험생에게는 백엔드 세부사항 숨김)
+    // 5. 데이터 조회 및 제출 API
     // ===================================================================================
     const API = {
         async fetchExamData(year, code) {
@@ -1261,17 +1227,14 @@
             const catalog = State.getExamCatalog();
             const catalogKey = `${cleanYear}-${cleanCode}`;
 
-            // 1. 내장 또는 관리자가 등록한 시험 카탈로그에 있는지 먼저 확인
             if (catalog[catalogKey]) {
                 return JSON.parse(JSON.stringify(catalog[catalogKey]));
             }
-            // 코드만 일치하는 항목 검색
             const matchedByCode = Object.values(catalog).find(ex => String(ex.code).toUpperCase() === cleanCode);
             if (matchedByCode) {
                 return JSON.parse(JSON.stringify(matchedByCode));
             }
 
-            // 2. 원격 마스터 시트 조회
             try {
                 UI.showToast('시험지 정보를 불러오는 중입니다...', 'info');
                 const sheetId = State.adminConfig.sheetId || Config.SHEET_ID;
@@ -1337,13 +1300,10 @@
             try {
                 await fetch(endpoint, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(submissionData),
-                    redirect: 'follow'
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(submissionData)
                 });
-                UI.showToast('답안이 정상적으로 제출 및 채점되었습니다.', 'success');
+                UI.showToast('답안이 정상적으로 스프레드시트에 제출 및 저장되었습니다.', 'success');
             } catch (error) {
                 UI.showToast('채점 리포트 생성이 완료되었습니다.', 'success');
             }
@@ -1351,7 +1311,7 @@
     };
 
     // ===================================================================================
-    // 6. UI 및 화면 렌더링 (UI & Rendering)
+    // 6. UI 및 화면 렌더링
     // ===================================================================================
     const UI = {
         init() {
@@ -1499,24 +1459,8 @@
                 });
             });
 
-            // 제출 기록 테이블 렌더링
-            const history = State.getHistory();
-            if (!history.length) {
-                DOM.adminSubmissionsTbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">아직 제출된 응시 데이터가 없습니다.</td></tr>`;
-            } else {
-                DOM.adminSubmissionsTbody.innerHTML = history.map(item => `
-                    <tr class="hover:bg-slate-50">
-                        <td class="py-2.5 px-3 text-slate-500">${item.timestamp}</td>
-                        <td class="py-2.5 px-3 font-semibold text-slate-900">${item.examName}</td>
-                        <td class="py-2.5 px-3 font-bold">${item.name}</td>
-                        <td class="py-2.5 px-3 font-mono text-xs">${item.studentId}</td>
-                        <td class="py-2.5 px-3">${item.subject}</td>
-                        <td class="py-2.5 px-3 font-extrabold text-indigo-600">${item.totalScore}점</td>
-                        <td class="py-2.5 px-3 font-bold">${item.grade}등급</td>
-                        <td class="py-2.5 px-3 text-slate-500">${item.duration}</td>
-                    </tr>
-                `).join('');
-            }
+            // 관리자 첫 진입 시 실시간 응시 결과 로드
+            App.fetchRealtimeSubmissions();
         },
 
         buildExamSheetTemplate() {
@@ -2137,6 +2081,66 @@
             UI.showToast(`관리자(${cleanEmail}) 계정으로 로그인되었습니다.`, 'success');
         },
 
+        // 스프레드시트로부터 전체 응시자 실시간 데이터 조회
+        async fetchRealtimeSubmissions() {
+            const tbody = DOM.adminSubmissionsTbody;
+            tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500 font-semibold">스프레드시트에서 실시간 응시 데이터를 동기화하는 중입니다...</td></tr>`;
+
+            const scriptUrl = State.adminConfig.scriptUrl || Config.APPS_SCRIPT_URL;
+            if (!scriptUrl) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 font-semibold">Apps Script Web App URL이 설정되지 않았습니다.</td></tr>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'getSubmissions' })
+                });
+                const res = await response.json();
+
+                if (res.status === 'success' && res.submissions) {
+                    State.realtimeSubmissions = res.submissions;
+                    if (res.submissions.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400 font-semibold">스프레드시트에 아직 제출된 응시 기록이 없습니다.</td></tr>`;
+                        return;
+                    }
+
+                    tbody.innerHTML = res.submissions.map(item => {
+                        const score = item.totalScore !== undefined ? Number(item.totalScore) : 0;
+                        let grade = 9;
+                        if (score >= 88) grade = 1;
+                        else if (score >= 80) grade = 2;
+                        else if (score >= 70) grade = 3;
+                        else if (score >= 58) grade = 4;
+                        else if (score >= 44) grade = 5;
+                        else if (score >= 30) grade = 6;
+                        else if (score >= 20) grade = 7;
+                        else if (score >= 12) grade = 8;
+
+                        return `
+                            <tr class="hover:bg-slate-50">
+                                <td class="py-2.5 px-3 text-slate-500">${item.timestamp || '-'}</td>
+                                <td class="py-2.5 px-3 font-semibold text-slate-900">${item.examName || '-'}</td>
+                                <td class="py-2.5 px-3 font-bold text-slate-900">${item.name || '미입력'}</td>
+                                <td class="py-2.5 px-3 font-mono text-xs text-slate-600">${item.studentId || '-'}</td>
+                                <td class="py-2.5 px-3 text-slate-700">${item.subject || '-'}</td>
+                                <td class="py-2.5 px-3 font-extrabold text-indigo-600">${score}점</td>
+                                <td class="py-2.5 px-3 font-bold text-slate-800">${grade}등급</td>
+                                <td class="py-2.5 px-3 text-slate-500">${item.duration || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    UI.showToast(`스프레드시트에서 ${res.submissions.length}건의 응시 데이터를 동기화했습니다.`, 'info');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 font-semibold">동기화 실패: ${res.message || '응답 오류'}</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 font-semibold">동기화 오류: ${err.toString()}</td></tr>`;
+            }
+        },
+
         addEventListeners() {
             // 상단 탭 전환
             DOM.navHomeBtn.addEventListener('click', () => {
@@ -2151,40 +2155,36 @@
                 this.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
             });
 
-            // 기존 googleOauthLoginBtn 클릭 리스너를 아래와 같이 교체
-DOM.googleOauthLoginBtn.addEventListener('click', () => {
-    const clientId = State.adminConfig.googleClientId || Config.GOOGLE_CLIENT_ID;
+            DOM.googleOauthLoginBtn.addEventListener('click', () => {
+                const clientId = State.adminConfig.googleClientId || Config.GOOGLE_CLIENT_ID;
 
-    // Client ID가 있고 구글 라이브러리가 로드된 경우
-    if (clientId && window.google?.accounts?.oauth2) {
-        const client = window.google.accounts.oauth2.initTokenClient({
-            client_id: clientId,
-            scope: 'email profile openid',
-            callback: async (tokenResponse) => {
-                if (tokenResponse && tokenResponse.access_token) {
-                    try {
-                        // 구글 사용자 정보(이메일) 조회
-                        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                            headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                        });
-                        const userInfo = await res.json();
-                        if (userInfo.email) {
-                            App.verifyAdminEmailAndLogin(userInfo.email, null);
+                if (clientId && window.google?.accounts?.oauth2) {
+                    const client = window.google.accounts.oauth2.initTokenClient({
+                        client_id: clientId,
+                        scope: 'email profile openid',
+                        callback: async (tokenResponse) => {
+                            if (tokenResponse && tokenResponse.access_token) {
+                                try {
+                                    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                                        headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                                    });
+                                    const userInfo = await res.json();
+                                    if (userInfo.email) {
+                                        App.verifyAdminEmailAndLogin(userInfo.email, null);
+                                    }
+                                } catch (err) {
+                                    UI.showToast('구글 계정 정보를 가져오지 못했습니다.', 'warning');
+                                }
+                            }
                         }
-                    } catch (err) {
-                        UI.showToast('구글 계정 정보를 가져오지 못했습니다.', 'warning');
-                    }
-                }
-            }
-        });
+                    });
 
-        // 클릭 시 팝업창 즉시 호출 (FedCM 에러 없음)
-        client.requestAccessToken({ prompt: 'select_account' });
-    } else {
-        // Client ID가 미설정된 경우 하단 직접 입력 로그인으로 폴백
-        App.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
-    }
-});
+                    client.requestAccessToken({ prompt: 'select_account' });
+                } else {
+                    App.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
+                }
+            });
+
             DOM.adminLogoutBtn.addEventListener('click', () => {
                 State.adminUser = null;
                 UI.renderAdminView();
@@ -2203,103 +2203,106 @@ DOM.googleOauthLoginBtn.addEventListener('click', () => {
                     document.getElementById('admin-tab-exams').classList.toggle('hidden', tab !== 'exams');
                     document.getElementById('admin-tab-submissions').classList.toggle('hidden', tab !== 'submissions');
                     document.getElementById('admin-tab-settings').classList.toggle('hidden', tab !== 'settings');
+
+                    // 2번 탭 클릭 시 실시간 동기화
+                    if (tab === 'submissions') {
+                        App.fetchRealtimeSubmissions();
+                    }
                 });
             });
 
-// 관리자: 신규 모의고사 저장 (스프레드시트 sample 시트 자동 복제 & 목록 시트 배포 연동)
-DOM.admSaveExamBtn.addEventListener('click', async () => {
-    const year = document.getElementById('adm-new-year').value.trim();
-    const code = document.getElementById('adm-new-code').value.trim().toUpperCase();
-    const title = document.getElementById('adm-new-title').value.trim();
-    const phrase = document.getElementById('adm-new-phrase').value.trim() || '넓은 벌 동쪽 끝으로 옛이야기 지줄대는';
+            // 관리자: 신규 모의고사 저장 (스프레드시트 sample 시트 자동 복제 & 목록 시트 배포 연동)
+            DOM.admSaveExamBtn.addEventListener('click', async () => {
+                const year = document.getElementById('adm-new-year').value.trim();
+                const code = document.getElementById('adm-new-code').value.trim().toUpperCase();
+                const title = document.getElementById('adm-new-title').value.trim();
+                const phrase = document.getElementById('adm-new-phrase').value.trim() || '넓은 벌 동쪽 끝으로 옛이야기 지줄대는';
 
-    if (!year || !code || !title) {
-        UI.showModal('학년도, 시험 코드, 시험지 제목을 모두 입력해 주세요.', false);
-        return;
-    }
-
-    const parseAnsList = (raw, startQ, expectedLen) => {
-        const arr = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-        if (arr.length !== expectedLen) return null;
-        const map = {};
-        arr.forEach((val, idx) => { map[startQ + idx] = val; });
-        return map;
-    };
-
-    const commonMap = parseAnsList(document.getElementById('adm-new-common-ans').value, 1, 22);
-    const calcMap = parseAnsList(document.getElementById('adm-new-calc-ans').value, 23, 8);
-    const probMap = parseAnsList(document.getElementById('adm-new-prob-ans').value, 23, 8);
-    const geomMap = parseAnsList(document.getElementById('adm-new-geom-ans').value, 23, 8);
-
-    if (!commonMap || !calcMap || !probMap || !geomMap) {
-        UI.showModal('정답 개수가 맞지 않습니다.\n공통과목은 22개, 각 선택과목은 8개의 숫자를 쉼표(,)로 구분해 입력해 주세요.', false);
-        return;
-    }
-
-    const scriptUrl = State.adminConfig.scriptUrl || Config.APPS_SCRIPT_URL;
-    if (!scriptUrl) {
-        UI.showModal('Apps Script Web App URL이 설정되지 않았습니다.\n3번 설정 탭에서 URL을 먼저 확인해 주세요.', false);
-        return;
-    }
-
-    // 버튼 비활성화 및 안내 토스트
-    DOM.admSaveExamBtn.disabled = true;
-    DOM.admSaveExamBtn.textContent = '스프레드시트 시트 생성 중...';
-    UI.showToast('스프레드시트의 sample 시트를 복제하고 목록에 등록하는 중입니다...', 'info');
-
-    try {
-        const response = await fetch(scriptUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-                action: 'createExam',
-                year: year,
-                code: code,
-                examName: title,
-                handwritingPhrase: phrase,
-                commonAnswers: commonMap,
-                electiveAnswers: {
-                    '미적분': calcMap,
-                    '확률과 통계': probMap,
-                    '기하': geomMap
+                if (!year || !code || !title) {
+                    UI.showModal('학년도, 시험 코드, 시험지 제목을 모두 입력해 주세요.', false);
+                    return;
                 }
-            })
-        });
 
-        const res = await response.json();
+                const parseAnsList = (raw, startQ, expectedLen) => {
+                    const arr = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+                    if (arr.length !== expectedLen) return null;
+                    const map = {};
+                    arr.forEach((val, idx) => { map[startQ + idx] = val; });
+                    return map;
+                };
 
-        if (res.status === 'success') {
-            // 스프레드시트 배포 완료 후 브라우저 캐시에도 동기화 등록
-            const key = `${year}-${code}`;
-            State.saveCustomExam(key, {
-                examName: title,
-                handwritingPhrase: phrase,
-                year: year,
-                code: code,
-                gid: res.gid,
-                isBuiltIn: false,
-                availableSubjects: ['미적분', '확률과 통계', '기하'],
-                commonAnswers: commonMap,
-                electiveAnswers: {
-                    '미적분': calcMap,
-                    '확률과 통계': probMap,
-                    '기하': geomMap
+                const commonMap = parseAnsList(document.getElementById('adm-new-common-ans').value, 1, 22);
+                const calcMap = parseAnsList(document.getElementById('adm-new-calc-ans').value, 23, 8);
+                const probMap = parseAnsList(document.getElementById('adm-new-prob-ans').value, 23, 8);
+                const geomMap = parseAnsList(document.getElementById('adm-new-geom-ans').value, 23, 8);
+
+                if (!commonMap || !calcMap || !probMap || !geomMap) {
+                    UI.showModal('정답 개수가 맞지 않습니다.\n공통과목은 22개, 각 선택과목은 8개의 숫자를 쉼표(,)로 구분해 입력해 주세요.', false);
+                    return;
+                }
+
+                const scriptUrl = State.adminConfig.scriptUrl || Config.APPS_SCRIPT_URL;
+                if (!scriptUrl) {
+                    UI.showModal('Apps Script Web App URL이 설정되지 않았습니다.\n3번 설정 탭에서 URL을 먼저 확인해 주세요.', false);
+                    return;
+                }
+
+                DOM.admSaveExamBtn.disabled = true;
+                DOM.admSaveExamBtn.textContent = '스프레드시트 시트 생성 중...';
+                UI.showToast('스프레드시트의 sample 시트를 복제하고 목록에 등록하는 중입니다...', 'info');
+
+                try {
+                    const response = await fetch(scriptUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'createExam',
+                            year: year,
+                            code: code,
+                            examName: title,
+                            handwritingPhrase: phrase,
+                            commonAnswers: commonMap,
+                            electiveAnswers: {
+                                '미적분': calcMap,
+                                '확률과 통계': probMap,
+                                '기하': geomMap
+                            }
+                        })
+                    });
+
+                    const res = await response.json();
+
+                    if (res.status === 'success') {
+                        const key = `${year}-${code}`;
+                        State.saveCustomExam(key, {
+                            examName: title,
+                            handwritingPhrase: phrase,
+                            year: year,
+                            code: code,
+                            gid: res.gid,
+                            isBuiltIn: false,
+                            availableSubjects: ['미적분', '확률과 통계', '기하'],
+                            commonAnswers: commonMap,
+                            electiveAnswers: {
+                                '미적분': calcMap,
+                                '확률과 통계': probMap,
+                                '기하': geomMap
+                            }
+                        });
+
+                        UI.renderAdminView();
+                        UI.renderPublicExamCatalog();
+                        UI.showToast(res.message, 'success');
+                    } else {
+                        UI.showModal('모의고사 생성 실패: ' + res.message, false);
+                    }
+                } catch (err) {
+                    UI.showModal('서버 통신 중 오류가 발생했습니다: ' + err.toString(), false);
+                } finally {
+                    DOM.admSaveExamBtn.disabled = false;
+                    DOM.admSaveExamBtn.textContent = '시험 회차 등록 및 배포';
                 }
             });
-
-            UI.renderAdminView();
-            UI.renderPublicExamCatalog();
-            UI.showToast(res.message, 'success');
-        } else {
-            UI.showModal('모의고사 생성 실패: ' + res.message, false);
-        }
-    } catch (err) {
-        UI.showModal('서버 통신 중 오류가 발생했습니다: ' + err.toString(), false);
-    } finally {
-        DOM.admSaveExamBtn.disabled = false;
-        DOM.admSaveExamBtn.textContent = '시험 회차 등록 및 배포';
-    }
-});
 
             // 관리자: 환경 설정 저장
             DOM.admSaveSettingsBtn.addEventListener('click', () => {
@@ -2311,6 +2314,11 @@ DOM.admSaveExamBtn.addEventListener('click', async () => {
                 State.adminConfig.passcode = DOM.admSettingPasscode.value.trim() || 'admin1234';
                 State.saveAdminConfig();
                 UI.showToast('관리자 환경 설정이 저장되었습니다.', 'success');
+            });
+
+            // 실시간 응시 결과 새로고침 버튼
+            DOM.admRefreshSubmissionsBtn.addEventListener('click', () => {
+                App.fetchRealtimeSubmissions();
             });
 
             // 이어하기 / 기록 삭제 버튼
@@ -2530,8 +2538,8 @@ DOM.admSaveExamBtn.addEventListener('click', async () => {
                 }
             });
 
-            // CSV 다운로드 함수 공통화
-            const downloadHistoryCsv = () => {
+            // CSV 다운로드 함수 (나의 성적표용)
+            DOM.exportHistoryCsvBtn.addEventListener('click', () => {
                 const list = State.getHistory();
                 if (!list.length) {
                     UI.showToast('저장된 성적 내역이 없습니다.', 'warning');
@@ -2544,13 +2552,47 @@ DOM.admSaveExamBtn.addEventListener('click', async () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `math_exam_records_${Date.now()}.csv`;
+                a.download = `my_math_exam_records_${Date.now()}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
-            };
+            });
 
-            DOM.exportHistoryCsvBtn.addEventListener('click', downloadHistoryCsv);
-            DOM.admExportSubmissionsBtn.addEventListener('click', downloadHistoryCsv);
+            // 관리자 전용: 스프레드시트 실시간 전체 응시자 데이터 CSV 다운로드
+            DOM.admExportSubmissionsBtn.addEventListener('click', () => {
+                const list = State.realtimeSubmissions && State.realtimeSubmissions.length > 0
+                    ? State.realtimeSubmissions
+                    : State.getHistory();
+
+                if (!list.length) {
+                    UI.showToast('다운로드할 응시 데이터가 없습니다. 먼저 실시간 새로고침을 진행해 주세요.', 'warning');
+                    return;
+                }
+
+                const header = ['제출시각,시험명,성명,수험번호,선택과목,원점수,추정등급,소요시간'];
+                const rows = list.map(i => {
+                    const score = i.totalScore !== undefined ? Number(i.totalScore) : 0;
+                    let grade = 9;
+                    if (score >= 88) grade = 1;
+                    else if (score >= 80) grade = 2;
+                    else if (score >= 70) grade = 3;
+                    else if (score >= 58) grade = 4;
+                    else if (score >= 44) grade = 5;
+                    else if (score >= 30) grade = 6;
+                    else if (score >= 20) grade = 7;
+                    else if (score >= 12) grade = 8;
+
+                    return `"${i.timestamp || ''}","${i.examName || ''}","${i.name || ''}","${i.studentId || ''}","${i.subject || ''}",${score},${grade},"${i.duration || ''}"`;
+                });
+
+                const csv = '\uFEFF' + header.concat(rows).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `csat_math_realtime_submissions_${Date.now()}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
 
             DOM.clearHistoryBtn.addEventListener('click', () => {
                 UI.showModal('보관된 성적표 내역을 모두 삭제하시겠습니까?', true, () => {

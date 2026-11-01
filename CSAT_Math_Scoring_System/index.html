@@ -989,18 +989,25 @@
     };
 
     const Config = {
-        SHEET_ID: '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw',
-        APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzTE_BYODSDBi7kTwtfqIq0wr0Vrg-_7UbxafnEe66jhFtGy9_8J6a0KcsiL7x0qEbmTw/exec",
-        POINTS: {
-            1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4,
-            11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4,
-            21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4
-        },
-        STORAGE_KEY: 'mathExamState',
-        HISTORY_KEY: 'mathExamHistoryV2',
-        ADMIN_CONFIG_KEY: 'mathExamAdminConfigV1',
-        CUSTOM_EXAMS_KEY: 'mathExamCustomCatalogV1'
-    };
+    SHEET_ID: '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw',
+    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwi3N8rE45sG_hXhEcoGg7UfbiQ3VK5p7UfN-TUM6BFNl4Y1G4-XQjMoHWOC6BhyAXe8A/exec",
+    // 1. 발급받은 Google OAuth Client ID를 여기에 영구 등록
+    GOOGLE_CLIENT_ID: "334251398934-u8eaoe2srkl1vg30g1bvbr5f6gaempch.apps.googleusercontent.com",
+    // 2. 관리자 권한을 부여할 구글 계정 이메일 목록
+    ADMIN_EMAILS: ['wowhd93@gmail.com'],
+    // 3. 비상용 마스터 비밀번호
+    ADMIN_PASSCODE: '5k6m1o20@@',
+    
+    POINTS: {
+        1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4,
+        11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4,
+        21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4
+    },
+    STORAGE_KEY: 'mathExamState',
+    HISTORY_KEY: 'mathExamHistoryV2',
+    ADMIN_CONFIG_KEY: 'mathExamAdminConfigV1',
+    CUSTOM_EXAMS_KEY: 'mathExamCustomCatalogV1'
+};
 
     // ===================================================================================
     // 2. DOM 요소 참조 (DOM Elements)
@@ -1102,9 +1109,9 @@
             scriptUrl: Config.APPS_SCRIPT_URL,
             sheetId: Config.SHEET_ID,
             gradingMode: 'hybrid',
-            allowedEmails: ['admin@gmail.com'],
-            googleClientId: '',
-            passcode: 'admin1234'
+            allowedEmails: Config.ADMIN_EMAILS,           // Config 기본값 연결
+            googleClientId: Config.GOOGLE_CLIENT_ID,     // Config 기본값 연결
+            passcode: Config.ADMIN_PASSCODE              // Config 기본값 연결
         },
 
         loadAdminConfig() {

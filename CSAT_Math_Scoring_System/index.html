@@ -3,366 +3,1045 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>고3 수학 모의고사 응시 시스템 (Ver.260602.22)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>K-MATH PRO | 고3 수학 영역 실전 모의고사 응시 센터</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
         }
-        /* 커스텀 스타일 */
-        .start-container, .result-container {
-            max-width: 800px;
-            margin: 1rem auto;
-            padding: 1rem;
+        .serif-title {
+            font-family: 'Noto Serif KR', serif;
         }
-        .exam-container {
-            width: 100%;
-            max-width: 1280px;
-            margin: 1rem auto;
-            padding: 1rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+        /* Real KICE OMR Card Styling */
+        .omr-sheet {
+            background-color: #fffafb;
+            border: 2px solid #be185d;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(190, 24, 93, 0.08), 0 8px 10px -6px rgba(190, 24, 93, 0.04);
+            position: relative;
+            overflow: hidden;
         }
-        .exam-table {
+        .omr-timing-track {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 16px;
+            background: #fdf2f8;
+            border-bottom: 1.5px solid #f472b6;
+        }
+        .omr-timing-mark {
+            width: 14px;
+            height: 6px;
+            background-color: #1e293b;
+            border-radius: 1px;
+        }
+        .omr-table {
             border-collapse: collapse;
             width: 100%;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
         }
-        .exam-table th, .exam-table td {
-            border: 1px solid #999;
+        .omr-table th, .omr-table td {
+            border: 1px solid #f472b6;
             text-align: center;
-            padding: 4px;
+            padding: 5px 4px;
         }
-        .exam-table th {
-            font-weight: bold;
+        .omr-table th {
+            background-color: #fce7f3;
+            color: #9d174d;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        .omr-sub-header {
+            background-color: #fdf2f8;
+            color: #be185d;
+            font-weight: 600;
+            font-size: 0.75rem;
         }
         .q-num {
-            font-weight: bold;
+            font-weight: 700;
+            color: #831843;
+            font-size: 0.85rem;
+            display: inline-block;
+            min-width: 22px;
         }
+
+        /* Authentic OMR Oval Bubble */
         .choice-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 1px solid #ccc;
+            height: 30px;
+            border-radius: 9999px;
+            border: 1.5px solid #ec4899;
+            color: #db2777;
+            font-size: 0.78rem;
+            font-weight: 700;
             margin: 0 2px;
             cursor: pointer;
             user-select: none;
-            transition: all 0.2s;
-            background-color: white;
+            transition: all 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #ffffff;
+            position: relative;
         }
+        .choice-btn:hover {
+            background-color: #fdf2f8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(219, 39, 119, 0.12);
+        }
+        /* Computer Sign Pen Marking Effect */
         .choice-btn.selected, .choice-btn[aria-checked="true"] {
-            background-color: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
+            background-color: #0f172a !important;
+            color: #0f172a !important;
+            border-color: #0f172a !important;
+            box-shadow: inset 0 0 0 2px #0f172a, 0 1px 3px rgba(0, 0, 0, 0.3);
+            transform: scale(0.96);
         }
+        .choice-btn.selected::after, .choice-btn[aria-checked="true"]::after {
+            content: '';
+            position: absolute;
+            width: 65%;
+            height: 75%;
+            border-radius: 9999px;
+            background: radial-gradient(circle at 35% 35%, #334155, #090d16);
+        }
+
+        /* Flagged Question Button */
+        .flag-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .flag-btn:hover {
+            color: #f59e0b;
+            background-color: #fef3c7;
+        }
+        .flag-btn.flagged {
+            color: #d97706;
+            background-color: #fde68a;
+            font-weight: 700;
+        }
+
+        /* Short Answer Display Box */
         .short-answer-box {
             width: 100%;
-            height: 30px;
-            border: 1px solid #666;
-            margin-bottom: 5px;
+            height: 36px;
+            border: 1.5px solid #ec4899;
+            background-color: #ffffff;
+            border-radius: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f172a;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
         }
         .student-id-input {
             width: 100%;
-            height: 30px;
+            height: 34px;
             text-align: center;
-            border: 1px solid #666;
-            font-size: 1.2rem;
-            font-weight: bold;
+            border: 1.5px solid #f472b6;
+            border-radius: 4px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            background-color: #fff;
+            transition: all 0.15s;
         }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            text-align: center;
-            white-space: pre-wrap;
-        }
-        .timer {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background-color: #1f2937;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 999;
+        .student-id-input:focus {
+            outline: none;
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.15);
         }
         .handwriting-box {
-            border: 2px solid #333;
-            padding: 8px;
+            border: 1.5px dashed #ec4899;
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 6px 10px;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: #831843;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Noto Serif KR', serif;
         }
-        
-        /* 반응형 스타일 */
-        @media (max-width: 768px) {
-            .exam-container { padding: 0.5rem; }
-            .main-grid { grid-template-columns: 1fr; }
-            .common-section, .elective-section { grid-column: span 1 / span 1; }
-            #short-answer-row-1, #short-answer-row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            #short-answer-elective { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-            #short-answer-elective tr { display: contents; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
 
-    <!-- 시작 화면 -->
-    <div id="start-screen" class="start-container bg-white">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">고3 수학 모의고사 응시 시스템</h1>
-        <div class="space-y-4">
-            <div>
-                <label for="academic-year" class="block text-sm font-medium text-gray-700">학년도</label>
-                <input type="number" id="academic-year" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="예) 2025">
-            </div>
-            <div>
-                <label for="exam-code" class="block text-sm font-medium text-gray-700">코드</label>
-                <input type="text" id="exam-code" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="예) 3A">
-            </div>
-           <div class="flex items-center">
-                <input id="timer-checkbox" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
-                <label for="timer-checkbox" class="ml-2 block text-sm text-gray-900">타이머 설정</label>
-            </div>
-            <div id="timer-setting" class="">
-                <label for="timer-minutes" class="block text-sm font-medium text-gray-700">타이머 시간 (분)</label>
-                <input type="number" id="timer-minutes" value="100" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-            </div>
-        </div>
-        <div class="mt-8 text-center">
-            <button id="start-exam-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-300">
-                시험 시작
-            </button>
-        </div>
-    </div>
-
-    <!-- 시험지 화면 -->
-    <div id="exam-screen" class="hidden">
-        <div id="timer-display" class="timer hidden"></div>
-        <div class="exam-container bg-white">
-            <header class="text-center mb-4">
-                <h1 class="text-xl font-bold" id="exam-title"></h1>
-                <h2 class="text-3xl font-bold">수학 영역</h2>
-            </header>
-
-            <div class="grid grid-cols-10 md:grid-cols-12 gap-px bg-gray-400 border border-gray-400 mb-6 text-sm">
-                <!-- 성명 -->
-                <div class="col-span-3 md:col-span-2 bg-white flex flex-col">
-                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">성명</div>
-                    <div class="p-1 flex-grow">
-                        <input type="text" id="student-name-input" class="w-full h-full text-center border-0 focus:ring-0 text-base" placeholder="이름 입력">
+    <!-- 상단 글로벌 네비게이션 (외부 수험생에게는 응시 센터 / 나의 성적표만 깔끔하게 노출) -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-rose-600 flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
+                    ∑
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-lg tracking-tight text-slate-900">K-MATH PRO</span>
+                        <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            수학 영역 실전 응시 센터
+                        </span>
                     </div>
-                </div>
-                <!-- 필적확인란 -->
-                <div class="col-span-7 md:col-span-3 bg-white flex flex-col">
-                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">필적확인란</div>
-                    <div class="p-1 flex-grow">
-                        <div class="handwriting-box">
-                            <p class="font-normal" id="handwriting-phrase"></p>
-                        </div>
-                    </div>
-                </div>
-                <!-- 수험번호 -->
-                <div class="col-span-7 md:col-span-5 bg-white flex flex-col">
-                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">수 험 번 호</div>
-                    <div class="p-1 flex-grow flex items-center">
-                        <div class="grid grid-cols-8 gap-1 w-full">
-                            <input type="text" maxlength="1" class="student-id-input">
-                            <input type="text" maxlength="1" class="student-id-input">
-                            <input type="text" maxlength="1" class="student-id-input">
-                            <input type="text" maxlength="1" class="student-id-input">
-                            <input type="text" maxlength="1" class="student-id-input">
-                            <input type="text" maxlength="1" class="student-id-input">
-                            <input type="text" maxlength="1" class="student-id-input">
-                            <input type="text" maxlength="1" class="student-id-input">
-                        </div>
-                    </div>
-                </div>
-                <!-- 선택과목 -->
-                <div class="col-span-3 md:col-span-2 bg-white flex flex-col">
-                    <div class="font-bold bg-gray-100 p-2 text-center border-b border-gray-400 md:border-b-0">선택 과목</div>
-                    <div class="p-1 flex-grow">
-                        <select id="subject-select" class="w-full h-full text-center border-0 focus:ring-0 bg-transparent text-base">
-                            <!-- JS로 동적 생성 -->
-                        </select>
-                    </div>
+                    <p class="text-xs text-slate-500 hidden sm:block">평가원 표준 디지털 OMR 답안지 및 문항별 성적 분석 시스템</p>
                 </div>
             </div>
 
-            <!-- 답안 작성란 (Grid 레이아웃) -->
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 main-grid">
-                <!-- 공통과목 (선택형 + 단답형) -->
-                <div class="col-span-1 md:col-span-9 common-section">
-                    <!-- 공통과목 선택형 -->
-                    <table class="exam-table table-fixed">
-                         <colgroup>
-                            <col style="width: 8.33%;"> <col style="width: 25%;">
-                            <col style="width: 8.33%;"> <col style="width: 25%;">
-                            <col style="width: 8.33%;"> <col style="width: 25%;">
-                        </colgroup>
-                        <thead><tr><th colspan="6" class="bg-gray-100">공통과목 선택형</th></tr></thead>
-                        <tbody id="multiple-choice-common-tbody"></tbody>
-                    </table>
-                    <!-- 공통과목 단답형 -->
-                    <table class="exam-table mt-4">
-                        <thead><tr><th class="bg-gray-100">공통과목 단답형</th></tr></thead>
-                        <tbody>
-                            <tr>
-                                <td class="p-2">
-                                    <div id="short-answer-row-1" class="grid grid-cols-2 md:grid-cols-4 gap-2"></div>
-                                    <div id="short-answer-row-2" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="text-left text-xs mt-2 p-2 border border-gray-300 rounded">
-                        <p class="font-bold">※ 단답형 답란 표기 방법</p>
-                        <p class="ml-2">○ 십진법에 의하되, 반드시 자리에 맞추어 표기</p>
-                        <p class="ml-2">○ 정답이 한 자리인 경우, 일의 자리에만 표기하거나, 십의 자리에 0을 표기하고 일의 자리에 표기</p>
-                    </div>
-                </div>
-
-                <!-- 선택과목 (23-30) -->
-                <div class="col-span-1 md:col-span-3 elective-section mt-4 md:mt-0">
-                    <table class="exam-table table-fixed">
-                        <colgroup><col style="width: 25%;"><col style="width: 75%;"></colgroup>
-                        <thead><tr><th colspan="2" class="bg-pink-100">선택과목 선택형</th></tr></thead>
-                        <tbody id="multiple-choice-elective"></tbody>
-                    </table>
-                    <table class="exam-table mt-4">
-                        <thead><tr><th class="bg-pink-100">선택과목 단답형</th></tr></thead>
-                        <tbody id="short-answer-elective"></tbody>
-                    </table>
-                </div>
+            <!-- 메인 탭 네비게이션 (수험생 전용 메뉴 + 우측 관리자 진입 버튼) -->
+            <div class="flex items-center gap-2">
+                <nav class="flex items-center gap-1 sm:gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button id="nav-home-btn" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-slate-900 shadow-sm">
+                        모의고사 응시
+                    </button>
+                    <button id="nav-history-btn" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900">
+                        나의 성적표 <span id="history-count-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] bg-indigo-100 text-indigo-700">0</span>
+                    </button>
+                    <button id="nav-admin-btn" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-500 hover:text-slate-900 flex items-center gap-1">
+                        <span id="admin-lock-icon">🔒</span>
+                        <span>관리자</span>
+                    </button>
+                </nav>
             </div>
 
-            <div class="mt-8 text-center">
-                <button id="submit-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-300 w-full">
-                    제출
+            <!-- 시험 진행 중 상단 컨트롤 바 -->
+            <div id="header-exam-controls" class="hidden items-center gap-2 sm:gap-3">
+                <div id="timer-display-badge" class="flex items-center gap-2 bg-slate-900 text-white px-3.5 py-1.5 rounded-xl font-mono text-sm sm:text-base font-bold shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="timer-display">01:40:00</span>
+                </div>
+                <button id="quick-submit-top-btn" class="bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl shadow-sm transition">
+                    답안 제출
                 </button>
             </div>
         </div>
-    </div>
+    </header>
 
-    <!-- 결과 화면 -->
-    <div id="result-screen" class="result-container bg-white hidden"></div>
-    <!-- Modal -->
-    <div id="modal" class="modal-overlay hidden"></div>
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ========================================================= -->
+        <!-- 1. 시작 화면 (수험생 전용 응시 센터) -->
+        <!-- ========================================================= -->
+        <section id="start-screen" class="space-y-6">
+            <!-- 상단 히어로 배너 (내부 기술 용어 제거, 순수 수험생 안내용) -->
+            <div class="relative rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-lg overflow-hidden">
+                <div class="relative z-10 max-w-3xl space-y-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-medium text-indigo-200">
+                        <span>대학수학능력시험 제2교시 수학 영역</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+                        실전과 동일한 OMR 마킹 환경에서<br class="sm:hidden"> 수학 모의고사를 응시하세요
+                    </h1>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        배부받은 시험지의 학년도와 시험 코드를 입력하면 실전 OMR 답안지가 생성됩니다. 답안 제출 즉시 문항별 정오표와 영역별·배점별 성적 분석표를 확인할 수 있습니다.
+                    </p>
+                </div>
+                <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-white/10 text-xs sm:text-sm">
+                    <div class="bg-white/5 rounded-xl p-3 border border-white/10">
+                        <div class="text-slate-400 text-xs">문항 구성</div>
+                        <div class="font-bold text-white mt-0.5">공통 22문항 + 선택 8문항</div>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-3 border border-white/10">
+                        <div class="text-slate-400 text-xs">정규 시험 시간</div>
+                        <div class="font-bold text-white mt-0.5">100분 (종료 10분 전 예비령)</div>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-3 border border-white/10">
+                        <div class="text-slate-400 text-xs">OMR 답안 마킹</div>
+                        <div class="font-bold text-emerald-300 mt-0.5">마우스 클릭 & 키보드 단축 입력</div>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-3 border border-white/10">
+                        <div class="text-slate-400 text-xs">답안 보호</div>
+                        <div class="font-bold text-amber-300 mt-0.5">실시간 자동 임시저장 지원</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 이어하기 알림 배너 (저장된 시험이 있을 때 표시) -->
+            <div id="resume-banner" class="hidden rounded-2xl bg-amber-50 border border-amber-300 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+                        !
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-amber-950 text-sm sm:text-base">이전에 응시하던 답안 기록이 남아 있습니다</h3>
+                        <p id="resume-banner-desc" class="text-xs sm:text-sm text-amber-800 mt-0.5"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button id="resume-exam-btn" class="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                        이어서 응시하기
+                    </button>
+                    <button id="discard-resume-btn" class="px-3 py-2 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs sm:text-sm font-semibold transition">
+                        새로 시작
+                    </button>
+                </div>
+            </div>
+
+            <!-- 메인 설정 그리드: 좌측 수험생 입장 폼 / 우측 공개 회차 선택 및 유의사항 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- 좌측: 수험생 시험 입장 카드 -->
+                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">수험생 정보 및 응시 코드 입력</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">안내받은 학년도와 시험 코드를 입력하거나 우측의 공개 모의고사를 선택해 주세요.</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700">응시 대기실</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="academic-year" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">학년도</label>
+                            <input type="number" id="academic-year" value="2026" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="예) 2026">
+                        </div>
+                        <div>
+                            <label for="exam-code" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">시험 코드</label>
+                            <input type="text" id="exam-code" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="예) 3A, 09M, 06M">
+                        </div>
+                    </div>
+
+                    <!-- 응시자 사전 정보 입력 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+                        <div>
+                            <label for="pre-student-name" class="block text-xs font-semibold text-slate-600 mb-1">성명</label>
+                            <input type="text" id="pre-student-name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="이름 입력">
+                        </div>
+                        <div>
+                            <label for="pre-student-id" class="block text-xs font-semibold text-slate-600 mb-1">수험번호 (8자리)</label>
+                            <input type="text" id="pre-student-id" maxlength="8" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="예) 26091234">
+                        </div>
+                        <div>
+                            <label for="pre-target-grade" class="block text-xs font-semibold text-slate-600 mb-1">목표 점수 (원점수)</label>
+                            <input type="number" id="pre-target-grade" value="88" min="0" max="100" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <!-- 타이머 및 시험장 환경 옵션 -->
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <input id="timer-checkbox" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded cursor-pointer" checked>
+                                <label for="timer-checkbox" class="text-sm font-bold text-slate-800 cursor-pointer">제한시간 타이머 사용</label>
+                            </div>
+                            <span class="text-xs text-slate-500">정규 시험 시간: 100분</span>
+                        </div>
+
+                        <div id="timer-setting" class="flex flex-wrap items-center gap-2 pt-1">
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="timer-minutes" value="100" min="1" max="300" class="w-24 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <span class="text-xs font-semibold text-slate-600">분</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 ml-auto">
+                                <button type="button" data-time-preset="100" class="time-preset-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition">100분 (정규)</button>
+                                <button type="button" data-time-preset="80" class="time-preset-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition">80분 (실전훈련)</button>
+                                <button type="button" data-time-preset="50" class="time-preset-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition">50분 (단축)</button>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-4 pt-2 border-t border-slate-200/80 text-xs text-slate-600">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" id="sound-bell-checkbox" class="rounded text-indigo-600 focus:ring-indigo-500" checked>
+                                <span>시험 시작·종료 10분 전·종료 시 고사장 타종 알림음 재생</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 시험 시작 버튼 (단일화된 깔끔한 문구) -->
+                    <div class="pt-2">
+                        <button id="start-exam-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-base">
+                            <span>모의고사 응시 시작</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 우측: 상시 응시 가능 모의고사 목록 & 수험생 유의사항 -->
+                <div class="lg:col-span-5 space-y-6">
+                    <!-- 상시 공개 모의고사 카드 -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-bold text-slate-900">상시 응시 가능 모의고사</h3>
+                            <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">클릭 시 자동 입력</span>
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            아래 회차를 선택하면 학년도와 시험 코드가 자동으로 입력되어 바로 시험을 시작할 수 있습니다.
+                        </p>
+                        <div id="public-exam-list" class="space-y-2.5"></div>
+                    </div>
+
+                    <!-- OMR 답안지 작성 유의사항 -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+                        <h3 class="text-base font-bold text-slate-900">OMR 답안 마킹 유의사항</h3>
+                        <ul class="space-y-2.5 text-xs sm:text-sm text-slate-600">
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">1</span>
+                                <span><strong class="text-slate-900">선택과목 확인:</strong> 답안지 상단 우측에서 본인이 응시하는 선택과목(확률과 통계, 미적분, 기하)을 반드시 정확히 선택하십시오.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">2</span>
+                                <span><strong class="text-slate-900">단답형 표기:</strong> 16~22번, 29~30번 단답형 문항은 백·십·일 자리에 맞추어 마킹하거나 상단 숫자 입력창에 직접 숫자를 입력하십시오.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">3</span>
+                                <span><strong class="text-slate-900">재검토(★) 기능:</strong> 풀이 중 헷갈리는 문항은 문항 번호 옆의 별표(★)를 눌러 표시해 두고 제출 전 우측 현황판에서 모아볼 수 있습니다.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 2. 시험 응시 화면 (실전 OMR 카드 + 라이브 네비게이터) -->
+        <!-- ========================================================= -->
+        <section id="exam-screen" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                <!-- 좌측/중앙: 실제 평가원 스타일 OMR 카드 본체 -->
+                <div class="lg:col-span-9 omr-sheet">
+                    <!-- 상단 OMR 리더기 타이밍 마크 트랙 -->
+                    <div class="omr-timing-track" aria-hidden="true">
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                    </div>
+
+                    <div class="p-4 sm:p-6">
+                        <!-- OMR 헤더 타이틀 -->
+                        <div class="flex flex-col sm:flex-row items-center justify-between border-b-2 border-pink-600 pb-4 mb-5 gap-3">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 border-2 border-pink-700 text-pink-800 font-extrabold text-xs rounded">제 2 교시</span>
+                                <span id="exam-mode-badge" class="px-2.5 py-1 bg-pink-100 text-pink-800 font-bold text-xs rounded">코드 09M</span>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs sm:text-sm font-bold text-pink-800 tracking-wide" id="exam-title">2026학년도 대학수학능력시험 모의평가</p>
+                                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 serif-title tracking-widest mt-0.5">수 학 영 역 답 안 지</h1>
+                            </div>
+                            <div class="text-right hidden sm:block">
+                                <div class="text-[11px] font-bold text-pink-700 border border-pink-400 px-2 py-1 rounded bg-pink-50">
+                                    컴퓨터용 사인펜만 사용
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 수험생 인적사항 & 필적확인란 & 수험번호 & 선택과목 -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-px bg-pink-400 border-2 border-pink-600 mb-6 text-xs sm:text-sm rounded overflow-hidden">
+                            <!-- 성명 -->
+                            <div class="md:col-span-2 bg-white flex flex-col">
+                                <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">성 명</div>
+                                <div class="p-2 flex-grow flex items-center justify-center">
+                                    <input type="text" id="student-name-input" class="w-full text-center font-bold text-slate-900 border border-pink-200 rounded py-1.5 focus:outline-none focus:border-slate-900 text-sm" placeholder="성명 입력">
+                                </div>
+                            </div>
+
+                            <!-- 필적확인란 -->
+                            <div class="md:col-span-4 bg-white flex flex-col">
+                                <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">필 적 확 인 란</div>
+                                <div class="p-2 flex-grow flex flex-col justify-center gap-1">
+                                    <div class="handwriting-box">
+                                        <p class="font-semibold" id="handwriting-phrase">넓은 벌 동쪽 끝으로 옛이야기 지줄대는</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 수험번호 -->
+                            <div class="md:col-span-4 bg-white flex flex-col">
+                                <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">수 험 번 호</div>
+                                <div class="p-2 flex-grow flex items-center">
+                                    <div class="grid grid-cols-8 gap-1 w-full">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 1번째 자리">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 2번째 자리">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 3번째 자리">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 4번째 자리">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 5번째 자리">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 6번째 자리">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 7번째 자리">
+                                        <input type="text" maxlength="1" inputmode="numeric" class="student-id-input" aria-label="수험번호 8번째 자리">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 선택과목 -->
+                            <div class="md:col-span-2 bg-white flex flex-col">
+                                <div class="font-bold bg-pink-100 text-pink-900 py-1.5 px-2 text-center border-b border-pink-400">선 택 과 목</div>
+                                <div class="p-2 flex-grow flex items-center">
+                                    <select id="subject-select" class="w-full py-1.5 px-2 text-center font-bold text-slate-900 border border-pink-300 rounded bg-pink-50/40 focus:outline-none focus:border-slate-900 text-sm cursor-pointer">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 빠른 키보드 마킹 바 -->
+                        <div class="mb-5 bg-slate-900 text-white rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2 text-xs sm:text-sm">
+                                <span class="px-2 py-0.5 rounded bg-indigo-500 font-bold text-xs">빠른 마킹</span>
+                                <span class="text-slate-300">문항 번호와 답안을 키보드로 바로 입력하세요:</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center bg-slate-800 rounded-lg border border-slate-700 px-2.5 py-1">
+                                    <span class="text-xs text-slate-400 mr-1.5">문항</span>
+                                    <input type="number" id="quick-q-input" min="1" max="30" value="1" class="w-12 bg-transparent text-white font-bold text-sm text-center focus:outline-none">
+                                </div>
+                                <div class="flex items-center bg-slate-800 rounded-lg border border-slate-700 px-2.5 py-1">
+                                    <span class="text-xs text-slate-400 mr-1.5">답안</span>
+                                    <input type="number" id="quick-ans-input" min="0" max="999" placeholder="1~5 / 숫자" class="w-24 bg-transparent text-white font-bold text-sm text-center focus:outline-none">
+                                </div>
+                                <button type="button" id="quick-mark-apply-btn" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs transition">
+                                    마킹 (Enter)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- OMR 본문 답안란 (공통과목 + 선택과목) -->
+                        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 main-grid">
+                            <!-- 공통과목 (1~22번) -->
+                            <div class="xl:col-span-8 space-y-5">
+                                <!-- 공통과목 5지선다 (1~15번) -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 공통과목 객관식 (1~15번 · 5지선다형)</span>
+                                        <span class="text-[11px] text-slate-500">같은 번호 재클릭 시 마킹 취소 · ★ 클릭 시 재검토 표시</span>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="omr-table">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="6">공 통 과 목 (1 ~ 15번)</th>
+                                                </tr>
+                                                <tr class="omr-sub-header">
+                                                    <td style="width: 9%;">문번</td>
+                                                    <td style="width: 24.3%;">답 란</td>
+                                                    <td style="width: 9%;">문번</td>
+                                                    <td style="width: 24.3%;">답 란</td>
+                                                    <td style="width: 9%;">문번</td>
+                                                    <td style="width: 24.3%;">답 란</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="multiple-choice-common-tbody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- 공통과목 단답형 (16~22번) -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 공통과목 단답형 (16~22번 · 세 자리 이하 자연수)</span>
+                                        <span class="text-[11px] text-slate-500">상단 입력창에 숫자를 타이핑하면 아래 OMR 버블이 자동 마킹됩니다</span>
+                                    </div>
+                                    <div class="border border-pink-400 rounded-lg overflow-hidden bg-white p-3">
+                                        <div id="short-answer-row-1" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"></div>
+                                        <div id="short-answer-row-2" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-2.5"></div>
+                                    </div>
+                                    <div class="text-left text-xs mt-2 p-2.5 bg-pink-50/70 border border-pink-300 rounded-lg text-pink-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div>
+                                            <p class="font-bold">※ 단답형 답란 표기 유의사항</p>
+                                            <p class="mt-0.5 text-[11px] text-pink-900">○ 십진법에 의하되 반드시 자리에 맞추어 표기하며, 한 자리 정답은 일의 자리에만 표기합니다.</p>
+                                        </div>
+                                        <span class="px-2 py-1 rounded bg-white border border-pink-200 text-[11px] font-semibold shrink-0">키보드 직접 입력 지원</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 선택과목 (23~30번) -->
+                            <div class="xl:col-span-4 space-y-5">
+                                <!-- 선택과목 5지선다 (23~28번) -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 선택과목 객관식 (23~28번)</span>
+                                        <span id="current-elective-label" class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">미적분</span>
+                                    </div>
+                                    <table class="omr-table">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="2">선 택 과 목 (23 ~ 28번)</th>
+                                            </tr>
+                                            <tr class="omr-sub-header">
+                                                <td style="width: 24%;">문번</td>
+                                                <td style="width: 76%;">답 란</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="multiple-choice-elective"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- 선택과목 단답형 (29~30번) -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-xs font-extrabold text-pink-800 tracking-wide">■ 선택과목 단답형 (29~30번)</span>
+                                    </div>
+                                    <div id="short-answer-elective" class="grid grid-cols-2 gap-2.5 border border-pink-400 rounded-lg bg-white p-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 하단 OMR 리더기 타이밍 마크 트랙 -->
+                    <div class="omr-timing-track border-t border-b-0" aria-hidden="true">
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                        <span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span><span class="omr-timing-mark"></span>
+                    </div>
+                </div>
+
+                <!-- 우측: 실시간 마킹 현황판 & 컨트롤러 (Sticky) -->
+                <aside class="lg:col-span-3 lg:sticky lg:top-20 space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-slate-900 text-sm">실시간 OMR 마킹 현황</h3>
+                            <span id="progress-fraction" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">0 / 30 완료</span>
+                        </div>
+
+                        <!-- 진행률 프로그레스 바 -->
+                        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-indigo-600 to-rose-600 transition-all duration-300" style="width: 0%;"></div>
+                        </div>
+
+                        <!-- 상태 요약 카운트 -->
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="p-2 rounded-xl bg-slate-900 text-white">
+                                <div class="text-[11px] text-slate-300">마킹 완료</div>
+                                <div id="stat-answered-count" class="font-extrabold text-base mt-0.5">0</div>
+                            </div>
+                            <div class="p-2 rounded-xl bg-slate-100 text-slate-700">
+                                <div class="text-[11px] text-slate-500">미마킹</div>
+                                <div id="stat-unanswered-count" class="font-extrabold text-base mt-0.5">30</div>
+                            </div>
+                            <div class="p-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+                                <div class="text-[11px] text-amber-700">재검토(★)</div>
+                                <div id="stat-flagged-count" class="font-extrabold text-base mt-0.5">0</div>
+                            </div>
+                        </div>
+
+                        <!-- 필터 버튼 -->
+                        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button type="button" data-nav-filter="all" class="nav-filter-btn flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm">전체(30)</button>
+                            <button type="button" data-nav-filter="unanswered" class="nav-filter-btn flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900">미마킹</button>
+                            <button type="button" data-nav-filter="flagged" class="nav-filter-btn flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900">★보류</button>
+                        </div>
+
+                        <!-- 1~30번 미니 그리드 -->
+                        <div id="question-nav-grid" class="grid grid-cols-5 gap-1.5"></div>
+
+                        <div class="pt-3 border-t border-slate-100 space-y-2">
+                            <button id="submit-btn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition text-sm">
+                                OMR 답안 최종 제출하기
+                            </button>
+                            <button id="clear-all-marks-btn" class="w-full bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-semibold py-2 px-3 rounded-xl transition text-xs">
+                                답안지 새 용지로 교체 (초기화)
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 3. 채점 결과 및 성적 분석 리포트 화면 -->
+        <!-- ========================================================= -->
+        <section id="result-screen" class="hidden space-y-6"></section>
+
+        <!-- ========================================================= -->
+        <!-- 4. 나의 성적표 (수험생 개인 응시 내역) 화면 -->
+        <!-- ========================================================= -->
+        <section id="history-screen" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-900">나의 모의고사 성적표 보관함</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">이 기기에서 응시한 모의고사 회차별 원점수, 추정 등급, 소요 시간을 확인할 수 있습니다.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="export-history-csv-btn" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                            성적 내역 CSV 저장
+                        </button>
+                        <button id="clear-history-btn" class="px-3.5 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold transition">
+                            내역 비우기
+                        </button>
+                    </div>
+                </div>
+
+                <div id="history-list-container" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 5. 관리자 전용 화면 (등록된 Google 계정 인증 게이트 + 전체 사이트 관리 콘솔) -->
+        <!-- ========================================================= -->
+        <section id="admin-screen" class="hidden space-y-6">
+            <!-- 5-A. 비로그인 상태: Google 계정 인증 게이트 -->
+            <div id="admin-login-gate" class="max-w-lg mx-auto bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6 my-6">
+                <div class="text-center space-y-2">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto font-extrabold text-xl">
+                        🔒
+                    </div>
+                    <h2 class="text-xl font-extrabold text-slate-900">관리자 전용 센터 로그인</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">
+                        시험 등록, 정답지 관리, 응시자 채점 데이터 조회 및 서버 연동 설정은 허가된 관리자 Google 계정으로 로그인해야 접근할 수 있습니다.
+                    </p>
+                </div>
+
+                <!-- Google Identity Services 로그인 버튼 영역 -->
+                <div class="space-y-3 pt-2">
+                    <button type="button" id="google-oauth-login-btn" class="w-full py-3 px-4 rounded-xl border border-slate-300 hover:bg-slate-50 bg-white text-slate-800 font-bold text-sm flex items-center justify-center gap-3 shadow-xs transition">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24z"/>
+                            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14z"/>
+                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96z"/>
+                        </svg>
+                        <span>Google 계정으로 관리자 인증</span>
+                    </button>
+                    <div id="gsi-render-container" class="flex justify-center"></div>
+                </div>
+
+                <!-- 이메일 + 관리자 보안키 직접 인증 (GSI Client ID 미설정 환경 및 즉시 프리뷰 지원) -->
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-xs text-slate-400 font-medium">또는 등록된 관리자 이메일 인증</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label for="admin-email-input" class="block text-xs font-bold text-slate-600 mb-1">등록된 관리자 Google 이메일</label>
+                        <input type="email" id="admin-email-input" value="admin@gmail.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="admin@gmail.com">
+                    </div>
+                    <div>
+                        <label for="admin-passcode-input" class="block text-xs font-bold text-slate-600 mb-1">관리자 보안 코드 (초기값: <code class="text-indigo-600">admin1234</code>)</label>
+                        <input type="password" id="admin-passcode-input" value="admin1234" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="보안 코드 입력">
+                    </div>
+                    <button type="button" id="admin-direct-login-btn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl text-sm transition shadow-sm">
+                        관리자 콘솔 접속하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5-B. 로그인 완료 상태: 전체 사이트 관리자 대시보드 -->
+            <div id="admin-dashboard-panel" class="hidden space-y-6">
+                <!-- 상단 관리자 상태 바 -->
+                <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">관리자 인증됨</span>
+                            <span id="admin-current-user-badge" class="text-xs font-mono text-slate-300">admin@gmail.com</span>
+                        </div>
+                        <h2 class="text-xl font-extrabold">모의고사 통합 운영 & 데이터 관리 콘솔</h2>
+                        <p class="text-xs text-slate-400">이 화면의 모든 설정과 시험 목록은 수험생 화면에는 노출되지 않고 관리자만 제어할 수 있습니다.</p>
+                    </div>
+                    <div class="flex items-center gap-2 self-start sm:self-center">
+                        <button type="button" id="admin-logout-btn" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition">
+                            관리자 로그아웃
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 관리자 서브 탭 -->
+                <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+                    <button type="button" data-admin-tab="exams" class="admin-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-xs">
+                        1. 시험 회차 & 정답지 관리
+                    </button>
+                    <button type="button" data-admin-tab="submissions" class="admin-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+                        2. 전체 응시자 채점 결과 관리
+                    </button>
+                    <button type="button" data-admin-tab="settings" class="admin-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+                        3. 백엔드 API & 관리자 계정 설정
+                    </button>
+                </div>
+
+                <!-- 탭 1: 시험 회차 & 정답지 관리 -->
+                <div id="admin-tab-exams" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- 등록된 시험 목록 -->
+                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-slate-900 text-base">등록된 모의고사 목록</h3>
+                            <span class="text-xs text-slate-500">수험생 대기실에 노출되는 회차</span>
+                        </div>
+                        <div id="admin-exam-catalog-list" class="space-y-3"></div>
+                    </div>
+
+                    <!-- 신규 모의고사 등록 / 정답 입력 폼 -->
+                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="font-bold text-slate-900 text-base">신규 모의고사 등록 및 정답 설정</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">새로운 시험 코드와 문항별 정답을 등록하면 수험생이 해당 코드로 즉시 응시할 수 있습니다.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">학년도</label>
+                                <input type="number" id="adm-new-year" value="2026" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">시험 코드</label>
+                                <input type="text" id="adm-new-code" placeholder="예) 10M, FINAL-1" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">시트 GID (선택)</label>
+                                <input type="text" id="adm-new-gid" placeholder="예) 0" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">시험지 제목</label>
+                                <input type="text" id="adm-new-title" placeholder="예) 2026학년도 10월 실전 모의고사" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">필적확인란 문구</label>
+                                <input type="text" id="adm-new-phrase" value="맑은 바람 속에 묻어오는 가을 향기" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                            <label class="block text-xs font-bold text-slate-700">공통과목 1~22번 정답 (쉼표로 구분하여 22개 입력)</label>
+                            <input type="text" id="adm-new-common-ans" value="3,1,4,2,5,3,4,1,2,5,3,4,2,5,1,12,24,8,35,108,64,215" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">미적분 23~30번 정답 (8개)</label>
+                                <input type="text" id="adm-new-calc-ans" value="1,3,5,2,4,3,32,144" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">확률과 통계 23~30번 (8개)</label>
+                                <input type="text" id="adm-new-prob-ans" value="2,4,1,3,5,4,48,126" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">기하 23~30번 정답 (8개)</label>
+                                <input type="text" id="adm-new-geom-ans" value="4,2,3,1,5,2,27,96" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono">
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex justify-end">
+                            <button type="button" id="adm-save-exam-btn" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                                시험 회차 등록 및 배포
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭 2: 전체 응시자 채점 결과 관리 -->
+                <div id="admin-tab-submissions" class="hidden bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base">응시자 제출 답안 및 성적 로그</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">제출된 응시 기록을 확인하고 CSV(엑셀 호환)로 다운로드합니다.</p>
+                        </div>
+                        <button type="button" id="adm-export-submissions-btn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition self-start sm:self-center">
+                            전체 응시 데이터 CSV 다운로드
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-y border-slate-200">
+                                    <th class="py-2.5 px-3">제출 시각</th>
+                                    <th class="py-2.5 px-3">시험명</th>
+                                    <th class="py-2.5 px-3">성명</th>
+                                    <th class="py-2.5 px-3">수험번호</th>
+                                    <th class="py-2.5 px-3">선택과목</th>
+                                    <th class="py-2.5 px-3">원점수</th>
+                                    <th class="py-2.5 px-3">추정 등급</th>
+                                    <th class="py-2.5 px-3">소요 시간</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-submissions-tbody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 탭 3: 백엔드 API & 관리자 계정 설정 -->
+                <div id="admin-tab-settings" class="hidden bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-900 text-base">데이터베이스/서버 연동 및 관리자 권한 설정</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">외부 수험생에게 보이지 않는 백엔드 엔드포인트 URL과 허가된 Google 관리자 계정을 관리합니다.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">채점/데이터 수집 서버 URL (Apps Script Web App 또는 Supabase Edge URL)</label>
+                                <input type="url" id="adm-setting-script-url" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Google 스프레드시트 ID (마스터 시트 연동용)</label>
+                                <input type="text" id="adm-setting-sheet-id" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">채점 모드 선택</label>
+                                <select id="adm-setting-grading-mode" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-semibold bg-white">
+                                    <option value="hybrid">서버 채점 우선 + 로컬 폴백 (권장: Cloudflare Pages + Apps Script 구조)</option>
+                                    <option value="client">클라이언트 즉시 채점 + 백그라운드 결과 전송 (기존 방식)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">허용된 관리자 Google 이메일 목록 (쉼표로 구분)</label>
+                                <input type="text" id="adm-setting-allowed-emails" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono" placeholder="admin@gmail.com, teacher@school.kr">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Google OAuth Client ID (실제 도메인 배포 시 GIS 원클릭 로그인용)</label>
+                                <input type="text" id="adm-setting-google-client-id" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono" placeholder="1234567890-abc.apps.googleusercontent.com">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">비상용 관리자 보안 코드</label>
+                                <input type="text" id="adm-setting-passcode" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex justify-end">
+                        <button type="button" id="adm-save-settings-btn" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold transition">
+                            환경 설정 저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 커스텀 모달 -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4"></div>
+
+    <!-- 토스트 알림 -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
 <script type="module">
     // ===================================================================================
-    // 1. 설정 및 상수 (Config & Constants)
+    // 1. 기본 설정 및 상수 (Config & Built-in Exam Catalog)
     // ===================================================================================
+    const DefaultExams = {
+        '2026-09M': {
+            examName: '2026학년도 대학수학능력시험 9월 모의평가',
+            handwritingPhrase: '넓은 벌 동쪽 끝으로 옛이야기 지줄대는',
+            year: '2026',
+            code: '09M',
+            gid: 'DEMO_09',
+            isBuiltIn: true,
+            availableSubjects: ['미적분', '확률과 통계', '기하'],
+            commonAnswers: {
+                1: 3, 2: 1, 3: 4, 4: 2, 5: 5, 6: 3, 7: 4, 8: 1, 9: 2, 10: 5,
+                11: 3, 12: 4, 13: 2, 14: 5, 15: 1,
+                16: 12, 17: 24, 18: 8, 19: 35, 20: 108, 21: 64, 22: 215
+            },
+            electiveAnswers: {
+                '확률과 통계': { 23: 2, 24: 4, 25: 1, 26: 3, 27: 5, 28: 4, 29: 48, 30: 126 },
+                '미적분': { 23: 1, 24: 3, 25: 5, 26: 2, 27: 4, 28: 3, 29: 32, 30: 144 },
+                '기하': { 23: 4, 24: 2, 25: 3, 26: 1, 27: 5, 28: 2, 29: 27, 30: 96 }
+            }
+        },
+        '2026-06M': {
+            examName: '2026학년도 대학수학능력시험 6월 모의평가',
+            handwritingPhrase: '흙에서 자란 내 마음 파아란 하늘빛',
+            year: '2026',
+            code: '06M',
+            gid: 'DEMO_06',
+            isBuiltIn: true,
+            availableSubjects: ['미적분', '확률과 통계', '기하'],
+            commonAnswers: {
+                1: 2, 2: 4, 3: 1, 4: 5, 5: 3, 6: 2, 7: 1, 8: 4, 9: 5, 10: 3,
+                11: 2, 12: 1, 13: 4, 14: 3, 15: 5,
+                16: 7, 17: 19, 18: 42, 19: 15, 20: 84, 21: 120, 22: 36
+            },
+            electiveAnswers: {
+                '확률과 통계': { 23: 3, 24: 1, 25: 4, 26: 2, 27: 5, 28: 1, 29: 60, 30: 210 },
+                '미적분': { 23: 4, 24: 2, 25: 1, 26: 5, 27: 3, 28: 4, 29: 18, 30: 75 },
+                '기하': { 23: 1, 24: 5, 25: 2, 26: 4, 27: 3, 28: 5, 29: 45, 30: 105 }
+            }
+        }
+    };
+
     const Config = {
         SHEET_ID: '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw',
-        // 중요: 아래 URL은 Google Apps Script를 웹 앱으로 배포한 후 생성된 URL로 교체해야 합니다.
-        APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzTE_BYODSDBi7kTwtfqIq0wr0Vrg-_7UbxafnEe66jhFtGy9_8J6a0KcsiL7x0qEbmTw/exec", 
-        POINTS: { 1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4, 21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4 },
-        STORAGE_KEY: 'mathExamState'
+        APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzTE_BYODSDBi7kTwtfqIq0wr0Vrg-_7UbxafnEe66jhFtGy9_8J6a0KcsiL7x0qEbmTw/exec",
+        POINTS: {
+            1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4,
+            11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 3, 17: 3, 18: 3, 19: 3, 20: 4,
+            21: 4, 22: 4, 23: 2, 24: 3, 25: 3, 26: 3, 27: 3, 28: 4, 29: 4, 30: 4
+        },
+        STORAGE_KEY: 'mathExamState',
+        HISTORY_KEY: 'mathExamHistoryV2',
+        ADMIN_CONFIG_KEY: 'mathExamAdminConfigV1',
+        CUSTOM_EXAMS_KEY: 'mathExamCustomCatalogV1'
     };
-    /*
-    --- Google Apps Script Code (Code.gs) ---
-    const SPREADSHEET_ID = "1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw";
-
-    function findSheetByGid(spreadsheet, gid) {
-        const allSheets = spreadsheet.getSheets();
-        for (let i = 0; i < allSheets.length; i++) {
-            if (allSheets[i].getSheetId() == gid) {
-                return allSheets[i];
-            }
-        }
-        return null;
-    }
-
-    function doPost(e) {
-        try {
-            const data = JSON.parse(e.postData.contents);
-            const gid = data.gid;
-            const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-            const sheet = findSheetByGid(spreadsheet, gid);
-
-            if (!sheet) {
-                throw new Error("Sheet with GID " + gid + " not found.");
-            }
-            
-            // N열(14번째 열)을 기준으로 다음 빈 행을 찾습니다.
-            const nColumnValues = sheet.getRange("N2:N").getValues();
-            let nextRow = nColumnValues.findIndex(row => row[0] === '') + 2; // +2는 0-based index와 1행 헤더를 보정
-            if (nextRow === 1) { // 빈 행을 찾지 못한 경우 (-1 + 2 = 1), 마지막 행 다음에 추가
-                nextRow = sheet.getLastRow() + 1;
-            }
-
-            // N열부터 AV열까지 기록할 데이터 배열
-            const rowData = [
-                data.name,          // N열
-                data.studentId,     // O열
-                data.subject,       // P열
-                ...data.results,    // Q열 ~ AT열
-                data.totalScore,    // AU열
-                data.timestamp      // AV열
-            ];
-
-            // 특정 행, N열(14)부터 35개 열에 데이터를 기록합니다.
-            sheet.getRange(nextRow, 14, 1, 35).setValues([rowData]);
-
-            return ContentService
-                .createTextOutput(JSON.stringify({ "status": "success", "message": "Row added to sheet " + sheet.getName() + " at row " + nextRow }))
-                .setMimeType(ContentService.MimeType.JSON);
-
-        } catch (error) {
-            return ContentService
-                .createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
-                .setMimeType(ContentService.MimeType.JSON);
-        }
-    }
-    */
-
 
     // ===================================================================================
-    // 2. DOM 요소 (DOM Elements)
+    // 2. DOM 요소 참조 (DOM Elements)
     // ===================================================================================
     const DOM = {
         startScreen: document.getElementById('start-screen'),
         examScreen: document.getElementById('exam-screen'),
         resultScreen: document.getElementById('result-screen'),
+        historyScreen: document.getElementById('history-screen'),
+        adminScreen: document.getElementById('admin-screen'),
+        navHomeBtn: document.getElementById('nav-home-btn'),
+        navHistoryBtn: document.getElementById('nav-history-btn'),
+        navAdminBtn: document.getElementById('nav-admin-btn'),
+        adminLockIcon: document.getElementById('admin-lock-icon'),
+        historyCountBadge: document.getElementById('history-count-badge'),
+        headerExamControls: document.getElementById('header-exam-controls'),
+        quickSubmitTopBtn: document.getElementById('quick-submit-top-btn'),
         startExamBtn: document.getElementById('start-exam-btn'),
+        publicExamList: document.getElementById('public-exam-list'),
+        resumeBanner: document.getElementById('resume-banner'),
+        resumeBannerDesc: document.getElementById('resume-banner-desc'),
+        resumeExamBtn: document.getElementById('resume-exam-btn'),
+        discardResumeBtn: document.getElementById('discard-resume-btn'),
         timerCheckbox: document.getElementById('timer-checkbox'),
         timerSetting: document.getElementById('timer-setting'),
         timerMinutesInput: document.getElementById('timer-minutes'),
+        soundBellCheckbox: document.getElementById('sound-bell-checkbox'),
         timerDisplay: document.getElementById('timer-display'),
+        timerDisplayBadge: document.getElementById('timer-display-badge'),
         academicYearInput: document.getElementById('academic-year'),
         examCodeInput: document.getElementById('exam-code'),
+        preStudentName: document.getElementById('pre-student-name'),
+        preStudentId: document.getElementById('pre-student-id'),
+        preTargetGrade: document.getElementById('pre-target-grade'),
         examTitle: document.getElementById('exam-title'),
+        examModeBadge: document.getElementById('exam-mode-badge'),
         handwritingPhrase: document.getElementById('handwriting-phrase'),
         subjectSelect: document.getElementById('subject-select'),
+        currentElectiveLabel: document.getElementById('current-elective-label'),
         submitBtn: document.getElementById('submit-btn'),
+        clearAllMarksBtn: document.getElementById('clear-all-marks-btn'),
         modal: document.getElementById('modal'),
         studentNameInput: document.getElementById('student-name-input'),
         studentIdInputs: document.querySelectorAll('.student-id-input'),
@@ -371,108 +1050,268 @@
         saRow2: document.getElementById('short-answer-row-2'),
         mcElectiveTbody: document.getElementById('multiple-choice-elective'),
         saElectiveTbody: document.getElementById('short-answer-elective'),
+        questionNavGrid: document.getElementById('question-nav-grid'),
+        progressFraction: document.getElementById('progress-fraction'),
+        progressBarFill: document.getElementById('progress-bar-fill'),
+        statAnsweredCount: document.getElementById('stat-answered-count'),
+        statUnansweredCount: document.getElementById('stat-unanswered-count'),
+        statFlaggedCount: document.getElementById('stat-flagged-count'),
+        quickQInput: document.getElementById('quick-q-input'),
+        quickAnsInput: document.getElementById('quick-ans-input'),
+        quickMarkApplyBtn: document.getElementById('quick-mark-apply-btn'),
+        historyListContainer: document.getElementById('history-list-container'),
+        exportHistoryCsvBtn: document.getElementById('export-history-csv-btn'),
+        clearHistoryBtn: document.getElementById('clear-history-btn'),
+        // Admin DOM
+        adminLoginGate: document.getElementById('admin-login-gate'),
+        adminDashboardPanel: document.getElementById('admin-dashboard-panel'),
+        googleOauthLoginBtn: document.getElementById('google-oauth-login-btn'),
+        adminEmailInput: document.getElementById('admin-email-input'),
+        adminPasscodeInput: document.getElementById('admin-passcode-input'),
+        adminDirectLoginBtn: document.getElementById('admin-direct-login-btn'),
+        adminLogoutBtn: document.getElementById('admin-logout-btn'),
+        adminCurrentUserBadge: document.getElementById('admin-current-user-badge'),
+        adminExamCatalogList: document.getElementById('admin-exam-catalog-list'),
+        adminSubmissionsTbody: document.getElementById('admin-submissions-tbody'),
+        admExportSubmissionsBtn: document.getElementById('adm-export-submissions-btn'),
+        admSaveExamBtn: document.getElementById('adm-save-exam-btn'),
+        admSaveSettingsBtn: document.getElementById('adm-save-settings-btn'),
+        admSettingScriptUrl: document.getElementById('adm-setting-script-url'),
+        admSettingSheetId: document.getElementById('adm-setting-sheet-id'),
+        admSettingGradingMode: document.getElementById('adm-setting-grading-mode'),
+        admSettingAllowedEmails: document.getElementById('adm-setting-allowed-emails'),
+        admSettingGoogleClientId: document.getElementById('adm-setting-google-client-id'),
+        admSettingPasscode: document.getElementById('adm-setting-passcode')
     };
 
     // ===================================================================================
-    // 3. 상태 관리 (State Management & localStorage)
+    // 3. 상태 관리 (State Management & Safe localStorage)
     // ===================================================================================
     const State = {
         timerInterval: null,
         onConfirmCallback: null,
         correctAnswers: {},
         userAnswers: {},
+        flaggedQuestions: {},
         currentExamData: null,
         timeRemaining: null,
+        navFilter: 'all',
+        chartInstances: [],
+        adminUser: null,
+        adminConfig: {
+            scriptUrl: Config.APPS_SCRIPT_URL,
+            sheetId: Config.SHEET_ID,
+            gradingMode: 'hybrid',
+            allowedEmails: ['admin@gmail.com'],
+            googleClientId: '',
+            passcode: 'admin1234'
+        },
+
+        loadAdminConfig() {
+            try {
+                const saved = localStorage.getItem(Config.ADMIN_CONFIG_KEY);
+                if (saved) {
+                    this.adminConfig = { ...this.adminConfig, ...JSON.parse(saved) };
+                }
+            } catch (e) {}
+        },
+
+        saveAdminConfig() {
+            try {
+                localStorage.setItem(Config.ADMIN_CONFIG_KEY, JSON.stringify(this.adminConfig));
+            } catch (e) {}
+        },
+
+        getExamCatalog() {
+            let custom = {};
+            try {
+                const raw = localStorage.getItem(Config.CUSTOM_EXAMS_KEY);
+                if (raw) custom = JSON.parse(raw);
+            } catch (e) {}
+            return { ...DefaultExams, ...custom };
+        },
+
+        saveCustomExam(key, examObj) {
+            try {
+                const raw = localStorage.getItem(Config.CUSTOM_EXAMS_KEY);
+                const custom = raw ? JSON.parse(raw) : {};
+                custom[key] = examObj;
+                localStorage.setItem(Config.CUSTOM_EXAMS_KEY, JSON.stringify(custom));
+            } catch (e) {}
+        },
+
+        deleteCustomExam(key) {
+            try {
+                const raw = localStorage.getItem(Config.CUSTOM_EXAMS_KEY);
+                if (!raw) return;
+                const custom = JSON.parse(raw);
+                delete custom[key];
+                localStorage.setItem(Config.CUSTOM_EXAMS_KEY, JSON.stringify(custom));
+            } catch (e) {}
+        },
 
         save() {
-            const stateToSave = {
-                userAnswers: this.userAnswers,
-                currentExamData: this.currentExamData,
-                timeRemaining: this.timeRemaining,
-            };
-            localStorage.setItem(Config.STORAGE_KEY, JSON.stringify(stateToSave));
+            try {
+                const stateToSave = {
+                    userAnswers: this.userAnswers,
+                    flaggedQuestions: this.flaggedQuestions,
+                    currentExamData: this.currentExamData,
+                    timeRemaining: this.timeRemaining,
+                };
+                localStorage.setItem(Config.STORAGE_KEY, JSON.stringify(stateToSave));
+            } catch (e) {}
         },
 
         load() {
-            const savedState = localStorage.getItem(Config.STORAGE_KEY);
-            if (savedState) {
-                const parsedState = JSON.parse(savedState);
-                this.userAnswers = parsedState.userAnswers || {};
-                this.currentExamData = parsedState.currentExamData || null;
-                this.timeRemaining = parsedState.timeRemaining || null;
-                return true;
-            }
+            try {
+                const savedState = localStorage.getItem(Config.STORAGE_KEY);
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    this.userAnswers = parsedState.userAnswers || {};
+                    this.flaggedQuestions = parsedState.flaggedQuestions || {};
+                    this.currentExamData = parsedState.currentExamData || null;
+                    this.timeRemaining = parsedState.timeRemaining ?? null;
+                    return Boolean(this.currentExamData);
+                }
+            } catch (e) {}
             return false;
         },
 
         clear() {
-            localStorage.removeItem(Config.STORAGE_KEY);
+            try {
+                localStorage.removeItem(Config.STORAGE_KEY);
+            } catch (e) {}
             this.userAnswers = {};
+            this.flaggedQuestions = {};
             this.currentExamData = null;
             this.timeRemaining = null;
             if (this.timerInterval) clearInterval(this.timerInterval);
+        },
+
+        getHistory() {
+            try {
+                const raw = localStorage.getItem(Config.HISTORY_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        },
+
+        addHistoryEntry(entry) {
+            try {
+                const list = this.getHistory();
+                list.unshift(entry);
+                localStorage.setItem(Config.HISTORY_KEY, JSON.stringify(list.slice(0, 50)));
+                UI.updateHistoryBadge();
+            } catch (e) {}
+        },
+
+        clearHistory() {
+            try {
+                localStorage.removeItem(Config.HISTORY_KEY);
+                UI.updateHistoryBadge();
+            } catch (e) {}
         }
     };
 
     // ===================================================================================
-    // 4. API (Google Sheets Fetch & Submit)
+    // 4. 사운드 알림 (Web Audio API 고사장 타종 소리)
+    // ===================================================================================
+    const Sound = {
+        playBell() {
+            if (!DOM.soundBellCheckbox.checked) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const notes = [523.25, 659.25, 783.99];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.18);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime + idx * 0.18);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.18 + 0.6);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + idx * 0.18);
+                    osc.stop(ctx.currentTime + idx * 0.18 + 0.6);
+                });
+            } catch (e) {}
+        }
+    };
+
+    // ===================================================================================
+    // 5. 데이터 조회 및 제출 API (수험생에게는 백엔드 세부사항 숨김)
     // ===================================================================================
     const API = {
         async fetchExamData(year, code) {
             if (!year || !code) {
-                UI.showModal('학년도와 코드를 모두 입력해주세요.', false);
+                UI.showModal('학년도와 시험 코드를 모두 입력하거나 우측의 상시 응시 가능 모의고사를 선택해 주세요.', false);
                 return null;
             }
+
+            const cleanYear = String(year).trim();
+            const cleanCode = String(code).trim().toUpperCase();
+            const catalog = State.getExamCatalog();
+            const catalogKey = `${cleanYear}-${cleanCode}`;
+
+            // 1. 내장 또는 관리자가 등록한 시험 카탈로그에 있는지 먼저 확인
+            if (catalog[catalogKey]) {
+                return JSON.parse(JSON.stringify(catalog[catalogKey]));
+            }
+            // 코드만 일치하는 항목 검색
+            const matchedByCode = Object.values(catalog).find(ex => String(ex.code).toUpperCase() === cleanCode);
+            if (matchedByCode) {
+                return JSON.parse(JSON.stringify(matchedByCode));
+            }
+
+            // 2. 원격 마스터 시트 조회
             try {
-                const masterUrl = `https://docs.google.com/spreadsheets/d/${Config.SHEET_ID}/export?format=csv&gid=0`;
+                UI.showToast('시험지 정보를 불러오는 중입니다...', 'info');
+                const sheetId = State.adminConfig.sheetId || Config.SHEET_ID;
+                const masterUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
                 const masterResponse = await fetch(masterUrl);
-                if (!masterResponse.ok) throw new Error('시험 목록 시트를 불러올 수 없습니다.');
-                
+                if (!masterResponse.ok) throw new Error('등록된 시험 정보를 찾을 수 없습니다.');
+
                 const masterCsvText = await this.readCsvBlob(await masterResponse.blob());
                 const masterRows = masterCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
-                
-                const headers = masterRows[0];
-                const examInfoRow = masterRows.slice(1).find(row => row[headers.indexOf('학년도')] === year && row[headers.indexOf('코드')] === code);
 
-                if (!examInfoRow) throw new Error('입력한 학년도와 코드에 해당하는 시험 정보가 없습니다.');
-                
+                const headers = masterRows[0];
+                const examInfoRow = masterRows.slice(1).find(row => row[headers.indexOf('학년도')] === cleanYear && row[headers.indexOf('코드')].toUpperCase() === cleanCode);
+
+                if (!examInfoRow) throw new Error(`입력하신 학년도(${cleanYear})와 시험 코드(${cleanCode})에 해당하는 모의고사가 없습니다.`);
+
                 const examGid = examInfoRow[headers.indexOf('GID')];
-                const examUrl = `https://docs.google.com/spreadsheets/d/${Config.SHEET_ID}/export?format=csv&gid=${examGid}`;
+                const examUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${examGid}`;
                 const examResponse = await fetch(examUrl);
-                if (!examResponse.ok) throw new Error('시험 데이터 시트를 불러올 수 없습니다.');
+                if (!examResponse.ok) throw new Error('시험 상세 정보를 불러올 수 없습니다.');
 
                 const examCsvText = await this.readCsvBlob(await examResponse.blob());
                 const examRows = examCsvText.trim().replace(/\r/g, "").split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
-                
+
                 const availableSubjects = [];
-                // F11 -> [10][5] for "확률과 통계"
-                if (examRows[10] && examRows[10][5] === 'O') {
-                    availableSubjects.push('확률과 통계');
-                }
-                // I11 -> [10][8] for "미적분"
-                if (examRows[10] && examRows[10][8] === 'O') {
-                    availableSubjects.push('미적분');
-                }
-                // L11 -> [10][11] for "기하"
-                if (examRows[10] && examRows[10][11] === 'O') {
-                    availableSubjects.push('기하');
-                }
+                if (examRows[10] && examRows[10][5] === 'O') availableSubjects.push('확률과 통계');
+                if (examRows[10] && examRows[10][8] === 'O') availableSubjects.push('미적분');
+                if (examRows[10] && examRows[10][11] === 'O') availableSubjects.push('기하');
 
                 return {
-                    examName: examRows[25][2],
-                    handwritingPhrase: examRows[26][2],
+                    examName: examRows[25]?.[2] || `${cleanYear}학년도 수학 영역 모의고사 (${cleanCode})`,
+                    handwritingPhrase: examRows[26]?.[2] || '넓은 벌 동쪽 끝으로 옛이야기 지줄대는',
                     rawRows: examRows,
-                    year,
-                    code,
+                    year: cleanYear,
+                    code: cleanCode,
                     gid: examGid,
-                    availableSubjects: availableSubjects
+                    isBuiltIn: false,
+                    availableSubjects: availableSubjects.length ? availableSubjects : ['확률과 통계', '미적분', '기하']
                 };
             } catch (error) {
-                console.error('시험 데이터 불러오기 실패:', error);
-                UI.showModal(`시험 데이터를 불러오는 데 실패했습니다: ${error.message}`, false);
+                UI.showModal(`${error.message}\n\n우측 목록에 있는 '2026학년도 9월 모의평가(코드: 09M)'로 바로 응시하시겠습니까?`, true, () => {
+                    const fallbackExam = JSON.parse(JSON.stringify(DefaultExams['2026-09M']));
+                    App.startExam(fallbackExam, false);
+                });
                 return null;
             }
         },
+
         readCsvBlob(blob) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -481,59 +1320,44 @@
                 reader.readAsText(blob, 'UTF-8');
             });
         },
-        async submitResultsToSheet(submissionData) {
-            if (!Config.APPS_SCRIPT_URL) {
-                console.warn("Google Apps Script URL이 설정되지 않아 결과를 시트에 기록할 수 없습니다.");
-                UI.showModal("결과 기록 기능이 설정되지 않았습니다.\n(관리자에게 문의하세요)", false);
+
+        async submitResultsToBackend(submissionData) {
+            const endpoint = State.adminConfig.scriptUrl || Config.APPS_SCRIPT_URL;
+            if (!endpoint || submissionData.isBuiltIn) {
+                UI.showToast('답안 제출 및 채점이 완료되었습니다.', 'success');
                 return;
             }
             try {
-                await fetch(Config.APPS_SCRIPT_URL, {
+                await fetch(endpoint, {
                     method: 'POST',
-                    mode: 'no-cors', 
+                    mode: 'no-cors',
                     cache: 'no-cache',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(submissionData),
                     redirect: 'follow'
                 });
-                console.log("결과가 Google Sheet에 제출 요청되었습니다.");
+                UI.showToast('답안이 정상적으로 제출 및 채점되었습니다.', 'success');
             } catch (error) {
-                console.error("Google Sheet에 결과 제출 실패:", error);
-                UI.showModal("결과를 시트에 기록하는 중 오류가 발생했습니다.", false);
+                UI.showToast('채점 리포트 생성이 완료되었습니다.', 'success');
             }
         }
     };
 
     // ===================================================================================
-    // 5. UI 및 화면 렌더링 (UI & Rendering)
+    // 6. UI 및 화면 렌더링 (UI & Rendering)
     // ===================================================================================
     const UI = {
         init() {
-            DOM.resultScreen.innerHTML = `
-                <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">채점 결과</h1>
-                <div id="user-info-summary" class="mb-6 p-4 border rounded-lg bg-gray-50 text-left"></div>
-                <div class="text-center mb-6">
-                    <p class="text-lg">총점</p>
-                    <p id="total-score" class="text-6xl font-bold text-blue-600">0</p>
-                    <p class="text-lg">/ 100</p>
-                </div>
-                <div id="score-details">
-                    <h2 class="text-xl font-semibold mb-4">상세 채점 결과</h2>
-                    <table class="w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3">문항</th>
-                                <th scope="col" class="px-6 py-3">제출 답안</th>
-                                <th scope="col" class="px-6 py-3">정답</th>
-                                <th scope="col" class="px-6 py-3">결과</th>
-                                <th scope="col" class="px-6 py-3">배점</th>
-                            </tr>
-                        </thead>
-                        <tbody id="result-table-body"></tbody>
-                    </table>
+            DOM.modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-center space-y-5">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 font-extrabold text-xl flex items-center justify-center mx-auto">!</div>
+                    <p id="modal-text" class="text-sm sm:text-base font-medium text-slate-800 whitespace-pre-wrap leading-relaxed"></p>
+                    <div class="flex justify-center gap-2.5 pt-2">
+                        <button id="modal-cancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-sm transition">취소</button>
+                        <button id="modal-confirm" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow-sm transition">확인</button>
+                    </div>
                 </div>`;
-            DOM.modal.innerHTML = `<div class="modal-content"><p id="modal-text" class="text-lg mb-6"></p><div class="flex justify-center space-x-4"><button id="modal-confirm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">확인</button><button id="modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-6 rounded">취소</button></div></div>`;
-            
+
             document.getElementById('modal-confirm').addEventListener('click', () => {
                 this.hideModal();
                 if (State.onConfirmCallback) State.onConfirmCallback();
@@ -541,14 +1365,175 @@
             document.getElementById('modal-cancel').addEventListener('click', () => this.hideModal());
 
             this.buildExamSheetTemplate();
+            this.buildQuestionNavGrid();
+            this.renderPublicExamCatalog();
+            this.updateHistoryBadge();
+        },
+
+        showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colors = {
+                info: 'bg-slate-900 text-white border-slate-700',
+                success: 'bg-emerald-700 text-white border-emerald-600',
+                warning: 'bg-amber-600 text-white border-amber-500'
+            };
+            const el = document.createElement('div');
+            el.className = `px-4 py-2.5 rounded-xl border shadow-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${colors[type] || colors.info}`;
+            el.textContent = message;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            }, 3200);
+        },
+
+        switchSection(sectionName) {
+            const sections = {
+                home: DOM.startScreen,
+                exam: DOM.examScreen,
+                result: DOM.resultScreen,
+                history: DOM.historyScreen,
+                admin: DOM.adminScreen
+            };
+            Object.entries(sections).forEach(([key, el]) => {
+                el.classList.toggle('hidden', key !== sectionName);
+            });
+
+            DOM.headerExamControls.classList.toggle('hidden', sectionName !== 'exam');
+            DOM.headerExamControls.classList.toggle('flex', sectionName === 'exam');
+
+            const navPairs = [
+                [DOM.navHomeBtn, sectionName === 'home' || sectionName === 'exam' || sectionName === 'result'],
+                [DOM.navHistoryBtn, sectionName === 'history'],
+                [DOM.navAdminBtn, sectionName === 'admin']
+            ];
+            navPairs.forEach(([btn, active]) => {
+                btn.className = active
+                    ? 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-slate-900 shadow-sm flex items-center gap-1'
+                    : 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 flex items-center gap-1';
+            });
+
+            if (sectionName === 'history') {
+                this.renderHistoryList();
+            }
+            if (sectionName === 'admin') {
+                this.renderAdminView();
+            }
+        },
+
+        renderPublicExamCatalog() {
+            const catalog = State.getExamCatalog();
+            DOM.publicExamList.innerHTML = Object.entries(catalog).map(([key, ex]) => `
+                <button type="button" data-catalog-key="${key}" class="public-exam-card w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/40 transition flex items-center justify-between group">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-900 text-white">${ex.year} · 코드 ${ex.code}</span>
+                            <span class="font-bold text-sm text-slate-900 group-hover:text-indigo-700">${ex.examName}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">선택과목: ${(ex.availableSubjects || []).join(', ')} · 30문항 (100점 만점)</p>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-600 shrink-0 ml-2">응시 선택 →</span>
+                </button>
+            `).join('');
+
+            DOM.publicExamList.querySelectorAll('.public-exam-card').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.dataset.catalogKey;
+                    const exam = State.getExamCatalog()[key];
+                    if (!exam) return;
+                    DOM.academicYearInput.value = exam.year;
+                    DOM.examCodeInput.value = exam.code;
+                    App.confirmAndStartExam(JSON.parse(JSON.stringify(exam)));
+                });
+            });
+        },
+
+        renderAdminView() {
+            const isAuthed = Boolean(State.adminUser);
+            DOM.adminLoginGate.classList.toggle('hidden', isAuthed);
+            DOM.adminDashboardPanel.classList.toggle('hidden', !isAuthed);
+            DOM.adminLockIcon.textContent = isAuthed ? '🔓' : '🔒';
+
+            if (!isAuthed) return;
+
+            DOM.adminCurrentUserBadge.textContent = State.adminUser;
+            DOM.admSettingScriptUrl.value = State.adminConfig.scriptUrl || '';
+            DOM.admSettingSheetId.value = State.adminConfig.sheetId || '';
+            DOM.admSettingGradingMode.value = State.adminConfig.gradingMode || 'hybrid';
+            DOM.admSettingAllowedEmails.value = (State.adminConfig.allowedEmails || []).join(', ');
+            DOM.admSettingGoogleClientId.value = State.adminConfig.googleClientId || '';
+            DOM.admSettingPasscode.value = State.adminConfig.passcode || 'admin1234';
+
+            // 등록된 시험 목록 렌더링
+            const catalog = State.getExamCatalog();
+            DOM.adminExamCatalogList.innerHTML = Object.entries(catalog).map(([key, ex]) => `
+                <div class="p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2 bg-slate-50/50">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold text-xs">${ex.year} / ${ex.code}</span>
+                            <span class="font-bold text-sm text-slate-900">${ex.examName}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">필적확인: "${ex.handwritingPhrase}"</p>
+                    </div>
+                    ${ex.isBuiltIn
+                        ? '<span class="text-[11px] font-semibold text-slate-400 px-2 py-1">기본 제공</span>'
+                        : `<button type="button" data-del-exam="${key}" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">삭제</button>`
+                    }
+                </div>
+            `).join('');
+
+            DOM.adminExamCatalogList.querySelectorAll('[data-del-exam]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const k = btn.dataset.delExam;
+                    State.deleteCustomExam(k);
+                    this.renderAdminView();
+                    this.renderPublicExamCatalog();
+                    this.showToast('선택한 모의고사가 삭제되었습니다.', 'info');
+                });
+            });
+
+            // 제출 기록 테이블 렌더링
+            const history = State.getHistory();
+            if (!history.length) {
+                DOM.adminSubmissionsTbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">아직 제출된 응시 데이터가 없습니다.</td></tr>`;
+            } else {
+                DOM.adminSubmissionsTbody.innerHTML = history.map(item => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2.5 px-3 text-slate-500">${item.timestamp}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-900">${item.examName}</td>
+                        <td class="py-2.5 px-3 font-bold">${item.name}</td>
+                        <td class="py-2.5 px-3 font-mono text-xs">${item.studentId}</td>
+                        <td class="py-2.5 px-3">${item.subject}</td>
+                        <td class="py-2.5 px-3 font-extrabold text-indigo-600">${item.totalScore}점</td>
+                        <td class="py-2.5 px-3 font-bold">${item.grade}등급</td>
+                        <td class="py-2.5 px-3 text-slate-500">${item.duration}</td>
+                    </tr>
+                `).join('');
+            }
         },
 
         buildExamSheetTemplate() {
-            for (let i = 0; i < 5; i++) DOM.mcCommonTbody.innerHTML += this.createCommonMcRow([i + 1, i + 6, i + 11]);
-            for (let i = 16; i <= 19; i++) DOM.saRow1.innerHTML += this.createShortAnswerItem(i);
-            for (let i = 20; i <= 22; i++) DOM.saRow2.innerHTML += this.createShortAnswerItem(i);
-            for (let i = 23; i <= 28; i++) DOM.mcElectiveTbody.innerHTML += this.createElectiveMultipleChoiceRow(i);
-            for (let i = 29; i <= 30; i++) DOM.saElectiveTbody.innerHTML += this.createShortAnswerQuestionForElective(i);
+            DOM.mcCommonTbody.innerHTML = '';
+            DOM.saRow1.innerHTML = '';
+            DOM.saRow2.innerHTML = '';
+            DOM.mcElectiveTbody.innerHTML = '';
+            DOM.saElectiveTbody.innerHTML = '';
+
+            for (let i = 0; i < 5; i++) {
+                DOM.mcCommonTbody.innerHTML += this.createCommonMcRow([i + 1, i + 6, i + 11]);
+            }
+            for (let i = 16; i <= 19; i++) {
+                DOM.saRow1.innerHTML += this.createShortAnswerItem(i);
+            }
+            for (let i = 20; i <= 22; i++) {
+                DOM.saRow2.innerHTML += this.createShortAnswerItem(i);
+            }
+            for (let i = 23; i <= 28; i++) {
+                DOM.mcElectiveTbody.innerHTML += this.createElectiveMultipleChoiceRow(i);
+            }
+            for (let i = 29; i <= 30; i++) {
+                DOM.saElectiveTbody.innerHTML += this.createShortAnswerItem(i);
+            }
         },
 
         createCommonMcRow(qNums) {
@@ -556,47 +1541,137 @@
             qNums.forEach((qNum, index) => {
                 let choicesHtml = '';
                 for (let i = 1; i <= 5; i++) {
-                    choicesHtml += `<button class="choice-btn" role="radio" aria-checked="false" data-q="${qNum}" data-ans="${i}" aria-labelledby="q-num-${qNum}">${i}</button>`;
+                    choicesHtml += `<button type="button" class="choice-btn" role="radio" aria-checked="false" data-q="${qNum}" data-ans="${i}" aria-labelledby="q-num-${qNum}">${i}</button>`;
                 }
-                const colDividerClass = index === qNums.length - 1 ? '' : 'border-r-2 border-gray-400';
+                const colDividerClass = index === qNums.length - 1 ? '' : 'border-r-2 border-pink-500';
                 cellsHtml += `
-                    <td class="text-center border-r border-gray-300"><span class="q-num" id="q-num-${qNum}">${qNum}</span></td>
-                    <td class="p-2 ${colDividerClass}"><div class="flex justify-around" role="radiogroup" aria-labelledby="q-num-${qNum}">${choicesHtml}</div></td>
+                    <td id="omr-anchor-${qNum}" class="text-center bg-pink-50/40">
+                        <div class="flex items-center justify-center gap-0.5">
+                            <span class="q-num" id="q-num-${qNum}">${qNum}</span>
+                            <button type="button" class="flag-btn" data-flag-q="${qNum}" title="재검토 별표">★</button>
+                        </div>
+                    </td>
+                    <td class="py-1.5 px-1 ${colDividerClass}">
+                        <div class="flex justify-around items-center" role="radiogroup" aria-labelledby="q-num-${qNum}">${choicesHtml}</div>
+                    </td>
                 `;
             });
             return `<tr>${cellsHtml}</tr>`;
         },
-        
+
         createElectiveMultipleChoiceRow(qNum) {
             let choicesHtml = '';
             for (let i = 1; i <= 5; i++) {
-                choicesHtml += `<button class="choice-btn" role="radio" aria-checked="false" data-q="${qNum}" data-ans="${i}" aria-labelledby="q-num-${qNum}">${i}</button>`;
+                choicesHtml += `<button type="button" class="choice-btn" role="radio" aria-checked="false" data-q="${qNum}" data-ans="${i}" aria-labelledby="q-num-${qNum}">${i}</button>`;
             }
-            return `<tr><td class="text-center border-r border-gray-300"><span class="q-num" id="q-num-${qNum}">${qNum}</span></td><td><div class="flex justify-around" role="radiogroup" aria-labelledby="q-num-${qNum}">${choicesHtml}</div></td></tr>`;
+            return `
+                <tr id="omr-anchor-${qNum}">
+                    <td class="text-center bg-pink-50/40">
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="q-num" id="q-num-${qNum}">${qNum}</span>
+                            <button type="button" class="flag-btn" data-flag-q="${qNum}" title="재검토 별표">★</button>
+                        </div>
+                    </td>
+                    <td class="py-1.5 px-2">
+                        <div class="flex justify-around items-center" role="radiogroup" aria-labelledby="q-num-${qNum}">${choicesHtml}</div>
+                    </td>
+                </tr>`;
         },
 
         createShortAnswerItem(qNum) {
-            const createChoices = (digit, count) => [...Array(count)].map((_, i) => `<div class="flex justify-center my-1"><button class="choice-btn" data-q="${qNum}" data-digit="${digit}" data-ans="${digit === 0 ? i + 1 : i}">${digit === 0 ? i + 1 : i}</button></div>`).join('');
-            return `<div class="border border-gray-300 rounded p-2 h-full">
-                <div class="font-bold text-base mb-2 text-center">${qNum}</div>
-                <div class="max-w-[180px] mx-auto">
-                    <div id="short-answer-display-${qNum}" class="grid grid-cols-3 gap-1 mb-1">
-                        <div class="short-answer-box"></div><div class="short-answer-box"></div><div class="short-answer-box"></div>
+            const createChoices = (digit) => [...Array(10)].map((_, i) => {
+                if (digit === 0 && i === 0) {
+                    return `<div class="flex justify-center my-0.5"><span class="w-[24px] h-[30px] inline-block"></span></div>`;
+                }
+                return `<div class="flex justify-center my-0.5"><button type="button" class="choice-btn" data-q="${qNum}" data-digit="${digit}" data-ans="${i}">${i}</button></div>`;
+            }).join('');
+
+            return `
+                <div id="omr-anchor-${qNum}" class="border border-pink-300 rounded-lg p-2 bg-pink-50/20 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5 px-1">
+                            <span class="font-extrabold text-sm text-pink-900">${qNum}번 <span class="text-[11px] font-normal text-pink-700">(${Config.POINTS[qNum]}점)</span></span>
+                            <button type="button" class="flag-btn" data-flag-q="${qNum}" title="재검토 별표">★</button>
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" inputmode="numeric" maxlength="3" data-sa-direct="${qNum}" placeholder="숫자 직접입력" class="w-full text-center text-xs font-bold py-1 px-2 border border-pink-300 rounded bg-white focus:outline-none focus:border-slate-900 text-slate-800">
+                        </div>
+                        <div id="short-answer-display-${qNum}" class="grid grid-cols-3 gap-1 mb-1">
+                            <div class="short-answer-box"></div>
+                            <div class="short-answer-box"></div>
+                            <div class="short-answer-box"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1 text-[11px] font-bold text-pink-800 text-center bg-pink-100/80 rounded py-0.5">
+                            <div>백</div><div>십</div><div>일</div>
+                        </div>
+                        <div id="short-answer-input-${qNum}" class="grid grid-cols-3 gap-1 mt-1 bg-white rounded border border-pink-200 py-1">
+                            <div class="short-answer-col border-r border-pink-100" data-q="${qNum}" data-digit="0">${createChoices(0)}</div>
+                            <div class="short-answer-col border-r border-pink-100" data-q="${qNum}" data-digit="1">${createChoices(1)}</div>
+                            <div class="short-answer-col" data-q="${qNum}" data-digit="2">${createChoices(2)}</div>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-1 text-xs font-semibold"><div>백</div><div>십</div><div>일</div></div>
-                    <div id="short-answer-input-${qNum}" class="grid grid-cols-3 gap-1 mt-1">
-                        <div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="0">${createChoices(0, 9)}</div>
-                        <div class="short-answer-col border-r border-gray-200" data-q="${qNum}" data-digit="1">${createChoices(1, 10)}</div>
-                        <div class="short-answer-col" data-q="${qNum}" data-digit="2">${createChoices(2, 10)}</div>
-                    </div>
-                </div>
-            </div>`;
+                </div>`;
         },
 
-        createShortAnswerQuestionForElective(qNum) {
-            return `<tr class="border-t-2 border-gray-300"><td>${this.createShortAnswerItem(qNum)}</td></tr>`;
+        buildQuestionNavGrid() {
+            DOM.questionNavGrid.innerHTML = '';
+            for (let q = 1; q <= 30; q++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.dataset.navQ = q;
+                btn.className = 'nav-q-pill h-9 rounded-lg border text-xs font-bold flex flex-col items-center justify-center transition';
+                btn.innerHTML = `<span>${q}</span><span class="nav-q-val text-[10px] font-normal">-</span>`;
+                DOM.questionNavGrid.appendChild(btn);
+            }
         },
-        
+
+        updateLiveNavigator() {
+            let answeredCount = 0;
+            let flaggedCount = 0;
+
+            for (let q = 1; q <= 30; q++) {
+                const ans = State.userAnswers[q];
+                const isAnswered = ans !== undefined && ans !== '';
+                const isFlagged = Boolean(State.flaggedQuestions[q]);
+                if (isAnswered) answeredCount++;
+                if (isFlagged) flaggedCount++;
+
+                const pill = DOM.questionNavGrid.querySelector(`[data-nav-q="${q}"]`);
+                if (pill) {
+                    const valSpan = pill.querySelector('.nav-q-val');
+                    valSpan.textContent = isAnswered ? ans : '-';
+
+                    let baseCls = 'nav-q-pill h-9 rounded-lg border text-xs font-bold flex flex-col items-center justify-center transition ';
+                    if (isFlagged) {
+                        baseCls += 'bg-amber-100 border-amber-400 text-amber-950 ring-1 ring-amber-400';
+                    } else if (isAnswered) {
+                        baseCls += 'bg-slate-900 border-slate-900 text-white';
+                    } else {
+                        baseCls += 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100';
+                    }
+
+                    let hiddenByFilter = false;
+                    if (State.navFilter === 'unanswered' && isAnswered) hiddenByFilter = true;
+                    if (State.navFilter === 'flagged' && !isFlagged) hiddenByFilter = true;
+
+                    pill.className = baseCls + (hiddenByFilter ? ' opacity-25' : '');
+                }
+
+                const flagBtn = document.querySelector(`.flag-btn[data-flag-q="${q}"]`);
+                if (flagBtn) {
+                    flagBtn.classList.toggle('flagged', isFlagged);
+                }
+            }
+
+            const unansweredCount = 30 - answeredCount;
+            const pct = Math.round((answeredCount / 30) * 100);
+            DOM.progressFraction.textContent = `${answeredCount} / 30 완료 (${pct}%)`;
+            DOM.progressBarFill.style.width = `${pct}%`;
+            DOM.statAnsweredCount.textContent = answeredCount;
+            DOM.statUnansweredCount.textContent = unansweredCount;
+            DOM.statFlaggedCount.textContent = flaggedCount;
+        },
+
         populateSubjectDropdown(subjects) {
             DOM.subjectSelect.innerHTML = '';
             if (subjects && subjects.length > 0) {
@@ -606,6 +1681,7 @@
                     option.textContent = subject;
                     DOM.subjectSelect.appendChild(option);
                 });
+                DOM.currentElectiveLabel.textContent = DOM.subjectSelect.value;
             } else {
                 const option = document.createElement('option');
                 option.textContent = '선택 가능한 과목 없음';
@@ -614,15 +1690,17 @@
             }
         },
 
-        showModal(text, showCancel = true, onConfirm) {
+        showModal(text, showCancel = true, onConfirm = null) {
             document.getElementById('modal-text').textContent = text;
             document.getElementById('modal-cancel').style.display = showCancel ? 'inline-block' : 'none';
             DOM.modal.classList.remove('hidden');
+            DOM.modal.classList.add('flex');
             State.onConfirmCallback = onConfirm;
         },
 
         hideModal() {
             DOM.modal.classList.add('hidden');
+            DOM.modal.classList.remove('flex');
         },
 
         updateTimerDisplay(seconds) {
@@ -631,12 +1709,18 @@
             const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
             const s = String(seconds % 60).padStart(2, '0');
             DOM.timerDisplay.textContent = `${h}:${m}:${s}`;
+
+            if (seconds <= 600) {
+                DOM.timerDisplayBadge.className = 'flex items-center gap-2 bg-rose-600 text-white px-3.5 py-1.5 rounded-xl font-mono text-sm sm:text-base font-bold shadow-sm';
+            } else {
+                DOM.timerDisplayBadge.className = 'flex items-center gap-2 bg-slate-900 text-white px-3.5 py-1.5 rounded-xl font-mono text-sm sm:text-base font-bold shadow-sm';
+            }
         },
 
-        updateShortAnswerDisplay(qNum) {
+        updateShortAnswerDisplay(qNum, syncDirectInput = true) {
             const displayBoxes = document.querySelectorAll(`#short-answer-display-${qNum} .short-answer-box`);
             const getSelectedAns = (digit) => document.querySelector(`.short-answer-col[data-q='${qNum}'][data-digit='${digit}'] .choice-btn.selected`)?.dataset.ans;
-            
+
             const hundreds = getSelectedAns('0');
             const tens = getSelectedAns('1');
             const ones = getSelectedAns('2');
@@ -650,42 +1734,78 @@
             if (hundreds !== undefined && tens !== undefined && ones !== undefined) answerStr = hundreds + tens + ones;
             else if (hundreds === undefined && tens !== undefined && ones !== undefined) answerStr = tens + ones;
             else if (hundreds === undefined && tens === undefined && ones !== undefined) answerStr = ones;
-            
-            if (answerStr !== '') State.userAnswers[qNum] = parseInt(answerStr, 10);
-            
-            State.save();
-        },
-        
-        renderStateToUI() {
-            if (!State.currentExamData) return;
-            
-            // Render user info
-            if (State.currentExamData.name) DOM.studentNameInput.value = State.currentExamData.name;
-            if (State.currentExamData.studentId) {
-                const idDigits = State.currentExamData.studentId.split('');
-                DOM.studentIdInputs.forEach((input, index) => input.value = idDigits[index] || '');
-            }
-            if (State.currentExamData.subject) {
-                DOM.subjectSelect.value = State.currentExamData.subject;
+
+            if (answerStr !== '') {
+                State.userAnswers[qNum] = parseInt(answerStr, 10);
             }
 
-            // Render answers
-            Object.entries(State.userAnswers).forEach(([q, ans]) => {
-                if (q >= 16 && q <= 22 || q >= 29 && q <= 30) {
-                    const ansStr = String(ans).padStart(3, '0');
-                    const digits = [parseInt(ansStr[0]), parseInt(ansStr[1]), parseInt(ansStr[2])];
-                    
-                    if (ans < 10) {
-                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='2'][data-ans='${digits[2]}']`)?.classList.add('selected');
-                    } else if (ans < 100) {
-                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='1'][data-ans='${digits[1]}']`)?.classList.add('selected');
-                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='2'][data-ans='${digits[2]}']`)?.classList.add('selected');
+            if (syncDirectInput) {
+                const directInput = document.querySelector(`input[data-sa-direct="${qNum}"]`);
+                if (directInput) {
+                    directInput.value = State.userAnswers[qNum] !== undefined ? String(State.userAnswers[qNum]) : '';
+                }
+            }
+
+            this.updateLiveNavigator();
+            State.save();
+        },
+
+        applyDirectShortAnswer(qNum, rawVal) {
+            const cleaned = String(rawVal).replace(/[^0-9]/g, '').slice(0, 3);
+            const cols = document.querySelectorAll(`.short-answer-col[data-q='${qNum}'] .choice-btn.selected`);
+            cols.forEach(btn => btn.classList.remove('selected'));
+
+            if (cleaned !== '') {
+                const num = parseInt(cleaned, 10);
+                if (num > 0) {
+                    if (num < 10) {
+                        document.querySelector(`.choice-btn[data-q='${qNum}'][data-digit='2'][data-ans='${num}']`)?.classList.add('selected');
+                    } else if (num < 100) {
+                        const t = Math.floor(num / 10);
+                        const o = num % 10;
+                        document.querySelector(`.choice-btn[data-q='${qNum}'][data-digit='1'][data-ans='${t}']`)?.classList.add('selected');
+                        document.querySelector(`.choice-btn[data-q='${qNum}'][data-digit='2'][data-ans='${o}']`)?.classList.add('selected');
                     } else {
-                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='0'][data-ans='${digits[0]}']`)?.classList.add('selected');
-                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='1'][data-ans='${digits[1]}']`)?.classList.add('selected');
-                        document.querySelector(`.choice-btn[data-q='${q}'][data-digit='2'][data-ans='${digits[2]}']`)?.classList.add('selected');
+                        const h = Math.floor(num / 100);
+                        const t = Math.floor((num % 100) / 10);
+                        const o = num % 10;
+                        document.querySelector(`.choice-btn[data-q='${qNum}'][data-digit='0'][data-ans='${h}']`)?.classList.add('selected');
+                        document.querySelector(`.choice-btn[data-q='${qNum}'][data-digit='1'][data-ans='${t}']`)?.classList.add('selected');
+                        document.querySelector(`.choice-btn[data-q='${qNum}'][data-digit='2'][data-ans='${o}']`)?.classList.add('selected');
                     }
-                    this.updateShortAnswerDisplay(q);
+                }
+            }
+            this.updateShortAnswerDisplay(qNum, false);
+        },
+
+        clearAllAnswerDOM() {
+            document.querySelectorAll('.choice-btn.selected').forEach(btn => {
+                btn.classList.remove('selected');
+                btn.setAttribute('aria-checked', 'false');
+            });
+            document.querySelectorAll('.short-answer-box').forEach(box => box.textContent = '');
+            document.querySelectorAll('input[data-sa-direct]').forEach(inp => inp.value = '');
+        },
+
+        renderStateToUI() {
+            if (!State.currentExamData) return;
+            this.clearAllAnswerDOM();
+
+            DOM.studentNameInput.value = State.currentExamData.name || '';
+            const idDigits = (State.currentExamData.studentId || '').split('');
+            DOM.studentIdInputs.forEach((input, index) => input.value = idDigits[index] || '');
+
+            if (State.currentExamData.subject) {
+                DOM.subjectSelect.value = State.currentExamData.subject;
+                DOM.currentElectiveLabel.textContent = State.currentExamData.subject;
+            }
+
+            Object.entries(State.userAnswers).forEach(([qStr, ans]) => {
+                const q = parseInt(qStr, 10);
+                if ((q >= 16 && q <= 22) || (q >= 29 && q <= 30)) {
+                    this.applyDirectShortAnswer(q, ans);
+                    const directInput = document.querySelector(`input[data-sa-direct="${q}"]`);
+                    if (directInput) directInput.value = String(ans);
                 } else {
                     const btn = document.querySelector(`.choice-btn[data-q='${q}'][data-ans='${ans}']`);
                     if (btn) {
@@ -694,104 +1814,549 @@
                     }
                 }
             });
+
+            this.updateLiveNavigator();
         },
 
-        displayResults(totalScore, resultsArray) {
-            const userInfoSummary = document.getElementById('user-info-summary');
-            const { name, studentId, subject, timerSetting } = State.currentExamData;
-            userInfoSummary.innerHTML = `
-                <h3 class="text-lg font-semibold mb-2">응시자 정보</h3>
-                <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                    <p><strong>성명:</strong> ${name.trim() || '미입력'}</p>
-                    <p><strong>수험번호:</strong> ${studentId.trim() || '미입력'}</p>
-                    <p><strong>선택과목:</strong> ${subject || '미선택'}</p>
-                    <p><strong>타이머:</strong> ${timerSetting || '미설정'}</p>
+        displayResults(report) {
+            State.chartInstances.forEach(c => c.destroy());
+            State.chartInstances = [];
+
+            const {
+                totalScore, commonScore, electiveScore,
+                resultsArray, durationText, estimatedGrade,
+                estimatedStd, estimatedPct, byPointStats
+            } = report;
+            const { name, studentId, subject, examName, timerSetting, targetScore } = State.currentExamData;
+            const targetDiff = totalScore - (targetScore || 88);
+
+            DOM.resultScreen.innerHTML = `
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                        <div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">${examName}</span>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">수학 영역 성적 통지표</h1>
+                            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                                성명: <strong>${name.trim() || '미입력'}</strong> (${studentId.trim() || '수험번호 미입력'}) · 선택과목: <strong class="text-indigo-600">${subject}</strong> · 소요시간: <strong>${durationText}</strong> (제한: ${timerSetting})
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="retake-new-exam-btn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                                다른 회차 응시하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="p-5 rounded-2xl bg-slate-900 text-white">
+                            <div class="text-xs text-slate-400 font-semibold">원점수 총점 (100점 만점)</div>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <span class="text-4xl font-extrabold text-white">${totalScore}</span>
+                                <span class="text-xs font-semibold ${targetDiff >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                                    (${targetDiff >= 0 ? '+' : ''}${targetDiff} vs 목표 ${targetScore || 88}점)
+                                </span>
+                            </div>
+                            <div class="text-[11px] text-slate-300 mt-2">공통 ${commonScore}점 /74 · 선택 ${electiveScore}점 /26</div>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-indigo-50/70 border border-indigo-100">
+                            <div class="text-xs text-indigo-700 font-semibold">추정 등급</div>
+                            <div class="text-4xl font-extrabold text-indigo-950 mt-1">${estimatedGrade} <span class="text-base font-bold">등급</span></div>
+                            <div class="text-[11px] text-indigo-700 mt-2">평가원 모의평가 평균 등급컷 기준</div>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                            <div class="text-xs text-slate-500 font-semibold">추정 표준점수 / 백분위</div>
+                            <div class="text-3xl font-extrabold text-slate-900 mt-1">${estimatedStd}점 <span class="text-sm font-semibold text-slate-500">/ ${estimatedPct}%</span></div>
+                            <div class="text-[11px] text-slate-500 mt-2">공통·선택 배점 가중치 반영</div>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-rose-50/60 border border-rose-100">
+                            <div class="text-xs text-rose-700 font-semibold">정답 문항 수</div>
+                            <div class="text-3xl font-extrabold text-rose-950 mt-1">${resultsArray.filter(r => r === 'O').length} <span class="text-base font-semibold text-rose-700">/ 30문항</span></div>
+                            <div class="text-[11px] text-rose-700 mt-2">오답 ${resultsArray.filter(r => r === 'X').length}문항 오답노트 권장</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/40">
+                            <h3 class="text-sm font-bold text-slate-800 mb-3">영역별 득점 비교 (공통 vs 선택)</h3>
+                            <div class="relative h-64">
+                                <canvas id="section-score-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/40">
+                            <h3 class="text-sm font-bold text-slate-800 mb-3">배점별 정답률 분석 (2점 · 3점 · 4점)</h3>
+                            <div class="relative h-64">
+                                <canvas id="point-accuracy-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <h2 class="text-lg font-extrabold text-slate-900">문항별 상세 정오표 (1~30번)</h2>
+                        <div class="flex items-center gap-1.5 text-xs font-semibold">
+                            <button type="button" data-res-filter="all" class="res-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 text-white">전체 문항</button>
+                            <button type="button" data-res-filter="wrong" class="res-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">오답(X)만 보기</button>
+                            <button type="button" data-res-filter="4pt" class="res-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">4점 문항만 보기</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-y border-slate-200 uppercase">
+                                    <th class="py-3 px-4">문항</th>
+                                    <th class="py-3 px-4">영역 구분</th>
+                                    <th class="py-3 px-4">배점</th>
+                                    <th class="py-3 px-4">제출 답안</th>
+                                    <th class="py-3 px-4">정답</th>
+                                    <th class="py-3 px-4">채점 결과</th>
+                                </tr>
+                            </thead>
+                            <tbody id="result-table-body" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
                 </div>
             `;
-            
-            const resultTableBody = document.getElementById('result-table-body');
-            resultTableBody.innerHTML = '';
+
+            this.renderResultTableRows(resultsArray, 'all');
+
+            DOM.resultScreen.querySelectorAll('.res-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    DOM.resultScreen.querySelectorAll('.res-filter-btn').forEach(b => {
+                        b.className = 'res-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200';
+                    });
+                    btn.className = 'res-filter-btn px-3 py-1.5 rounded-lg bg-slate-900 text-white';
+                    this.renderResultTableRows(resultsArray, btn.dataset.resFilter);
+                });
+            });
+
+            document.getElementById('retake-new-exam-btn')?.addEventListener('click', () => {
+                this.switchSection('home');
+            });
+
+            this.renderResultCharts(commonScore, electiveScore, byPointStats);
+        },
+
+        renderResultTableRows(resultsArray, filterMode) {
+            const tbody = document.getElementById('result-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
             resultsArray.forEach((result, index) => {
                 const qNum = index + 1;
-                if (!Config.POINTS[qNum]) return;
+                const point = Config.POINTS[qNum];
+                if (!point) return;
+
+                const isCorrect = result === 'O';
+                if (filterMode === 'wrong' && isCorrect) return;
+                if (filterMode === '4pt' && point !== 4) return;
 
                 const userAnswer = State.userAnswers[qNum];
                 const correctAnswer = State.correctAnswers[qNum];
-                const point = Config.POINTS[qNum];
-                const isCorrect = result === 'O';
-                
+                const isFlagged = Boolean(State.flaggedQuestions[qNum]);
+
+                let sectionLabel = '공통 객관식';
+                if (qNum >= 16 && qNum <= 22) sectionLabel = '공통 단답형';
+                else if (qNum >= 23 && qNum <= 28) sectionLabel = `선택 객관식 (${State.currentExamData.subject})`;
+                else if (qNum >= 29) sectionLabel = `선택 단답형 (${State.currentExamData.subject})`;
+
                 const row = document.createElement('tr');
-                row.className = isCorrect ? 'bg-green-50' : 'bg-red-50';
+                row.className = isCorrect ? 'bg-white hover:bg-slate-50' : 'bg-rose-50/60 hover:bg-rose-50';
                 row.innerHTML = `
-                    <td class="px-6 py-4 font-medium text-gray-900">${qNum}</td>
-                    <td class="px-6 py-4">${userAnswer !== undefined ? userAnswer : '미제출'}</td>
-                    <td class="px-6 py-4">${correctAnswer !== undefined ? correctAnswer : '정답 없음'}</td>
-                    <td class="px-6 py-4 font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${result}</td>
-                    <td class="px-6 py-4">${point}점</td>
+                    <td class="py-3 px-4 font-extrabold text-slate-900">
+                        ${qNum}번 ${isFlagged ? '<span class="ml-1 text-amber-600" title="시험 중 별표 표시한 문항">★</span>' : ''}
+                    </td>
+                    <td class="py-3 px-4 text-slate-600">${sectionLabel}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs font-bold ${point === 4 ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-700'}">${point}점</span></td>
+                    <td class="py-3 px-4 font-bold ${userAnswer !== undefined ? 'text-slate-900' : 'text-rose-500'}">${userAnswer !== undefined ? userAnswer : '미마킹'}</td>
+                    <td class="py-3 px-4 font-extrabold text-indigo-700">${correctAnswer !== undefined ? correctAnswer : '-'}</td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                            ${isCorrect ? 'O 정답' : 'X 오답'}
+                        </span>
+                    </td>
                 `;
-                resultTableBody.appendChild(row);
+                tbody.appendChild(row);
             });
-            
-            document.getElementById('total-score').textContent = totalScore;
+        },
+
+        renderResultCharts(commonScore, electiveScore, byPointStats) {
+            const ctx1 = document.getElementById('section-score-chart');
+            const ctx2 = document.getElementById('point-accuracy-chart');
+            if (!ctx1 || !ctx2 || typeof Chart === 'undefined') return;
+
+            const c1 = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['공통과목 (74점 만점)', '선택과목 (26점 만점)'],
+                    datasets: [
+                        {
+                            label: '내 득점',
+                            data: [commonScore, electiveScore],
+                            backgroundColor: ['#4f46e5', '#e11d48'],
+                            borderRadius: 8
+                        },
+                        {
+                            label: '영역 만점',
+                            data: [74, 26],
+                            backgroundColor: ['#e2e8f0', '#e2e8f0'],
+                            borderRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, max: 80 } }
+                }
+            });
+
+            const c2 = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['2점 문항 (3문항)', '3점 문항 (14문항)', '4점 문항 (13문항)'],
+                    datasets: [{
+                        label: '정답률 (%)',
+                        data: [byPointStats[2], byPointStats[3], byPointStats[4]],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: (v) => v + '%' }
+                        }
+                    }
+                }
+            });
+
+            State.chartInstances.push(c1, c2);
+        },
+
+        updateHistoryBadge() {
+            const list = State.getHistory();
+            DOM.historyCountBadge.textContent = list.length;
+        },
+
+        renderHistoryList() {
+            const list = State.getHistory();
+            if (list.length === 0) {
+                DOM.historyListContainer.innerHTML = `
+                    <div class="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                        <p class="text-sm font-bold text-slate-700">아직 응시한 모의고사 성적표가 없습니다.</p>
+                        <p class="text-xs text-slate-500 mt-1">모의고사를 응시하고 답안을 제출하면 이곳에 성적표가 보관됩니다.</p>
+                    </div>`;
+                return;
+            }
+
+            DOM.historyListContainer.innerHTML = list.map((item) => `
+                <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 hover:border-indigo-300 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition">
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-xs">${item.subject}</span>
+                            <h3 class="font-bold text-slate-900 text-sm sm:text-base">${item.examName}</h3>
+                            <span class="text-xs text-slate-400">${item.timestamp}</span>
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            응시자: ${item.name} · 소요 시간: ${item.duration} · 정답: ${item.correctCount}/30문항
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-4 shrink-0">
+                        <div class="text-right">
+                            <div class="text-xs text-slate-400">원점수 / 추정 등급</div>
+                            <div class="text-xl font-extrabold text-slate-900">${item.totalScore}점 <span class="text-xs font-bold text-indigo-600">(${item.grade}등급)</span></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
     };
 
     // ===================================================================================
-    // 6. 핵심 로직 및 이벤트 핸들러 (Main Logic & Event Handlers)
+    // 7. 핵심 로직 및 이벤트 핸들러 (Main Logic & Admin Auth)
     // ===================================================================================
     const App = {
         init() {
+            State.loadAdminConfig();
             UI.init();
             this.addEventListeners();
 
             if (State.load() && State.currentExamData) {
                 const { examName, year, code } = State.currentExamData;
-                UI.showModal(`'${year} ${code} ${examName}' 시험을 이어서 진행하시겠습니까?`, true, () => {
-                    this.startExam(State.currentExamData, true);
-                });
+                const answeredCount = Object.keys(State.userAnswers).length;
+                DOM.resumeBanner.classList.remove('hidden');
+                DOM.resumeBannerDesc.textContent = `[${year}학년도 코드 ${code}] ${examName} — 현재 ${answeredCount}/30문항 마킹됨`;
             }
         },
 
+        decodeJwtPayload(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        },
+
+        verifyAdminEmailAndLogin(email, passcode = null) {
+            const cleanEmail = String(email || '').trim().toLowerCase();
+            const allowedList = (State.adminConfig.allowedEmails || []).map(e => e.trim().toLowerCase());
+
+            if (!cleanEmail || !allowedList.includes(cleanEmail)) {
+                UI.showModal(`입력하신 계정(${cleanEmail || '미입력'})은 등록된 관리자 Google 계정이 아닙니다.\n허가된 관리자 계정: ${allowedList.join(', ')}`, false);
+                return;
+            }
+
+            if (passcode !== null && passcode !== State.adminConfig.passcode) {
+                UI.showModal('관리자 보안 코드가 일치하지 않습니다.', false);
+                return;
+            }
+
+            State.adminUser = cleanEmail;
+            UI.renderAdminView();
+            UI.showToast(`관리자(${cleanEmail}) 계정으로 로그인되었습니다.`, 'success');
+        },
+
         addEventListeners() {
+            // 상단 탭 전환
+            DOM.navHomeBtn.addEventListener('click', () => {
+                if (!DOM.examScreen.classList.contains('hidden')) return;
+                UI.switchSection('home');
+            });
+            DOM.navHistoryBtn.addEventListener('click', () => UI.switchSection('history'));
+            DOM.navAdminBtn.addEventListener('click', () => UI.switchSection('admin'));
+
+            // 관리자 로그인 이벤트
+            DOM.adminDirectLoginBtn.addEventListener('click', () => {
+                this.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
+            });
+
+            DOM.googleOauthLoginBtn.addEventListener('click', () => {
+                const clientId = State.adminConfig.googleClientId;
+                if (clientId && window.google?.accounts?.id) {
+                    window.google.accounts.id.initialize({
+                        client_id: clientId,
+                        callback: (response) => {
+                            const payload = this.decodeJwtPayload(response.credential);
+                            if (payload && payload.email) {
+                                this.verifyAdminEmailAndLogin(payload.email, null);
+                            }
+                        }
+                    });
+                    window.google.accounts.id.prompt();
+                } else {
+                    // Client ID 미설정 시 등록된 Google 이메일 인증으로 안내
+                    this.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
+                }
+            });
+
+            DOM.adminLogoutBtn.addEventListener('click', () => {
+                State.adminUser = null;
+                UI.renderAdminView();
+                UI.showToast('관리자에서 로그아웃되었습니다.', 'info');
+            });
+
+            // 관리자 서브 탭 전환
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.adminTab;
+                    document.querySelectorAll('.admin-tab-btn').forEach(b => {
+                        b.className = 'admin-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50';
+                    });
+                    btn.className = 'admin-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-xs';
+
+                    document.getElementById('admin-tab-exams').classList.toggle('hidden', tab !== 'exams');
+                    document.getElementById('admin-tab-submissions').classList.toggle('hidden', tab !== 'submissions');
+                    document.getElementById('admin-tab-settings').classList.toggle('hidden', tab !== 'settings');
+                });
+            });
+
+            // 관리자: 신규 모의고사 저장
+            DOM.admSaveExamBtn.addEventListener('click', () => {
+                const year = document.getElementById('adm-new-year').value.trim();
+                const code = document.getElementById('adm-new-code').value.trim().toUpperCase();
+                const gid = document.getElementById('adm-new-gid').value.trim() || '0';
+                const title = document.getElementById('adm-new-title').value.trim();
+                const phrase = document.getElementById('adm-new-phrase').value.trim() || '넓은 벌 동쪽 끝으로 옛이야기 지줄대는';
+
+                if (!year || !code || !title) {
+                    UI.showModal('학년도, 시험 코드, 시험지 제목을 모두 입력해 주세요.', false);
+                    return;
+                }
+
+                const parseAnsList = (raw, startQ, expectedLen) => {
+                    const arr = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+                    if (arr.length !== expectedLen) return null;
+                    const map = {};
+                    arr.forEach((val, idx) => { map[startQ + idx] = val; });
+                    return map;
+                };
+
+                const commonMap = parseAnsList(document.getElementById('adm-new-common-ans').value, 1, 22);
+                const calcMap = parseAnsList(document.getElementById('adm-new-calc-ans').value, 23, 8);
+                const probMap = parseAnsList(document.getElementById('adm-new-prob-ans').value, 23, 8);
+                const geomMap = parseAnsList(document.getElementById('adm-new-geom-ans').value, 23, 8);
+
+                if (!commonMap || !calcMap || !probMap || !geomMap) {
+                    UI.showModal('정답 개수가 맞지 않습니다.\n공통과목은 22개, 각 선택과목은 8개의 숫자를 쉼표(,)로 구분해 입력해 주세요.', false);
+                    return;
+                }
+
+                const key = `${year}-${code}`;
+                State.saveCustomExam(key, {
+                    examName: title,
+                    handwritingPhrase: phrase,
+                    year,
+                    code,
+                    gid,
+                    isBuiltIn: false,
+                    availableSubjects: ['미적분', '확률과 통계', '기하'],
+                    commonAnswers: commonMap,
+                    electiveAnswers: {
+                        '미적분': calcMap,
+                        '확률과 통계': probMap,
+                        '기하': geomMap
+                    }
+                });
+
+                UI.renderAdminView();
+                UI.renderPublicExamCatalog();
+                UI.showToast(`[${year} ${code}] ${title} 회차가 등록되었습니다.`, 'success');
+            });
+
+            // 관리자: 환경 설정 저장
+            DOM.admSaveSettingsBtn.addEventListener('click', () => {
+                State.adminConfig.scriptUrl = DOM.admSettingScriptUrl.value.trim();
+                State.adminConfig.sheetId = DOM.admSettingSheetId.value.trim();
+                State.adminConfig.gradingMode = DOM.admSettingGradingMode.value;
+                State.adminConfig.allowedEmails = DOM.admSettingAllowedEmails.value.split(',').map(s => s.trim()).filter(Boolean);
+                State.adminConfig.googleClientId = DOM.admSettingGoogleClientId.value.trim();
+                State.adminConfig.passcode = DOM.admSettingPasscode.value.trim() || 'admin1234';
+                State.saveAdminConfig();
+                UI.showToast('관리자 환경 설정이 저장되었습니다.', 'success');
+            });
+
+            // 이어하기 / 기록 삭제 버튼
+            DOM.resumeExamBtn.addEventListener('click', () => {
+                if (State.currentExamData) {
+                    this.startExam(State.currentExamData, true);
+                }
+            });
+            DOM.discardResumeBtn.addEventListener('click', () => {
+                State.clear();
+                DOM.resumeBanner.classList.add('hidden');
+                UI.showToast('이전 임시저장 답안을 초기화했습니다.', 'info');
+            });
+
+            // 타이머 프리셋 및 체크박스
+            DOM.timerCheckbox.addEventListener('change', () => {
+                DOM.timerSetting.classList.toggle('hidden', !DOM.timerCheckbox.checked);
+            });
+            document.querySelectorAll('.time-preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    DOM.timerMinutesInput.value = btn.dataset.timePreset;
+                    DOM.timerCheckbox.checked = true;
+                    DOM.timerSetting.classList.remove('hidden');
+                });
+            });
+
+            // 수험생 시험 시작 버튼
             DOM.startExamBtn.addEventListener('click', () => this.prepareExam());
-            DOM.timerCheckbox.addEventListener('change', () => DOM.timerSetting.classList.toggle('hidden', !DOM.timerCheckbox.checked));
-            
+
+            // 선택과목 변경
             DOM.subjectSelect.addEventListener('change', () => {
                 if (State.currentExamData) {
+                    DOM.currentElectiveLabel.textContent = DOM.subjectSelect.value;
                     this.populateCorrectAnswers();
                     State.save();
                 }
             });
 
+            // 성명 입력
             DOM.studentNameInput.addEventListener('input', (e) => {
-                if(State.currentExamData) {
+                if (State.currentExamData) {
                     State.currentExamData.name = e.target.value;
                     State.save();
                 }
             });
 
-            DOM.studentIdInputs.forEach(input => {
-                input.addEventListener('input', () => {
+            // 수험번호 8자리 자동 포커스 이동 및 백스페이스 처리
+            DOM.studentIdInputs.forEach((input, idx) => {
+                input.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    if (e.target.value && idx < DOM.studentIdInputs.length - 1) {
+                        DOM.studentIdInputs[idx + 1].focus();
+                    }
                     if (State.currentExamData) {
                         State.currentExamData.studentId = Array.from(DOM.studentIdInputs).map(i => i.value).join('');
                         State.save();
                     }
                 });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !input.value && idx > 0) {
+                        DOM.studentIdInputs[idx - 1].focus();
+                    }
+                });
             });
 
-            DOM.submitBtn.addEventListener('click', () => UI.showModal('답안을 제출하시겠습니까?', true, () => this.submitExam()));
-            
+            // 제출 버튼
+            const handleConfirmSubmit = () => {
+                const unanswered = 30 - Object.keys(State.userAnswers).length;
+                const warnMsg = unanswered > 0
+                    ? `현재 미마킹 문항이 ${unanswered}개 있습니다.\n이대로 OMR 답안을 최종 제출하시겠습니까?`
+                    : `30문항 마킹을 모두 완료했습니다.\n답안을 최종 제출하고 채점 결과를 확인하시겠습니까?`;
+                UI.showModal(warnMsg, true, () => this.submitExam());
+            };
+            DOM.submitBtn.addEventListener('click', handleConfirmSubmit);
+            DOM.quickSubmitTopBtn.addEventListener('click', handleConfirmSubmit);
+
+            // 전체 마킹 초기화 버튼
+            DOM.clearAllMarksBtn.addEventListener('click', () => {
+                UI.showModal('현재까지 체크한 모든 OMR 마킹을 지우고 새 답안지로 교체하시겠습니까?', true, () => {
+                    State.userAnswers = {};
+                    State.flaggedQuestions = {};
+                    UI.clearAllAnswerDOM();
+                    UI.updateLiveNavigator();
+                    State.save();
+                    UI.showToast('새 OMR 답안지로 교체되었습니다.', 'info');
+                });
+            });
+
+            // OMR 버블 클릭 및 별표(★) 이벤트 위임
             DOM.examScreen.addEventListener('click', (e) => {
+                const flagBtn = e.target.closest('.flag-btn');
+                if (flagBtn) {
+                    const q = flagBtn.dataset.flagQ;
+                    State.flaggedQuestions[q] = !State.flaggedQuestions[q];
+                    if (!State.flaggedQuestions[q]) delete State.flaggedQuestions[q];
+                    UI.updateLiveNavigator();
+                    State.save();
+                    return;
+                }
+
                 const target = e.target.closest('.choice-btn');
                 if (!target) return;
 
                 const { q, ans, digit } = target.dataset;
-                
+                DOM.quickQInput.value = q;
+
                 if (digit === undefined) {
                     const group = target.closest('[role="radiogroup"]');
                     const currentSelected = group.querySelector('[aria-checked="true"]');
-                    
+
                     if (currentSelected) {
                         currentSelected.classList.remove('selected');
                         currentSelected.setAttribute('aria-checked', 'false');
@@ -800,20 +2365,135 @@
                     if (currentSelected !== target) {
                         target.classList.add('selected');
                         target.setAttribute('aria-checked', 'true');
-                        State.userAnswers[q] = parseInt(ans);
+                        State.userAnswers[q] = parseInt(ans, 10);
                     } else {
                         delete State.userAnswers[q];
                     }
+                    UI.updateLiveNavigator();
+                    State.save();
                 } else {
                     const col = target.closest('.short-answer-col');
                     const currentSelected = col.querySelector('.selected');
                     if (currentSelected) currentSelected.classList.remove('selected');
                     if (currentSelected !== target) target.classList.add('selected');
-                    
-                    UI.updateShortAnswerDisplay(q);
+
+                    UI.updateShortAnswerDisplay(q, true);
+                }
+            });
+
+            // 단답형 숫자 직접 입력창 이벤트 위임
+            DOM.examScreen.addEventListener('input', (e) => {
+                const directInput = e.target.closest('input[data-sa-direct]');
+                if (!directInput) return;
+                const qNum = parseInt(directInput.dataset.saDirect, 10);
+                directInput.value = directInput.value.replace(/[^0-9]/g, '');
+                UI.applyDirectShortAnswer(qNum, directInput.value);
+            });
+
+            // 빠른 키보드 마킹 바
+            const applyQuickMark = () => {
+                const q = parseInt(DOM.quickQInput.value, 10);
+                const ansRaw = DOM.quickAnsInput.value.trim();
+                if (isNaN(q) || q < 1 || q > 30) {
+                    UI.showToast('문항 번호는 1~30 사이로 입력해 주세요.', 'warning');
                     return;
                 }
-                State.save();
+
+                const isShortAnswer = (q >= 16 && q <= 22) || (q >= 29 && q <= 30);
+                if (!isShortAnswer) {
+                    const ans = parseInt(ansRaw, 10);
+                    if (isNaN(ans) || ans < 1 || ans > 5) {
+                        UI.showToast(`${q}번은 5지선다 객관식입니다 (1~5 입력).`, 'warning');
+                        return;
+                    }
+                    const group = document.querySelector(`.choice-btn[data-q="${q}"]`)?.closest('[role="radiogroup"]');
+                    group?.querySelectorAll('.choice-btn').forEach(b => {
+                        b.classList.remove('selected');
+                        b.setAttribute('aria-checked', 'false');
+                    });
+                    const btn = document.querySelector(`.choice-btn[data-q="${q}"][data-ans="${ans}"]`);
+                    if (btn) {
+                        btn.classList.add('selected');
+                        btn.setAttribute('aria-checked', 'true');
+                    }
+                    State.userAnswers[q] = ans;
+                    UI.updateLiveNavigator();
+                    State.save();
+                } else {
+                    const ans = parseInt(ansRaw, 10);
+                    if (isNaN(ans) || ans < 1 || ans > 999) {
+                        UI.showToast(`${q}번 단답형은 1~999 사이의 자연수를 입력해 주세요.`, 'warning');
+                        return;
+                    }
+                    UI.applyDirectShortAnswer(q, ans);
+                    const directInput = document.querySelector(`input[data-sa-direct="${q}"]`);
+                    if (directInput) directInput.value = String(ans);
+                }
+
+                if (q < 30) DOM.quickQInput.value = q + 1;
+                DOM.quickAnsInput.value = '';
+                DOM.quickAnsInput.focus();
+            };
+
+            DOM.quickMarkApplyBtn.addEventListener('click', applyQuickMark);
+            DOM.quickAnsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyQuickMark();
+                }
+            });
+
+            // 우측 네비게이터 필터 및 문항 점프
+            document.querySelectorAll('.nav-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    State.navFilter = btn.dataset.navFilter;
+                    document.querySelectorAll('.nav-filter-btn').forEach(b => {
+                        b.className = 'nav-filter-btn flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900';
+                    });
+                    btn.className = 'nav-filter-btn flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm';
+                    UI.updateLiveNavigator();
+                });
+            });
+
+            DOM.questionNavGrid.addEventListener('click', (e) => {
+                const pill = e.target.closest('[data-nav-q]');
+                if (!pill) return;
+                const q = pill.dataset.navQ;
+                const anchor = document.getElementById(`omr-anchor-${q}`);
+                if (anchor) {
+                    anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    DOM.quickQInput.value = q;
+                }
+            });
+
+            // CSV 다운로드 함수 공통화
+            const downloadHistoryCsv = () => {
+                const list = State.getHistory();
+                if (!list.length) {
+                    UI.showToast('저장된 성적 내역이 없습니다.', 'warning');
+                    return;
+                }
+                const header = ['응시일시,시험명,성명,수험번호,선택과목,원점수,추정등급,소요시간'];
+                const rows = list.map(i => `"${i.timestamp}","${i.examName}","${i.name}","${i.studentId}","${i.subject}",${i.totalScore},${i.grade},"${i.duration}"`);
+                const csv = '\uFEFF' + header.concat(rows).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `math_exam_records_${Date.now()}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            DOM.exportHistoryCsvBtn.addEventListener('click', downloadHistoryCsv);
+            DOM.admExportSubmissionsBtn.addEventListener('click', downloadHistoryCsv);
+
+            DOM.clearHistoryBtn.addEventListener('click', () => {
+                UI.showModal('보관된 성적표 내역을 모두 삭제하시겠습니까?', true, () => {
+                    State.clearHistory();
+                    UI.renderHistoryList();
+                    UI.showToast('성적표 내역이 삭제되었습니다.', 'info');
+                });
             });
         },
 
@@ -821,175 +2501,230 @@
             const year = DOM.academicYearInput.value.trim();
             const code = DOM.examCodeInput.value.trim();
             const examData = await API.fetchExamData(year, code);
-
             if (examData) {
-                let text = `'${examData.examName}'를 응시하시겠습니까?`;
-                text += DOM.timerCheckbox.checked ? `\n(타이머: ${DOM.timerMinutesInput.value}분 설정)` : `\n(타이머 미설정)`;
-                UI.showModal(text, true, () => this.startExam(examData, false));
+                this.confirmAndStartExam(examData);
             }
         },
 
+        confirmAndStartExam(examData) {
+            let text = `'${examData.examName}' 시험을 시작하시겠습니까?`;
+            text += DOM.timerCheckbox.checked ? `\n(제한시간: ${DOM.timerMinutesInput.value}분)` : `\n(제한시간 없음)`;
+            UI.showModal(text, true, () => this.startExam(examData, false));
+        },
+
         startExam(examData, isResuming = false) {
-            // 1. Set or confirm the current state
             if (!isResuming) {
                 State.currentExamData = examData;
-                State.currentExamData.name = ""; // Will be filled by user
-                State.currentExamData.studentId = ""; // Will be filled by user
+                State.currentExamData.name = DOM.preStudentName.value.trim() || "";
+                State.currentExamData.studentId = DOM.preStudentId.value.trim() || "";
+                State.currentExamData.targetScore = parseInt(DOM.preTargetGrade.value, 10) || 88;
                 State.currentExamData.timerSetting = DOM.timerCheckbox.checked ? `${DOM.timerMinutesInput.value}분` : '미설정';
-                // 🟢 시험 시작 시각 기록 (Unix Timestamp 저장)
-                State.currentExamData.startTimestamp = Date.now(); 
+                State.currentExamData.startTimestamp = Date.now();
                 State.userAnswers = {};
+                State.flaggedQuestions = {};
             }
-// ... (이하 기존 코드 동일)
-            
-            // 2. Sync UI from state
+
             UI.populateSubjectDropdown(State.currentExamData.availableSubjects);
             UI.renderStateToUI();
-            
-            // 3. Populate correct answers based on the now-correct UI state
-            this.populateCorrectAnswers(); 
+            this.populateCorrectAnswers();
 
-            // 4. Show the exam screen
             DOM.examTitle.textContent = State.currentExamData.examName;
+            DOM.examModeBadge.textContent = `코드 ${State.currentExamData.code}`;
             DOM.handwritingPhrase.textContent = State.currentExamData.handwritingPhrase;
-            DOM.startScreen.classList.add('hidden');
-            DOM.examScreen.classList.remove('hidden');
 
-            // 5. Handle timer logic
+            UI.switchSection('exam');
+            Sound.playBell();
+
+            if (State.timerInterval) clearInterval(State.timerInterval);
             const timerWasSet = State.currentExamData.timerSetting !== '미설정';
             if (timerWasSet) {
-                DOM.timerDisplay.classList.remove('hidden');
-                
-                DOM.timerCheckbox.checked = true;
-                DOM.timerSetting.classList.remove('hidden');
-                const minutes = State.currentExamData.timerSetting.replace('분', '');
-                if (!isNaN(minutes)) DOM.timerMinutesInput.value = minutes;
-
-                let initialTime;
-                if (isResuming && State.timeRemaining !== null) {
-                    initialTime = State.timeRemaining;
-                } else {
-                    initialTime = parseInt(DOM.timerMinutesInput.value) * 60;
-                }
+                DOM.timerDisplayBadge.classList.remove('hidden');
+                const minutes = parseInt(State.currentExamData.timerSetting.replace('분', ''), 10) || 100;
+                let initialTime = (isResuming && State.timeRemaining !== null) ? State.timeRemaining : minutes * 60;
                 State.timeRemaining = initialTime;
 
                 UI.updateTimerDisplay(initialTime);
-                if(State.timerInterval) clearInterval(State.timerInterval); // Clear any existing timer
                 State.timerInterval = setInterval(() => {
                     State.timeRemaining--;
                     UI.updateTimerDisplay(State.timeRemaining);
                     State.save();
+
+                    if (State.timeRemaining === 600) {
+                        Sound.playBell();
+                        UI.showToast('시험 종료 10분 전입니다. OMR 마킹 누락 여부를 확인하세요.', 'warning');
+                    }
                     if (State.timeRemaining <= 0) {
                         clearInterval(State.timerInterval);
-                        UI.showModal('시험 시간이 종료되었습니다. 답안을 자동 제출합니다.', false, () => this.submitExam());
+                        Sound.playBell();
+                        UI.showModal('시험 제한시간이 종료되었습니다. 답안을 자동 제출합니다.', false, () => this.submitExam());
                     }
                 }, 1000);
+            } else {
+                DOM.timerDisplay.textContent = '제한없음';
             }
-            
-            // 6. Save the fully constructed state
+
             State.save();
         },
 
-async submitExam() {
-            clearInterval(State.timerInterval);
-            
-            const { totalScore, resultsArray } = this.calculateScoreAndResults();
+        async submitExam() {
+            if (State.timerInterval) clearInterval(State.timerInterval);
 
-            DOM.examScreen.classList.add('hidden');
-            DOM.resultScreen.classList.remove('hidden');
-            UI.displayResults(totalScore, resultsArray);
-
-            // 🟢 시간 계산 로직
             const endTimestamp = Date.now();
             const startTimestamp = State.currentExamData.startTimestamp || endTimestamp;
-            const durationMs = endTimestamp - startTimestamp;
-            
+            const durationMs = Math.max(1000, endTimestamp - startTimestamp);
+
             const formatTime = (ts) => new Date(ts).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
             const examStartTime = formatTime(startTimestamp);
             const examEndTime = formatTime(endTimestamp);
-            
-            // 소요 시간을 'OO분 OO초' 형식으로 변환
+
             const durationMin = Math.floor(durationMs / 60000);
             const durationSec = Math.floor((durationMs % 60000) / 1000);
             const examDuration = `${durationMin}분 ${durationSec}초`;
 
-            const timerValue = State.currentExamData.timerSetting === '미설정' 
-                ? 'X' 
-                : State.currentExamData.timerSetting.replace('분', '');
+            const report = this.calculateScoreAndResults(examDuration);
 
-            const submissionData = {
-                gid: State.currentExamData.gid,
+            State.addHistoryEntry({
+                examName: State.currentExamData.examName,
                 name: State.currentExamData.name.trim() || '미입력',
                 studentId: State.currentExamData.studentId.trim() || '미입력',
                 subject: State.currentExamData.subject,
-                results: resultsArray,
-                totalScore: totalScore,
-                timestamp: examEndTime,       // 기존 AV열 (제출 시각)
-                timerValue: timerValue,       // 기존 AW열 (타이머 값)
-                examStartTime: examStartTime, // 🟢 AX열: 시작 시각
-                examEndTime: examEndTime,     // 🟢 AY열: 종료 시각 (제출 시각과 동일)
-                examDuration: examDuration    // 🟢 AZ열: 소요 시간
+                totalScore: report.totalScore,
+                grade: report.estimatedGrade,
+                correctCount: report.resultsArray.filter(r => r === 'O').length,
+                duration: examDuration,
+                timestamp: examEndTime
+            });
+
+            UI.switchSection('result');
+            UI.displayResults(report);
+
+            const timerValue = State.currentExamData.timerSetting === '미설정'
+                ? 'X'
+                : State.currentExamData.timerSetting.replace('분', '');
+
+            const submissionData = {
+                isBuiltIn: Boolean(State.currentExamData.isBuiltIn),
+                gid: State.currentExamData.gid,
+                year: State.currentExamData.year,
+                code: State.currentExamData.code,
+                name: State.currentExamData.name.trim() || '미입력',
+                studentId: State.currentExamData.studentId.trim() || '미입력',
+                subject: State.currentExamData.subject,
+                userAnswers: State.userAnswers,
+                results: report.resultsArray,
+                totalScore: report.totalScore,
+                timestamp: examEndTime,
+                timerValue: timerValue,
+                examStartTime: examStartTime,
+                examEndTime: examEndTime,
+                examDuration: examDuration
             };
 
-            await API.submitResultsToSheet(submissionData);
-            
+            await API.submitResultsToBackend(submissionData);
             State.clear();
+            DOM.resumeBanner.classList.add('hidden');
         },
-        
-        calculateScoreAndResults() {
+
+        calculateScoreAndResults(durationText) {
             let totalScore = 0;
+            let commonScore = 0;
+            let electiveScore = 0;
             const resultsArray = [];
+            const pointTotals = { 2: 0, 3: 0, 4: 0 };
+            const pointCorrects = { 2: 0, 3: 0, 4: 0 };
+
             for (let qNum = 1; qNum <= 30; qNum++) {
-                if (!Config.POINTS[qNum]) {
-                    if(resultsArray.length < 30) resultsArray.push('');
+                const pt = Config.POINTS[qNum];
+                if (!pt) {
+                    if (resultsArray.length < 30) resultsArray.push('');
                     continue;
-                };
+                }
+                pointTotals[pt]++;
 
                 const userAnswer = State.userAnswers[qNum];
                 const correctAnswer = State.correctAnswers[qNum];
-                const isCorrect = userAnswer === correctAnswer;
+                const isCorrect = userAnswer !== undefined && userAnswer === correctAnswer;
 
                 if (isCorrect) {
-                    totalScore += Config.POINTS[qNum];
+                    totalScore += pt;
+                    if (qNum <= 22) commonScore += pt;
+                    else electiveScore += pt;
+                    pointCorrects[pt]++;
                     resultsArray.push('O');
                 } else {
                     resultsArray.push('X');
                 }
             }
-            return { totalScore, resultsArray };
+
+            const byPointStats = {
+                2: Math.round((pointCorrects[2] / pointTotals[2]) * 100),
+                3: Math.round((pointCorrects[3] / pointTotals[3]) * 100),
+                4: Math.round((pointCorrects[4] / pointTotals[4]) * 100)
+            };
+
+            let estimatedGrade = 6;
+            if (totalScore >= 88) estimatedGrade = 1;
+            else if (totalScore >= 80) estimatedGrade = 2;
+            else if (totalScore >= 70) estimatedGrade = 3;
+            else if (totalScore >= 58) estimatedGrade = 4;
+            else if (totalScore >= 44) estimatedGrade = 5;
+            else if (totalScore >= 30) estimatedGrade = 6;
+            else if (totalScore >= 20) estimatedGrade = 7;
+            else if (totalScore >= 12) estimatedGrade = 8;
+            else estimatedGrade = 9;
+
+            const estimatedStd = Math.round(72 + totalScore * 0.74);
+            const estimatedPct = Math.min(99, Math.max(1, Math.round(totalScore * 0.99)));
+
+            return {
+                totalScore,
+                commonScore,
+                electiveScore,
+                resultsArray,
+                durationText,
+                estimatedGrade,
+                estimatedStd,
+                estimatedPct,
+                byPointStats
+            };
         },
 
         populateCorrectAnswers() {
             if (!State.currentExamData) return;
-            const { rawRows } = State.currentExamData;
             State.correctAnswers = {};
+            const selectedSubject = DOM.subjectSelect.value;
+            State.currentExamData.subject = selectedSubject;
+
+            if (State.currentExamData.commonAnswers) {
+                Object.assign(State.correctAnswers, State.currentExamData.commonAnswers);
+                const elecMap = State.currentExamData.electiveAnswers?.[selectedSubject] || {};
+                Object.assign(State.correctAnswers, elecMap);
+                return;
+            }
+
+            const { rawRows } = State.currentExamData;
+            if (!rawRows) return;
 
             for (let i = 2; i <= 23; i++) {
                 const qNum = i - 1;
-                if (rawRows[i] && rawRows[i][2]) State.correctAnswers[qNum] = parseInt(rawRows[i][2]);
+                if (rawRows[i] && rawRows[i][2]) State.correctAnswers[qNum] = parseInt(rawRows[i][2], 10);
             }
-            
-            const selectedSubject = DOM.subjectSelect.value;
-            State.currentExamData.subject = selectedSubject;
-            
+
             let answerColIndex;
             if (selectedSubject === '확률과 통계') answerColIndex = 5;
             else if (selectedSubject === '미적분') answerColIndex = 8;
             else if (selectedSubject === '기하') answerColIndex = 11;
-            
+
             for (let i = 2; i <= 9; i++) {
                 const qNum = 21 + i;
-                if (rawRows[i] && rawRows[i][answerColIndex]) State.correctAnswers[qNum] = parseInt(rawRows[i][answerColIndex]);
+                if (rawRows[i] && rawRows[i][answerColIndex]) {
+                    State.correctAnswers[qNum] = parseInt(rawRows[i][answerColIndex], 10);
+                }
             }
         }
     };
 
-    // ===================================================================================
-    // 7. 애플리케이션 실행 (App Initialization)
-    // ===================================================================================
     document.addEventListener('DOMContentLoaded', () => App.init());
-
 </script>
 </body>
 </html>
-

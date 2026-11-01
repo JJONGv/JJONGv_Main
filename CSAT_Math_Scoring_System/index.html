@@ -2123,7 +2123,7 @@
             const allowedList = (State.adminConfig.allowedEmails || []).map(e => e.trim().toLowerCase());
 
             if (!cleanEmail || !allowedList.includes(cleanEmail)) {
-                UI.showModal(`입력하신 계정(${cleanEmail || '미입력'})은 등록된 관리자 Google 계정이 아닙니다.\n허가된 관리자 계정: ${allowedList.join(', ')}`, false);
+                UI.showModal(`입력하신 계정(${cleanEmail || '미입력'})은 등록된 관리자 Google 계정이 아닙니다.`, false);
                 return;
             }
 

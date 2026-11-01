@@ -2144,25 +2144,40 @@
                 this.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
             });
 
-            DOM.googleOauthLoginBtn.addEventListener('click', () => {
-                const clientId = State.adminConfig.googleClientId;
-                if (clientId && window.google?.accounts?.id) {
-                    window.google.accounts.id.initialize({
-                        client_id: clientId,
-                        callback: (response) => {
-                            const payload = this.decodeJwtPayload(response.credential);
-                            if (payload && payload.email) {
-                                this.verifyAdminEmailAndLogin(payload.email, null);
-                            }
-                        }
-                    });
-                    window.google.accounts.id.prompt();
-                } else {
-                    // Client ID 미설정 시 등록된 Google 이메일 인증으로 안내
-                    this.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
-                }
-            });
+            // 기존 googleOauthLoginBtn 클릭 리스너를 아래와 같이 교체
+DOM.googleOauthLoginBtn.addEventListener('click', () => {
+    const clientId = State.adminConfig.googleClientId || Config.GOOGLE_CLIENT_ID;
 
+    // Client ID가 있고 구글 라이브러리가 로드된 경우
+    if (clientId && window.google?.accounts?.oauth2) {
+        const client = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'email profile openid',
+            callback: async (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    try {
+                        // 구글 사용자 정보(이메일) 조회
+                        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                            headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                        });
+                        const userInfo = await res.json();
+                        if (userInfo.email) {
+                            App.verifyAdminEmailAndLogin(userInfo.email, null);
+                        }
+                    } catch (err) {
+                        UI.showToast('구글 계정 정보를 가져오지 못했습니다.', 'warning');
+                    }
+                }
+            }
+        });
+
+        // 클릭 시 팝업창 즉시 호출 (FedCM 에러 없음)
+        client.requestAccessToken({ prompt: 'select_account' });
+    } else {
+        // Client ID가 미설정된 경우 하단 직접 입력 로그인으로 폴백
+        App.verifyAdminEmailAndLogin(DOM.adminEmailInput.value, DOM.adminPasscodeInput.value);
+    }
+});
             DOM.adminLogoutBtn.addEventListener('click', () => {
                 State.adminUser = null;
                 UI.renderAdminView();

@@ -2206,58 +2206,100 @@ DOM.googleOauthLoginBtn.addEventListener('click', () => {
                 });
             });
 
-            // 관리자: 신규 모의고사 저장
-            DOM.admSaveExamBtn.addEventListener('click', () => {
-                const year = document.getElementById('adm-new-year').value.trim();
-                const code = document.getElementById('adm-new-code').value.trim().toUpperCase();
-                const gid = document.getElementById('adm-new-gid').value.trim() || '0';
-                const title = document.getElementById('adm-new-title').value.trim();
-                const phrase = document.getElementById('adm-new-phrase').value.trim() || '넓은 벌 동쪽 끝으로 옛이야기 지줄대는';
+// 관리자: 신규 모의고사 저장 (스프레드시트 sample 시트 자동 복제 & 목록 시트 배포 연동)
+DOM.admSaveExamBtn.addEventListener('click', async () => {
+    const year = document.getElementById('adm-new-year').value.trim();
+    const code = document.getElementById('adm-new-code').value.trim().toUpperCase();
+    const title = document.getElementById('adm-new-title').value.trim();
+    const phrase = document.getElementById('adm-new-phrase').value.trim() || '넓은 벌 동쪽 끝으로 옛이야기 지줄대는';
 
-                if (!year || !code || !title) {
-                    UI.showModal('학년도, 시험 코드, 시험지 제목을 모두 입력해 주세요.', false);
-                    return;
+    if (!year || !code || !title) {
+        UI.showModal('학년도, 시험 코드, 시험지 제목을 모두 입력해 주세요.', false);
+        return;
+    }
+
+    const parseAnsList = (raw, startQ, expectedLen) => {
+        const arr = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+        if (arr.length !== expectedLen) return null;
+        const map = {};
+        arr.forEach((val, idx) => { map[startQ + idx] = val; });
+        return map;
+    };
+
+    const commonMap = parseAnsList(document.getElementById('adm-new-common-ans').value, 1, 22);
+    const calcMap = parseAnsList(document.getElementById('adm-new-calc-ans').value, 23, 8);
+    const probMap = parseAnsList(document.getElementById('adm-new-prob-ans').value, 23, 8);
+    const geomMap = parseAnsList(document.getElementById('adm-new-geom-ans').value, 23, 8);
+
+    if (!commonMap || !calcMap || !probMap || !geomMap) {
+        UI.showModal('정답 개수가 맞지 않습니다.\n공통과목은 22개, 각 선택과목은 8개의 숫자를 쉼표(,)로 구분해 입력해 주세요.', false);
+        return;
+    }
+
+    const scriptUrl = State.adminConfig.scriptUrl || Config.APPS_SCRIPT_URL;
+    if (!scriptUrl) {
+        UI.showModal('Apps Script Web App URL이 설정되지 않았습니다.\n3번 설정 탭에서 URL을 먼저 확인해 주세요.', false);
+        return;
+    }
+
+    // 버튼 비활성화 및 안내 토스트
+    DOM.admSaveExamBtn.disabled = true;
+    DOM.admSaveExamBtn.textContent = '스프레드시트 시트 생성 중...';
+    UI.showToast('스프레드시트의 sample 시트를 복제하고 목록에 등록하는 중입니다...', 'info');
+
+    try {
+        const response = await fetch(scriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'createExam',
+                year: year,
+                code: code,
+                examName: title,
+                handwritingPhrase: phrase,
+                commonAnswers: commonMap,
+                electiveAnswers: {
+                    '미적분': calcMap,
+                    '확률과 통계': probMap,
+                    '기하': geomMap
                 }
+            })
+        });
 
-                const parseAnsList = (raw, startQ, expectedLen) => {
-                    const arr = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-                    if (arr.length !== expectedLen) return null;
-                    const map = {};
-                    arr.forEach((val, idx) => { map[startQ + idx] = val; });
-                    return map;
-                };
+        const res = await response.json();
 
-                const commonMap = parseAnsList(document.getElementById('adm-new-common-ans').value, 1, 22);
-                const calcMap = parseAnsList(document.getElementById('adm-new-calc-ans').value, 23, 8);
-                const probMap = parseAnsList(document.getElementById('adm-new-prob-ans').value, 23, 8);
-                const geomMap = parseAnsList(document.getElementById('adm-new-geom-ans').value, 23, 8);
-
-                if (!commonMap || !calcMap || !probMap || !geomMap) {
-                    UI.showModal('정답 개수가 맞지 않습니다.\n공통과목은 22개, 각 선택과목은 8개의 숫자를 쉼표(,)로 구분해 입력해 주세요.', false);
-                    return;
+        if (res.status === 'success') {
+            // 스프레드시트 배포 완료 후 브라우저 캐시에도 동기화 등록
+            const key = `${year}-${code}`;
+            State.saveCustomExam(key, {
+                examName: title,
+                handwritingPhrase: phrase,
+                year: year,
+                code: code,
+                gid: res.gid,
+                isBuiltIn: false,
+                availableSubjects: ['미적분', '확률과 통계', '기하'],
+                commonAnswers: commonMap,
+                electiveAnswers: {
+                    '미적분': calcMap,
+                    '확률과 통계': probMap,
+                    '기하': geomMap
                 }
-
-                const key = `${year}-${code}`;
-                State.saveCustomExam(key, {
-                    examName: title,
-                    handwritingPhrase: phrase,
-                    year,
-                    code,
-                    gid,
-                    isBuiltIn: false,
-                    availableSubjects: ['미적분', '확률과 통계', '기하'],
-                    commonAnswers: commonMap,
-                    electiveAnswers: {
-                        '미적분': calcMap,
-                        '확률과 통계': probMap,
-                        '기하': geomMap
-                    }
-                });
-
-                UI.renderAdminView();
-                UI.renderPublicExamCatalog();
-                UI.showToast(`[${year} ${code}] ${title} 회차가 등록되었습니다.`, 'success');
             });
+
+            UI.renderAdminView();
+            UI.renderPublicExamCatalog();
+            UI.showToast(res.message, 'success');
+        } else {
+            UI.showModal('모의고사 생성 실패: ' + res.message, false);
+        }
+    } catch (err) {
+        UI.showModal('서버 통신 중 오류가 발생했습니다: ' + err.toString(), false);
+    } finally {
+        DOM.admSaveExamBtn.disabled = false;
+        DOM.admSaveExamBtn.textContent = '시험 회차 등록 및 배포';
+    }
+});
 
             // 관리자: 환경 설정 저장
             DOM.admSaveSettingsBtn.addEventListener('click', () => {

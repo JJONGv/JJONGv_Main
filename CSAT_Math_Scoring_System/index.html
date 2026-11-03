@@ -231,10 +231,9 @@
 </head>
 <body class="min-h-screen flex flex-col text-slate-900">
 
-    <!-- 상단 글로벌 네비게이션 (모바일 줄바꿈 깨짐 방지 최적화) -->
+    <!-- 상단 글로벌 네비게이션 -->
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90">
         <div class="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
-            <!-- 로고 영역 -->
             <div class="flex items-center gap-2 cursor-pointer shrink-0" id="brand-logo-btn">
                 <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-serif font-bold text-base shadow-xs">
                     ∑
@@ -245,7 +244,6 @@
                 </div>
             </div>
 
-            <!-- 네비게이션 탭 (모바일 텍스트 축약 및 줄바꿈 차단) -->
             <div class="flex items-center gap-1.5 shrink-0">
                 <nav id="main-nav-tabs" class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
                     <button id="nav-home-btn" class="px-2.5 sm:px-3.5 py-1 rounded-lg text-xs font-bold transition bg-white text-slate-900 shadow-xs whitespace-nowrap">
@@ -264,7 +262,6 @@
                 </nav>
             </div>
 
-            <!-- 시험 진행 중 상단 타이머 및 제출 바 -->
             <div id="header-exam-controls" class="hidden items-center gap-1.5 shrink-0">
                 <div id="timer-display-badge" class="flex items-center gap-1.5 bg-slate-900 text-white px-2.5 py-1 rounded-xl font-mono text-xs font-bold shadow-xs whitespace-nowrap">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -339,7 +336,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label for="academic-year" class="block text-xs font-bold text-slate-700 mb-1">학년도</label>
-                            <input type="number" id="academic-year" value="2027" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="number" id="academic-year" value="2026" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                         <div>
                             <label for="exam-code" class="block text-xs font-bold text-slate-700 mb-1">시험 코드</label>
@@ -430,9 +427,8 @@
                             </div>
                         </div>
 
-                        <!-- 수험생 인적사항 (모바일 최적화: 2층 압축 배치로 세로 공간 대폭 절약) -->
+                        <!-- 수험생 인적사항 (2단 압축 구조) -->
                         <div class="border-2 border-pink-600 mb-3 sm:mb-4 text-xs rounded overflow-hidden bg-pink-500">
-                            <!-- 1층: 성명 (반) | 선택과목 (반) -->
                             <div class="grid grid-cols-2 gap-px bg-pink-500">
                                 <div class="bg-white flex flex-col">
                                     <div class="font-bold bg-pink-100 text-pink-900 py-0.5 sm:py-1 text-center border-b border-pink-300 text-[11px] sm:text-xs">성 명</div>
@@ -448,7 +444,6 @@
                                 </div>
                             </div>
 
-                            <!-- 2층: 수험번호 8자리 (좌) | 필적확인란 (우) -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-px bg-pink-500 border-t border-pink-500">
                                 <div class="bg-white flex flex-col">
                                     <div class="font-bold bg-pink-100 text-pink-900 py-0.5 sm:py-1 text-center border-b border-pink-300 text-[11px] sm:text-xs">수 험 번 호</div>
@@ -476,7 +471,7 @@
                             </div>
                         </div>
 
-                        <!-- 키보드 빠른 마킹 바 (모바일 컴팩트 한 줄) -->
+                        <!-- 키보드 빠른 마킹 바 -->
                         <div class="mb-3 sm:mb-4 bg-slate-900 text-white rounded-xl px-2.5 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 text-xs">
                             <div class="flex items-center gap-1.5">
                                 <span class="px-1.5 py-0.5 rounded bg-indigo-500 font-extrabold text-[10px]">빠른마킹</span>
@@ -497,18 +492,14 @@
                             </div>
                         </div>
 
-                        <!-- OMR 답안 마킹 본문 -->
+                        <!-- OMR 본문 -->
                         <div class="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-5">
-
-                            <!-- [공통과목] 1~22번 -->
                             <div class="xl:col-span-8 space-y-3 sm:space-y-4">
-                                <!-- 객관식 1~15번: 3단 스트립 그리드 (모바일에서도 5문항씩 깔끔하게 구분) -->
                                 <div class="omr-box rounded-lg overflow-hidden">
                                     <div class="omr-box-header">공 통 과 목 객 관 식 (1 ~ 15번)</div>
                                     <div id="multiple-choice-common-grid" class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-pink-400"></div>
                                 </div>
 
-                                <!-- 단답형 16~22번 -->
                                 <div class="omr-box rounded-lg overflow-hidden">
                                     <div class="omr-box-header">공 통 과 목 단 답 형 (16 ~ 22번)</div>
                                     <div class="p-2 sm:p-2.5 bg-white space-y-2">
@@ -518,9 +509,7 @@
                                 </div>
                             </div>
 
-                            <!-- [선택과목] 23~30번 -->
                             <div class="xl:col-span-4 space-y-3 sm:space-y-4">
-                                <!-- 객관식 23~28번 -->
                                 <div class="omr-box rounded-lg overflow-hidden">
                                     <div class="omr-box-header flex items-center justify-between px-2.5">
                                         <span>선 택 과 목 (23 ~ 28번)</span>
@@ -535,13 +524,11 @@
                                     </div>
                                 </div>
 
-                                <!-- 단답형 29~30번 -->
                                 <div class="omr-box rounded-lg overflow-hidden">
                                     <div class="omr-box-header">선 택 과 목 단 답 형 (29 ~ 30번)</div>
                                     <div id="short-answer-elective" class="grid grid-cols-2 gap-2 p-2 sm:p-2.5 bg-white"></div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
@@ -601,7 +588,7 @@
         </section>
 
         <!-- =========================================================
-             3. 성적 통지표 화면
+             3. 성적 통지표 화면 (백분위 제거)
              ========================================================= -->
         <section id="result-screen" class="hidden space-y-6"></section>
 
@@ -629,7 +616,7 @@
         </section>
 
         <!-- =========================================================
-             5. 관리자 전용 화면
+             5. 관리자 전용 화면 (이벤트 팝업 관리 서브탭 추가)
              ========================================================= -->
         <section id="admin-screen" class="hidden space-y-6">
             <div id="admin-login-gate" class="max-w-md mx-auto bg-white rounded-2xl border border-slate-200 p-5 sm:p-8 shadow-xs space-y-4 my-6">
@@ -697,9 +684,13 @@
                     <button type="button" data-admin-tab="settings" class="admin-tab-btn px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200">
                         3. 연동 설정
                     </button>
+                    <button type="button" data-admin-tab="event" class="admin-tab-btn px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 flex items-center gap-1.5">
+                        <span>🎁</span>
+                        <span>4. 이벤트 팝업 설정</span>
+                    </button>
                 </div>
 
-                <!-- 탭 1 -->
+                <!-- 탭 1: 회차 & 정답 등록 -->
                 <div id="admin-tab-exams" class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
                     <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-4 space-y-2.5">
                         <h3 class="font-bold text-slate-900 text-xs sm:text-sm">등록된 모의고사 목록</h3>
@@ -742,15 +733,15 @@
                         <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-700 mb-1">미적분 (8개)</label>
-                                <input type="text" id="adm-new-calc-ans" value="1,3,5,2,4,3,32,144" class="w-full px-2 py-1.5 border border-slate-300 rounded-xl text-xs font-mono">
+                                <input type="text" id="adm-new-calc-ans" value="1,3,5,2,4,3,32,144" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-mono">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-700 mb-1">확통 (8개)</label>
-                                <input type="text" id="adm-new-prob-ans" value="2,4,1,3,5,4,48,126" class="w-full px-2 py-1.5 border border-slate-300 rounded-xl text-xs font-mono">
+                                <input type="text" id="adm-new-prob-ans" value="2,4,1,3,5,4,48,126" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-mono">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-700 mb-1">기하 (8개)</label>
-                                <input type="text" id="adm-new-geom-ans" value="4,2,3,1,5,2,27,96" class="w-full px-2 py-1.5 border border-slate-300 rounded-xl text-xs font-mono">
+                                <input type="text" id="adm-new-geom-ans" value="4,2,3,1,5,2,27,96" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-mono">
                             </div>
                         </div>
 
@@ -762,7 +753,7 @@
                     </div>
                 </div>
 
-                <!-- 탭 2 -->
+                <!-- 탭 2: 응시자 성적 조회 -->
                 <div id="admin-tab-submissions" class="hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <h3 class="font-bold text-slate-900 text-xs sm:text-sm">응시자 제출 답안 로그</h3>
@@ -793,7 +784,7 @@
                     </div>
                 </div>
 
-                <!-- 탭 3 -->
+                <!-- 탭 3: 연동 설정 -->
                 <div id="admin-tab-settings" class="hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
                     <h3 class="font-bold text-slate-900 text-xs sm:text-sm border-b border-slate-100 pb-2">연동 설정</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -820,16 +811,125 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- 탭 4: 이벤트 팝업 설정 (신규) -->
+                <div id="admin-tab-event" class="hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">OMR 답안 제출 후 이벤트 팝업 관리</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">수험생이 답안을 제출했을 때 띄울 소프트 팝업 창의 활성화 여부와 내부 HTML 코드를 직접 편집합니다.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="adm-event-preview-btn" class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition">
+                                팝업 미리보기
+                            </button>
+                            <button type="button" id="adm-save-event-btn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs">
+                                이벤트 설정 저장
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 활성화 토글 스위치 -->
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex items-center justify-between gap-4">
+                        <div class="space-y-0.5">
+                            <label for="adm-event-enabled" class="text-xs sm:text-sm font-extrabold text-slate-900 cursor-pointer">
+                                이벤트 팝업 노출 활성화
+                            </label>
+                            <p class="text-[11px] text-slate-500">체크 해제 시 수험생이 OMR을 제출해도 팝업 창이 뜨지 않고 바로 성적 통지표가 노출됩니다.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="adm-event-enabled" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- HTML 코드 직접 수정 에디터 -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="adm-event-html" class="block text-xs font-bold text-slate-700">
+                                소프트 팝업 컨텐츠 HTML 코드 원본
+                            </label>
+                            <button type="button" id="adm-reset-event-html-btn" class="text-[11px] text-slate-500 hover:text-indigo-600 underline">
+                                기본 템플릿으로 되돌리기
+                            </button>
+                        </div>
+                        <textarea id="adm-event-html" rows="12" class="w-full px-3.5 py-3 border border-slate-300 rounded-xl text-xs font-mono bg-slate-900 text-emerald-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed"></textarea>
+                        <p class="text-[11px] text-slate-500">
+                            ※ Tailwind CSS 클래스와 일반 HTML 태그(h2, p, a, div 등)를 자유롭게 사용할 수 있습니다. 하이퍼링크는 반드시 <code>target="_blank"</code> 속성을 포함해 새 탭으로 열리도록 구성하는 것을 권장합니다.
+                        </p>
+                    </div>
+                </div>
             </div>
         </section>
 
     </main>
 
+    <!-- 커스텀 알림/확인 모달 -->
     <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4"></div>
+
+    <!-- OMR 제출 완료 후 소프트 팝업 모달 -->
+    <div id="event-soft-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-all duration-200">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 relative overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="event-soft-modal-card">
+            <!-- 우측 상단 닫기 X 버튼 -->
+            <button type="button" id="event-modal-close-x" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center font-bold text-sm transition">
+                ✕
+            </button>
+            <!-- 팝업 내부 동적 HTML 렌더링 영역 -->
+            <div id="event-modal-content"></div>
+            <!-- 하단 닫기 버튼 -->
+            <div class="pt-4 mt-4 border-t border-slate-100 text-center">
+                <button type="button" id="event-modal-close-btn" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition">
+                    성적 통지표 확인하기 (닫기)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림 -->
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
 <script type="module">
     const DefaultExams = {};
+
+    // 기본 이벤트 팝업 HTML 템플릿
+    const DEFAULT_EVENT_HTML = `<div class="space-y-4 text-center">
+    <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mx-auto text-xl font-bold shadow-xs">
+        🎁
+    </div>
+    <div class="space-y-1">
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-50 text-rose-600 border border-rose-200">
+            수험생 특별 이벤트
+        </span>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+            모의고사 응시자 인증 이벤트
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+            모의고사 응시를 완료하셨습니다!<br>
+            수능 원서 <strong class="text-slate-900 font-extrabold">‘접수증’</strong>을 촬영하여 인증해 주시면 이벤트에 자동 응모됩니다.
+        </p>
+    </div>
+
+    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left space-y-2 text-xs">
+        <div class="flex items-start gap-2">
+            <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+            <span class="text-slate-700">본인이 접수한 <strong>수능 원서 접수증</strong>을 선명하게 촬영해 주세요.</span>
+        </div>
+        <div class="flex items-start gap-2">
+            <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+            <span class="text-slate-700">아래 인증 링크 박스를 눌러 사진을 첨부하면 응모가 완료됩니다.</span>
+        </div>
+    </div>
+
+    <div class="pt-1">
+        <a href="https://script.google.com/macros/s/AKfycbx961WDbot2sVk3CJVn_t0h2FFkqbvXinpYFZJadV9B53SxchCA15npTvBM1oM30pqP/exec" target="_blank" rel="noopener noreferrer" class="block w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-rose-600 text-white font-extrabold text-sm sm:text-base text-center shadow-md hover:shadow-lg hover:opacity-95 transition transform hover:-translate-y-0.5">
+            수능 원서 접수증 인증 링크 접속하기 →
+        </a>
+    </div>
+
+    <p class="text-[11px] text-slate-400">
+        ※ 첨부해주신 접수증은 본인 확인 및 이벤트 추첨 용도로만 안전하게 활용됩니다.
+    </p>
+</div>`;
 
     const Config = {
         SHEET_ID: '1FGEzT-fyFsRAUKqw53IjZcP5Aq0hcDOZCneqMxfBsVw',
@@ -923,7 +1023,18 @@
         admSettingScriptUrl: document.getElementById('adm-setting-script-url'),
         admSettingSheetId: document.getElementById('adm-setting-sheet-id'),
         admSettingAllowedEmails: document.getElementById('adm-setting-allowed-emails'),
-        admSettingPasscode: document.getElementById('adm-setting-passcode')
+        admSettingPasscode: document.getElementById('adm-setting-passcode'),
+        // Event DOM
+        admEventEnabled: document.getElementById('adm-event-enabled'),
+        admEventHtml: document.getElementById('adm-event-html'),
+        admEventPreviewBtn: document.getElementById('adm-event-preview-btn'),
+        admSaveEventBtn: document.getElementById('adm-save-event-btn'),
+        admResetEventHtmlBtn: document.getElementById('adm-reset-event-html-btn'),
+        eventSoftModal: document.getElementById('event-soft-modal'),
+        eventSoftModalCard: document.getElementById('event-soft-modal-card'),
+        eventModalContent: document.getElementById('event-modal-content'),
+        eventModalCloseX: document.getElementById('event-modal-close-x'),
+        eventModalCloseBtn: document.getElementById('event-modal-close-btn')
     };
 
     const State = {
@@ -943,13 +1054,17 @@
             sheetId: Config.SHEET_ID,
             allowedEmails: Config.ADMIN_EMAILS,
             googleClientId: Config.GOOGLE_CLIENT_ID,
-            passcode: Config.ADMIN_PASSCODE
+            passcode: Config.ADMIN_PASSCODE,
+            eventEnabled: true,
+            eventHtml: DEFAULT_EVENT_HTML
         },
 
         loadAdminConfig() {
             try {
                 const saved = localStorage.getItem(Config.ADMIN_CONFIG_KEY);
-                if (saved) this.adminConfig = { ...this.adminConfig, ...JSON.parse(saved) };
+                if (saved) {
+                    this.adminConfig = { ...this.adminConfig, ...JSON.parse(saved) };
+                }
             } catch (e) {}
         },
 
@@ -1242,6 +1357,10 @@
             DOM.admSettingAllowedEmails.value = (State.adminConfig.allowedEmails || []).join(', ');
             DOM.admSettingPasscode.value = State.adminConfig.passcode || '5k6m1o20@@';
 
+            // 이벤트 설정 UI 바인딩
+            DOM.admEventEnabled.checked = State.adminConfig.eventEnabled !== false;
+            DOM.admEventHtml.value = State.adminConfig.eventHtml || DEFAULT_EVENT_HTML;
+
             const catalog = State.getExamCatalog();
             DOM.adminExamCatalogList.innerHTML = Object.entries(catalog).map(([key, ex]) => `
                 <div class="p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2 bg-slate-50/50">
@@ -1276,7 +1395,6 @@
             DOM.mcElectiveContainer.innerHTML = '';
             DOM.saElectiveContainer.innerHTML = '';
 
-            // 1~15번: 3개 스트립 (1~5, 6~10, 11~15)
             const ranges = [[1, 5], [6, 10], [11, 15]];
             ranges.forEach(([startQ, endQ]) => {
                 let stripHtml = `
@@ -1292,12 +1410,10 @@
                 DOM.mcCommonGrid.innerHTML += stripHtml;
             });
 
-            // 16~19번 단답형 1행
             for (let i = 16; i <= 19; i++) {
                 DOM.saRow1.innerHTML += this.createShortAnswerItem(i);
             }
 
-            // 20~22번 단답형 + 4번째 칸 표기 안내 박스
             for (let i = 20; i <= 22; i++) {
                 DOM.saRow2.innerHTML += this.createShortAnswerItem(i);
             }
@@ -1317,12 +1433,10 @@
                     </div>
                 </div>`;
 
-            // 23~28번 선택과목 객관식
             for (let i = 23; i <= 28; i++) {
                 DOM.mcElectiveContainer.innerHTML += this.createOmrQuestionRow(i);
             }
 
-            // 29~30번 선택과목 단답형
             for (let i = 29; i <= 30; i++) {
                 DOM.saElectiveContainer.innerHTML += this.createShortAnswerItem(i);
             }
@@ -1466,6 +1580,29 @@
         hideModal() {
             DOM.modal.classList.add('hidden');
             DOM.modal.classList.remove('flex');
+        },
+
+        // 소프트 팝업 모달 열기
+        showEventPopup(customHtml = null) {
+            const htmlToRender = customHtml || State.adminConfig.eventHtml || DEFAULT_EVENT_HTML;
+            DOM.eventModalContent.innerHTML = htmlToRender;
+            DOM.eventSoftModal.classList.remove('hidden');
+            DOM.eventSoftModal.classList.add('flex');
+
+            setTimeout(() => {
+                DOM.eventSoftModalCard.classList.remove('scale-95', 'opacity-0');
+                DOM.eventSoftModalCard.classList.add('scale-100', 'opacity-100');
+            }, 20);
+        },
+
+        // 소프트 팝업 모달 닫기
+        hideEventPopup() {
+            DOM.eventSoftModalCard.classList.remove('scale-100', 'opacity-100');
+            DOM.eventSoftModalCard.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                DOM.eventSoftModal.classList.add('hidden');
+                DOM.eventSoftModal.classList.remove('flex');
+            }, 200);
         },
 
         updateTimerDisplay(seconds) {
@@ -2110,6 +2247,7 @@
                 UI.showToast('로그아웃되었습니다.', 'info');
             });
 
+            // 관리자 서브탭 전환
             document.querySelectorAll('.admin-tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const tab = btn.dataset.adminTab;
@@ -2121,11 +2259,43 @@
                     document.getElementById('admin-tab-exams').classList.toggle('hidden', tab !== 'exams');
                     document.getElementById('admin-tab-submissions').classList.toggle('hidden', tab !== 'submissions');
                     document.getElementById('admin-tab-settings').classList.toggle('hidden', tab !== 'settings');
+                    document.getElementById('admin-tab-event').classList.toggle('hidden', tab !== 'event');
 
                     if (tab === 'submissions') {
                         App.fetchRealtimeSubmissions();
                     }
                 });
+            });
+
+            // 이벤트 설정 저장 버튼
+            DOM.admSaveEventBtn.addEventListener('click', () => {
+                State.adminConfig.eventEnabled = DOM.admEventEnabled.checked;
+                State.adminConfig.eventHtml = DOM.admEventHtml.value;
+                State.saveAdminConfig();
+                UI.showToast('이벤트 팝업 설정이 저장되었습니다.', 'success');
+            });
+
+            // 이벤트 팝업 미리보기 버튼
+            DOM.admEventPreviewBtn.addEventListener('click', () => {
+                const previewHtml = DOM.admEventHtml.value;
+                UI.showEventPopup(previewHtml);
+            });
+
+            // 기본 템플릿 복원 버튼
+            DOM.admResetEventHtmlBtn.addEventListener('click', () => {
+                UI.showModal('기본 이벤트 템플릿으로 되돌리시겠습니까?', true, () => {
+                    DOM.admEventHtml.value = DEFAULT_EVENT_HTML;
+                    UI.showToast('기본 템플릿 코드가 적용되었습니다.', 'info');
+                });
+            });
+
+            // 소프트 팝업 모달 닫기 버튼들
+            DOM.eventModalCloseX.addEventListener('click', () => UI.hideEventPopup());
+            DOM.eventModalCloseBtn.addEventListener('click', () => UI.hideEventPopup());
+            DOM.eventSoftModal.addEventListener('click', (e) => {
+                if (e.target === DOM.eventSoftModal) {
+                    UI.hideEventPopup();
+                }
             });
 
             DOM.admSaveExamBtn.addEventListener('click', async () => {
@@ -2697,6 +2867,7 @@
             this.finishSubmissionUI(report, examDuration, examEndTime);
         },
 
+        // 성적 통지표 저장 및 이벤트 소프트 팝업 트리거
         finishSubmissionUI(report, examDuration, examEndTime) {
             const snapshot = {
                 report: JSON.parse(JSON.stringify(report)),
@@ -2727,6 +2898,13 @@
             DOM.resumeBanner.classList.add('hidden');
 
             UI.showToast('성적 통지표 산출이 완료되었습니다.', 'success');
+
+            // 이벤트가 활성화되어 있다면 소프트 팝업 자동 오픈
+            if (State.adminConfig.eventEnabled !== false) {
+                setTimeout(() => {
+                    UI.showEventPopup();
+                }, 300);
+            }
         }
     };
 
